@@ -8,7 +8,7 @@ import { useSnap } from '../snap/snap'
 
 export function useShape(id: string) {
   const compStore = useComponent()
-  const { selectComponent, isDragging } = storeToRefs(compStore)
+  const { isDragging } = storeToRefs(compStore)
   const {
     selectedId: setSelected,
     updateComponentSize,
@@ -31,7 +31,7 @@ export function useShape(id: string) {
   const wrapperRef = ref<HTMLDivElement | null>(null)
   const canvasWrapRef = inject<Ref<HTMLDivElement | null>>('canvasWrapRef')
 
-  // 防抖更新位置（拖拽）
+  // 防抖更新位置
   const debouncedUpdatePosition = debounce(
     updateComponentPosition as (...args: unknown[]) => unknown,
     10,
@@ -39,7 +39,11 @@ export function useShape(id: string) {
 
   const { snapToNeighbors, boxCache, meComp } = useSnap()
 
-  // 绑定拖拽（移动）行为
+  // 拖拽开始时的原始位置和子组件位置快照
+  let dragStartPos = { x: 0, y: 0 }
+  let childrenStartPos: Record<string, { x: number; y: number }> = {}
+
+  // 绑定拖拽行为
   useCanvasInteraction(wrapperRef, scale, {
     enableDrag: true,
     preventBubble: true,
@@ -47,6 +51,9 @@ export function useShape(id: string) {
     rootRefForAbs: canvasWrapRef as any, // eslint-disable-line @typescript-eslint/no-explicit-any
     dragCallback: (x, y) => {
       ;(setSelected as (id: string) => void)(id)
+      const comp = currentComponent.value
+      if (!comp) return
+
       // 先计算吸附后的理想位置，再更新
       const snap = snapToNeighbors(10, { x, y })
       if (snap) {
@@ -54,16 +61,46 @@ export function useShape(id: string) {
       } else {
         debouncedUpdatePosition({ x, y })
       }
+
+      // 只有拖拽组合本身时，才同步移动所有子组件
+      // 拖拽子组件时，子组件独立移动
+      if (comp.type === 'Group' && comp.children) {
+        const actualDx = (snap?.position.x ?? x) - dragStartPos.x
+        const actualDy = (snap?.position.y ?? y) - dragStartPos.y
+        comp.children.forEach((childId) => {
+          const child = compStore.componentStore.find((c) => c.id === childId)
+          const startPos = childrenStartPos[childId]
+          if (child && startPos) {
+            child.position.x = startPos.x + actualDx
+            child.position.y = startPos.y + actualDy
+          }
+        })
+      }
     },
     onDragStart: () => {
       isDragging.value = true
+      const comp = currentComponent.value
+      if (comp) {
+        dragStartPos = { ...comp.position }
+        // 只有拖拽组合本身时，才保存子组件的初始位置
+        if (comp.type === 'Group' && comp.children) {
+          childrenStartPos = {}
+          comp.children.forEach((childId) => {
+            const child = compStore.componentStore.find((c) => c.id === childId)
+            if (child) {
+              childrenStartPos[childId] = { ...child.position }
+            }
+          })
+        }
+      }
     },
     onDragEnd: () => {
       isDragging.value = false
+      childrenStartPos = {}
     },
   })
 
-  const isSelected = computed(() => selectComponent.value?.id === id)
+  const isSelected = computed(() => compStore.isSelected(id))
 
   // 样式
   const wrapperStyle = computed<CSSProperties>(
@@ -80,6 +117,11 @@ export function useShape(id: string) {
       }) as CSSProperties,
   )
 
+  const isMultiSelected = computed(() => {
+    const selectedCount = compStore.selectedIds.length
+    return selectedCount > 1 && compStore.isSelected(id)
+  })
+
   const borderStyle = computed<CSSProperties>(
     () =>
       ({
@@ -88,7 +130,7 @@ export function useShape(id: string) {
         left: 0,
         width: '100%',
         height: '100%',
-        border: '1px solid #409EFF',
+        border: isMultiSelected.value ? '1px dashed #409EFF' : '1px solid #409EFF',
         pointerEvents: 'none',
       }) as CSSProperties,
   )
@@ -115,6 +157,11 @@ export function useShape(id: string) {
   let startSize = { width: 0, height: 0 }
   let startPos = { x: 0, y: 0 }
   let currentHandle = ''
+  let childrenStartState: Record<
+    string,
+    { position: { x: number; y: number }; size: { width: number; height: number } }
+  > = {}
+
   const onHandleMouseDown = (e: MouseEvent, handle: HandleMeta) => {
     e.preventDefault()
     ;(setSelected as (id: string) => void)(id)
@@ -123,6 +170,22 @@ export function useShape(id: string) {
     startSize = { ...size.value }
     startPos = { ...position.value }
     currentHandle = handle.id
+
+    // 保存子组件的初始状态
+    const comp = currentComponent.value
+    if (comp && comp.type === 'Group' && comp.children) {
+      childrenStartState = {}
+      comp.children.forEach((childId) => {
+        const child = compStore.componentStore.find((c) => c.id === childId)
+        if (child) {
+          childrenStartState[childId] = {
+            position: { ...child.position },
+            size: { ...child.size },
+          }
+        }
+      })
+    }
+
     window.addEventListener('mousemove', throttledHandleMouseMove)
     window.addEventListener('mouseup', onHandleMouseUp)
   }
@@ -238,6 +301,29 @@ export function useShape(id: string) {
 
     updateComponentSize({ width: newWidth, height: newHeight })
     updateComponentPosition({ x: newX, y: newY })
+
+    // 如果是组合，同步缩放所有子组件
+    const comp = currentComponent.value
+    if (comp && comp.type === 'Group' && comp.children) {
+      const scaleX = newWidth / startSize.width
+      const scaleY = newHeight / startSize.height
+
+      comp.children.forEach((childId) => {
+        const child = compStore.componentStore.find((c) => c.id === childId)
+        const childStart = childrenStartState[childId]
+        if (child && childStart) {
+          // 计算子组件相对于组合的偏移（使用初始状态）
+          const relX = childStart.position.x - startPos.x
+          const relY = childStart.position.y - startPos.y
+
+          // 应用缩放
+          child.position.x = newX + relX * scaleX
+          child.position.y = newY + relY * scaleY
+          child.size.width = childStart.size.width * scaleX
+          child.size.height = childStart.size.height * scaleY
+        }
+      })
+    }
   }
   const throttledHandleMouseMove = throttle(onHandleMouseMove as any, 16) // eslint-disable-line @typescript-eslint/no-explicit-any
   const onHandleMouseUp = () => {
@@ -245,6 +331,7 @@ export function useShape(id: string) {
     window.removeEventListener('mousemove', throttledHandleMouseMove)
     window.removeEventListener('mouseup', onHandleMouseUp)
     currentHandle = ''
+    childrenStartState = {}
   }
 
   // 旋转

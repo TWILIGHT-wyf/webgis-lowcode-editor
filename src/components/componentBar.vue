@@ -1,63 +1,121 @@
 <template>
-  <div class="componentBar">
-    <el-collapse class="collapse">
+  <el-scrollbar class="componentBar">
+    <div class="scroll-inner">
+      <el-collapse class="collapse">
         <el-collapse-item
           :title="cat.title"
           :name="cat.title"
           v-for="cat in categories"
           :key="cat.key"
-          >
-            <div class="palette-list">
-              <div
-                class="palette-item"
-                v-for="item in cat.items"
-                :key="item.type"
-                draggable="true"
-                @dragstart="onDrag($event,item)"
-                >
-                {{ item.label}}
-              </div>
+        >
+          <div class="palette-list">
+            <div
+              class="palette-item"
+              v-for="item in cat.items"
+              :key="item.type"
+              draggable="true"
+              @dragstart="onDrag($event, item)"
+            >
+              {{ item.label }}
             </div>
+          </div>
         </el-collapse-item>
-    </el-collapse>
-  </div>
+      </el-collapse>
+    </div>
+  </el-scrollbar>
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue';
+import { ref } from 'vue'
 
 type Category = {
-  key: string,
-  title: string,
+  key: string
+  title: string
   items: Item[]
 }
 type Item = {
-  type: string,
-  label: string,
-  tags?: string[],
-  width?: number,
+  type: string
+  label: string
+  tags?: string[]
+  width?: number
   height?: number
 }
 
+// 组件类型
 const categories = ref<Category[]>([
   {
     key: 'map',
     title: '地图图层',
     items: [
       {
-        type: 'map.heat',
-        label: '热力图',
-        tags: ['leaflet', 'heat']
+        type: 'map.base',
+        label: '底图',
+        tags: ['tile', 'basemap'],
+        width: 300,
+        height: 200,
       },
       {
-        type: 'map.cluster',
-        label: '聚合',
-        tags: ['cluster']
+        type: 'map.tile',
+        label: '瓦片图层',
+        tags: ['leaflet', 'tile'],
+        width: 300,
+        height: 200,
       },
       {
         type: 'map.vector',
         label: '矢量图层',
-        tags: ['point', 'line', 'polygon']
+        tags: ['point', 'line', 'polygon'],
+        width: 300,
+        height: 200,
+      },
+      {
+        type: 'map.geojson',
+        label: 'GeoJSON',
+        tags: ['geojson'],
+        width: 300,
+        height: 200,
+      },
+      {
+        type: 'map.marker',
+        label: '标记点',
+        tags: ['marker'],
+        width: 120,
+        height: 120,
+      },
+      {
+        type: 'map.cluster',
+        label: '聚合',
+        tags: ['cluster'],
+        width: 300,
+        height: 200,
+      },
+      {
+        type: 'map.heat',
+        label: '热力图',
+        tags: ['heat'],
+        width: 300,
+        height: 200,
+      },
+      {
+        type: 'map.control.legend',
+        label: '图例',
+        tags: ['legend'],
+        width: 160,
+        height: 120,
+      },
+      {
+        type: 'map.control.scale',
+        label: '比例尺',
+        tags: ['scale'],
+        width: 120,
+        height: 50,
+      },
+      {
+        type: 'map.control.layers',
+        label: '图层控制',
+        tags: ['layers'],
+        width: 160,
+        height: 160,
       },
     ],
   },
@@ -68,17 +126,87 @@ const categories = ref<Category[]>([
       {
         type: 'chart.line',
         label: '折线图',
-        tags: ['echarts']
+        tags: ['echarts', 'line'],
+        width: 320,
+        height: 200,
+      },
+      {
+        type: 'chart.area',
+        label: '面积图',
+        tags: ['echarts', 'area'],
+        width: 320,
+        height: 200,
       },
       {
         type: 'chart.bar',
         label: '柱状图',
-        tags: ['echarts']
+        tags: ['echarts', 'bar'],
+        width: 320,
+        height: 200,
+      },
+      {
+        type: 'chart.stackedBar',
+        label: '堆叠柱状',
+        tags: ['echarts', 'bar', 'stack'],
+        width: 360,
+        height: 220,
       },
       {
         type: 'chart.pie',
         label: '饼图',
-        tags: ['echarts'] },
+        tags: ['echarts', 'pie'],
+        width: 240,
+        height: 240,
+      },
+      {
+        type: 'chart.donut',
+        label: '环形图',
+        tags: ['echarts', 'pie', 'donut'],
+        width: 240,
+        height: 240,
+      },
+      {
+        type: 'chart.scatter',
+        label: '散点图',
+        tags: ['echarts', 'scatter'],
+        width: 320,
+        height: 220,
+      },
+      {
+        type: 'chart.radar',
+        label: '雷达图',
+        tags: ['echarts', 'radar'],
+        width: 300,
+        height: 300,
+      },
+      {
+        type: 'chart.gauge',
+        label: '仪表盘',
+        tags: ['echarts', 'gauge'],
+        width: 260,
+        height: 260,
+      },
+      {
+        type: 'chart.funnel',
+        label: '漏斗图',
+        tags: ['echarts', 'funnel'],
+        width: 300,
+        height: 240,
+      },
+      {
+        type: 'chart.treemap',
+        label: '矩形树图',
+        tags: ['echarts', 'treemap'],
+        width: 340,
+        height: 240,
+      },
+      {
+        type: 'chart.sankey',
+        label: '桑基图',
+        tags: ['echarts', 'sankey'],
+        width: 360,
+        height: 240,
+      },
     ],
   },
   {
@@ -88,29 +216,149 @@ const categories = ref<Category[]>([
       {
         type: 'stat',
         label: '指标卡',
-        tags: ['kpi'] },
+        tags: ['kpi'],
+        width: 160,
+        height: 100,
+      },
       {
         type: 'Text',
         label: '文本',
         tags: ['title', 'desc'],
-        width: 50,
-        height: 50
+        width: 120,
+        height: 50,
+      },
+      {
+        type: 'kpi.numberTicker',
+        label: '数字跳动',
+        tags: ['kpi', 'number'],
+        width: 160,
+        height: 80,
+      },
+      {
+        type: 'kpi.progress',
+        label: '进度条',
+        tags: ['kpi', 'progress'],
+        width: 200,
+        height: 40,
+      },
+      {
+        type: 'kpi.badge',
+        label: '徽章',
+        tags: ['kpi', 'badge'],
+        width: 100,
+        height: 40,
       },
       {
         type: 'box',
         label: '占位盒',
-        tags: ['layout']
+        tags: ['layout'],
+        width: 120,
+        height: 80,
       },
     ],
   },
   {
     key: 'data',
     title: '数据与列表',
-    items: [{
-      type: 'table',
-      label: '表格',
-      tags: ['data']
-    }],
+    items: [
+      {
+        type: 'table',
+        label: '表格',
+        tags: ['data', 'table'],
+        width: 400,
+        height: 240,
+      },
+      {
+        type: 'list',
+        label: '列表',
+        tags: ['data', 'list'],
+        width: 240,
+        height: 300,
+      },
+      {
+        type: 'timeline',
+        label: '时间轴',
+        tags: ['data', 'timeline'],
+        width: 320,
+        height: 200,
+      },
+      {
+        type: 'card',
+        label: '卡片网格',
+        tags: ['data', 'card'],
+        width: 360,
+        height: 240,
+      },
+      {
+        type: 'pivot',
+        label: '透视分析',
+        tags: ['data', 'pivot'],
+        width: 420,
+        height: 260,
+      },
+    ],
+  },
+  {
+    key: 'controls',
+    title: '交互控件',
+    items: [
+      {
+        type: 'filter.select',
+        label: '下拉选择',
+        tags: ['filter', 'select'],
+        width: 160,
+        height: 40,
+      },
+      {
+        type: 'filter.multiSelect',
+        label: '多选选择',
+        tags: ['filter', 'select', 'multi'],
+        width: 180,
+        height: 50,
+      },
+      {
+        type: 'filter.dateRange',
+        label: '日期范围',
+        tags: ['filter', 'date'],
+        width: 220,
+        height: 50,
+      },
+      {
+        type: 'filter.search',
+        label: '搜索框',
+        tags: ['filter', 'search'],
+        width: 200,
+        height: 40,
+      },
+      {
+        type: 'filter.slider',
+        label: '滑块',
+        tags: ['filter', 'slider'],
+        width: 200,
+        height: 50,
+      },
+      {
+        type: 'filter.switch',
+        label: '开关',
+        tags: ['filter', 'switch'],
+        width: 100,
+        height: 40,
+      },
+      {
+        type: 'filter.checkboxGroup',
+        label: '复选组',
+        tags: ['filter', 'checkbox'],
+        width: 200,
+        height: 80,
+      },
+      {
+        type: 'filter.buttonGroup',
+        label: '按钮组',
+        tags: ['filter', 'button'],
+        width: 220,
+        height: 60,
+      },
+    ],
   },
   {
     key: 'layout',
@@ -118,15 +366,126 @@ const categories = ref<Category[]>([
     items: [
       {
         type: 'layout.row',
-        label: '行'
+        label: '行',
+        tags: ['layout'],
+        width: 400,
+        height: 120,
       },
       {
         type: 'layout.col',
-        label: '列'
+        label: '列',
+        tags: ['layout'],
+        width: 160,
+        height: 400,
       },
       {
         type: 'layout.tabs',
-        label: '选项卡'
+        label: '选项卡',
+        tags: ['layout', 'tabs'],
+        width: 400,
+        height: 300,
+      },
+      {
+        type: 'layout.grid',
+        label: '网格',
+        tags: ['layout', 'grid'],
+        width: 400,
+        height: 300,
+      },
+      {
+        type: 'layout.panel',
+        label: '面板',
+        tags: ['layout', 'panel'],
+        width: 300,
+        height: 220,
+      },
+      {
+        type: 'layout.modal',
+        label: '弹窗',
+        tags: ['layout', 'modal'],
+        width: 360,
+        height: 240,
+      },
+      {
+        type: 'layout.flex',
+        label: 'Flex容器',
+        tags: ['layout', 'flex'],
+        width: 400,
+        height: 240,
+      },
+    ],
+  },
+  {
+    key: 'media',
+    title: '媒体',
+    items: [
+      {
+        type: 'media.image',
+        label: '图片',
+        tags: ['media', 'image'],
+        width: 240,
+        height: 180,
+      },
+      {
+        type: 'media.video',
+        label: '视频',
+        tags: ['media', 'video'],
+        width: 320,
+        height: 200,
+      },
+    ],
+  },
+  {
+    key: 'content',
+    title: '内容扩展',
+    items: [
+      {
+        type: 'markdown',
+        label: 'Markdown',
+        tags: ['content', 'markdown'],
+        width: 360,
+        height: 260,
+      },
+      {
+        type: 'html',
+        label: '自定义HTML',
+        tags: ['content', 'html'],
+        width: 360,
+        height: 260,
+      },
+      {
+        type: 'iframe',
+        label: '外部Iframe',
+        tags: ['content', 'iframe'],
+        width: 400,
+        height: 300,
+      },
+    ],
+  },
+  {
+    key: 'advanced',
+    title: '高级功能',
+    items: [
+      {
+        type: 'advanced.scripting',
+        label: '脚本组件',
+        tags: ['advanced', 'script'],
+        width: 320,
+        height: 180,
+      },
+      {
+        type: 'advanced.trigger',
+        label: '触发器',
+        tags: ['advanced', 'event'],
+        width: 160,
+        height: 80,
+      },
+      {
+        type: 'advanced.state',
+        label: '状态变量',
+        tags: ['advanced', 'state'],
+        width: 160,
+        height: 80,
       },
     ],
   },
@@ -143,17 +502,25 @@ function onDrag(e: DragEvent, item: Item) {
 
 <style scoped>
 .componentBar {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
   width: 100%;
   height: 100%;
 }
 
+:deep(.el-scrollbar) {
+  height: 100%;
+  width: 100%;
+}
+
+.scroll-inner {
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  padding: 8px 0; /* 适度内边距避免贴边 */
+}
+
 .collapse {
   width: 90%;
-  height: 100%;
-  overflow: hidden;
+  max-width: 520px; /* 防止过宽 */
 }
 
 .palette-list {
@@ -173,7 +540,10 @@ function onDrag(e: DragEvent, item: Item) {
   background: var(--el-fill-color-blank);
   cursor: grab;
   user-select: none;
-  transition: background 0.15s, box-shadow 0.15s, border-color 0.15s;
+  transition:
+    background 0.15s,
+    box-shadow 0.15s,
+    border-color 0.15s;
 }
 
 .palette-item:hover {
@@ -181,6 +551,4 @@ function onDrag(e: DragEvent, item: Item) {
   box-shadow: var(--el-box-shadow-light);
   border-color: var(--el-color-primary-light-5);
 }
-
-
 </style>

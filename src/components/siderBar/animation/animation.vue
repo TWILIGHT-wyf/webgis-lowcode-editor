@@ -43,7 +43,6 @@ function cancelPreview() {
   // 悬停移出后保留最后一次效果或清空，这里选择保留
 }
 
-
 // 写入当前选中组件的 animation 配置
 function selectAnimation(a: { name: string; class: string }) {
   const store = useComponent()
@@ -63,7 +62,6 @@ function selectAnimation(a: { name: string; class: string }) {
 const previewClass = computed(() => {
   return ['preview-box', currentClass.value].filter(Boolean)
 })
-
 </script>
 
 <style scoped>
@@ -71,7 +69,8 @@ const previewClass = computed(() => {
   display: flex;
   flex-direction: column;
   gap: 12px;
-  padding: 12px;
+  padding: 0 28px 0 16px; 
+  box-sizing: border-box;
 }
 .preview-area {
   display: flex;
@@ -95,7 +94,7 @@ const previewClass = computed(() => {
 .animation-list {
   list-style: none;
   margin: 0;
-  padding: 0;
+  padding: 0 8px 0 0; /* 给网格一点右内边距，避免最后一列紧贴 */
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
   gap: 10px;

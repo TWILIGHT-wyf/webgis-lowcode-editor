@@ -3,6 +3,7 @@
     ref="wrapperRef"
     class="shape-wrapper"
     :style="wrapperStyle"
+    @click.stop="handleClick"
     @contextmenu.stop.prevent="emitOpenContextMenu"
   >
     <!-- 统一动画容器：内容 + 边框 一起动 -->
@@ -34,6 +35,7 @@
 
 <script setup lang="ts">
 import { useShape } from './shape'
+import { useComponent } from '@/stores/component'
 
 const props = defineProps<{ id: string }>()
 
@@ -49,11 +51,18 @@ const {
   contentStyle,
 } = useShape(props.id)
 
+const compStore = useComponent()
+
 const emit = defineEmits<{
   (e: 'open-context-menu', payload: { id: string; event: MouseEvent }): void
 }>()
+
 function emitOpenContextMenu(e: MouseEvent) {
   emit('open-context-menu', { id: props.id, event: e })
+}
+
+function handleClick(e: MouseEvent) {
+  compStore.toggleSelect(props.id, e.ctrlKey)
 }
 </script>
 

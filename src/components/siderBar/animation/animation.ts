@@ -15,4 +15,4 @@ export const animations: AnimationOption[] = [
   { name: 'rotate', label: '旋转', class: 'anim-rotate', desc: '旋转出现' },
 ]
 
-// 可扩展：后续可以添加触发方式（onLoad / onHover / onClick）、延迟、循环次数等配置
+

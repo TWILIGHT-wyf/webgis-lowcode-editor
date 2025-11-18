@@ -5,6 +5,7 @@
     :class="{ dragging: isPanning }"
     @dragover.prevent
     @contextmenu.prevent="onCanvasContextMenu"
+    @click="handleCanvasClick"
   >
     <div class="world" :style="worldStyle">
       <div class="stage" :style="stageStyle">
@@ -13,7 +14,6 @@
           v-for="com in componentStore"
           :key="com.id"
           v-bind="com"
-          @click.stop="selectedId(com.id)"
           :id="com.id"
           @open-context-menu="openContextMenu"
         >
@@ -63,7 +63,15 @@ const { width, height, scale } = storeToRefs(sizeStore)
 // 组件存储数组
 const compStore = useComponent()
 const { componentStore, isDragging } = storeToRefs(compStore)
-const { addComponent, selectedId } = compStore
+const { addComponent, selectedId, clearSelection } = compStore
+
+// 点击画布空白处清空选择
+const handleCanvasClick = (e: MouseEvent) => {
+  // 如果点击的不是shape组件，清空选择
+  if (!(e.target as HTMLElement).closest('.shape-wrapper')) {
+    clearSelection()
+  }
+}
 
 const {
   menuState,

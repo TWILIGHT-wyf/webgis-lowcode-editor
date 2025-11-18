@@ -13,9 +13,9 @@ import CanvasBoard from './components/Editor/canvasBoard/canvasBoard.vue';
         <headerNav/>
       </el-header>
       <el-container>
-        <el-aside width="200px"><componentBar/></el-aside>
+        <el-aside width="300px"><componentBar/></el-aside>
         <el-main><CanvasBoard/></el-main>
-        <el-aside width="290px"><SiderBar/></el-aside>
+        <el-aside width="340px"><SiderBar/></el-aside>
       </el-container>
     </el-container>
   </div>
@@ -44,6 +44,6 @@ html, body, #app {
   flex: 1;
 }
 .el-aside {
-  overflow: auto;
+  overflow: hidden;
 }
 </style>

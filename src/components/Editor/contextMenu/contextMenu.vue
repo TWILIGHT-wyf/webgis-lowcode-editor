@@ -7,14 +7,22 @@
       </template>
       <!-- 组件上显示完整菜单 -->
       <template v-else>
-        <li class="ctx-item" @click="emitAction('cut')">剪切</li>
-        <li class="ctx-item" @click="emitAction('copy')">复制</li>
+        <li class="ctx-item" @click="emitAction('cut')">
+          剪切{{ selectedCount > 1 ? ` (${selectedCount})` : '' }}
+        </li>
+        <li class="ctx-item" @click="emitAction('copy')">
+          复制{{ selectedCount > 1 ? ` (${selectedCount})` : '' }}
+        </li>
         <li class="ctx-item" @click="emitAction('paste')" :class="{ disabled: !canPaste }">粘贴</li>
-        <li class="ctx-item" @click="emitAction('delete')">删除</li>
+        <li class="ctx-item" @click="emitAction('delete')">
+          删除{{ selectedCount > 1 ? ` (${selectedCount})` : '' }}
+        </li>
         <li class="ctx-item" @click="emitAction('bringForward')">上移一层</li>
         <li class="ctx-item" @click="emitAction('sendBackward')">下移一层</li>
         <li class="ctx-item" @click="emitAction('bringToFront')">置顶</li>
         <li class="ctx-item" @click="emitAction('sendToBack')">置底</li>
+        <li v-if="canGroup" class="ctx-item" @click="emitAction('group')">组合</li>
+        <li v-if="canUngroup" class="ctx-item" @click="emitAction('ungroup')">取消组合</li>
       </template>
     </ul>
   </transition>
@@ -23,14 +31,7 @@
 <script setup lang="ts">
 import { computed } from 'vue'
 import { useComponent } from '@/stores/component'
-
-const { clipboard } = useComponent()
-const canPaste = computed(() => {
-  if (clipboard)
-    return true
-  else
-    return false
-})
+import { storeToRefs } from 'pinia'
 
 interface Props {
   x: number
@@ -39,6 +40,29 @@ interface Props {
   targetId?: string
 }
 const props = defineProps<Props>()
+
+const compStore = useComponent()
+const { clipboard, selectedIds } = storeToRefs(compStore)
+
+const canPaste = computed(() => !!(clipboard && clipboard.value && clipboard.value.length))
+
+const selectedCount = computed(() => selectedIds.value.length)
+
+// 是否可以组合（多选且非组合）
+const canGroup = computed(() => {
+  if (selectedCount.value < 2) return false
+  // 检查是否所有选中的都不是组合
+  const allComps = selectedIds.value.map((id) => compStore.componentStore.find((c) => c.id === id))
+  return allComps.every((c) => c && c.type !== 'Group')
+})
+
+// 是否可以取消组合（单选且是组合）
+const canUngroup = computed(() => {
+  if (selectedCount.value !== 1 || !props.targetId) return false
+  const comp = compStore.componentStore.find((c) => c.id === props.targetId)
+  return comp?.type === 'Group'
+})
+
 const emit = defineEmits<{
   (e: 'action', action: string): void
 }>()

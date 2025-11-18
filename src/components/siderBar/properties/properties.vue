@@ -8,6 +8,18 @@
 
       <!-- 选中组件时显示属性表单 -->
       <div v-else class="properties-form">
+        <!-- 多选提示 -->
+        <el-alert
+          v-if="isMultiSelect"
+          type="info"
+          :closable="false"
+          show-icon
+          style="margin-bottom: 16px"
+        >
+          <template #title>
+            已选中 {{ selectedIds.length }} 个组件，修改属性将应用到所有选中组件
+          </template>
+        </el-alert>
         <!-- 组件基本信息 -->
         <el-collapse v-model="activeCollapse" accordion>
           <!-- 基础信息 -->
@@ -242,9 +254,12 @@ import { storeToRefs } from 'pinia'
 import { customProperties } from './properties'
 // 状态管理
 const storeComponent = useComponent()
-const { selectComponent } = storeToRefs(storeComponent)
+const { selectComponent, selectedIds } = storeToRefs(storeComponent)
 const activeCollapse = ref(['basic'])
 const { styleSchema, dataSourceSchema } = customProperties()
+
+// 多选提示
+const isMultiSelect = computed(() => selectedIds.value.length > 1)
 
 // 旋转
 const rotationForUi = computed({
@@ -285,9 +300,72 @@ const handleSendToBack = () => {
 }
 
 const handleDelete = () => {
-  const id = selectComponent.value?.id
-  if (id) storeComponent.removeComponent(id)
+  if (isMultiSelect.value) {
+    storeComponent.removeMultipleComponents([...selectedIds.value])
+  } else {
+    const id = selectComponent.value?.id
+    if (id) storeComponent.removeComponent(id)
+  }
 }
+
+// 监听属性变化，批量同步到所有选中组件
+watch(
+  () => selectComponent.value?.position,
+  (newPos) => {
+    if (!isMultiSelect.value || !newPos) return
+    selectedIds.value.forEach((id) => {
+      const comp = storeComponent.componentStore.find((c) => c.id === id)
+      if (comp && comp.id !== selectComponent.value?.id) {
+        comp.position.x = newPos.x
+        comp.position.y = newPos.y
+      }
+    })
+  },
+  { deep: true },
+)
+
+watch(
+  () => selectComponent.value?.size,
+  (newSize) => {
+    if (!isMultiSelect.value || !newSize) return
+    selectedIds.value.forEach((id) => {
+      const comp = storeComponent.componentStore.find((c) => c.id === id)
+      if (comp && comp.id !== selectComponent.value?.id) {
+        comp.size.width = newSize.width
+        comp.size.height = newSize.height
+      }
+    })
+  },
+  { deep: true },
+)
+
+watch(
+  () => selectComponent.value?.rotation,
+  (newRotation) => {
+    if (!isMultiSelect.value || newRotation === undefined) return
+    selectedIds.value.forEach((id) => {
+      const comp = storeComponent.componentStore.find((c) => c.id === id)
+      if (comp && comp.id !== selectComponent.value?.id) {
+        comp.rotation = newRotation
+      }
+    })
+  },
+)
+
+watch(
+  () => selectComponent.value?.style,
+  (newStyle) => {
+    if (!isMultiSelect.value || !newStyle) return
+    selectedIds.value.forEach((id) => {
+      const comp = storeComponent.componentStore.find((c) => c.id === id)
+      if (comp && comp.id !== selectComponent.value?.id && comp.style) {
+        // 同步样式属性
+        Object.assign(comp.style, { ...newStyle })
+      }
+    })
+  },
+  { deep: true },
+)
 
 watch(
   () => selectComponent.value,
@@ -399,8 +477,13 @@ watch(
   gap: 8px;
 }
 
-/* 滚动条样式 */
-:deep(.el-scrollbar__wrap) {
+:deep(.properties-scrollbar > .el-scrollbar__wrap) {
   overflow-x: hidden;
+}
+
+.properties-panel,
+.properties-form,
+.properties-form * {
+  box-sizing: border-box;
 }
 </style>
