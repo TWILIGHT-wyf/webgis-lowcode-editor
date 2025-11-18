@@ -6,6 +6,7 @@ import App from './App.vue'
 import router from './router'
 import 'leaflet/dist/leaflet.css'
 import * as ElementPlusIconsVue from '@element-plus/icons-vue'
+import './styles/animations.css'
 
 if (import.meta.env.DEV) {
   const { worker } = await import('./mock/browser')

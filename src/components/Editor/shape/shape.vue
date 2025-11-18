@@ -5,28 +5,30 @@
     :style="wrapperStyle"
     @contextmenu.stop.prevent="emitOpenContextMenu"
   >
-    <div class="shape-content">
-      <slot />
-    </div>
-
-    <!-- 边框 -->
-    <div v-if="isSelected" class="shape-border" :style="borderStyle" />
-
-    <!-- 八个缩放节点 -->
-    <template v-if="isSelected">
-      <div
-        v-for="handle in handles"
-        :key="handle.id"
-        class="shape-handle"
-        :class="handle.class"
-        @mousedown.stop="onHandleMouseDown($event, handle)"
-      />
-
-      <!-- 旋转手柄 -->
-      <div class="shape-rotate" @mousedown.stop="onRotateMouseDown">
-        <div class="rotate-icon">↻</div>
+    <!-- 统一动画容器：内容 + 边框 一起动 -->
+    <div class="shape-box" :class="contentClass" :style="contentStyle">
+      <div class="shape-content">
+        <slot />
       </div>
-    </template>
+      <!-- 边框 -->
+      <div v-if="isSelected" class="shape-border" :style="borderStyle" />
+
+      <!-- 八个缩放节点（随动画一起） -->
+      <template v-if="isSelected">
+        <div
+          v-for="handle in handles"
+          :key="handle.id"
+          class="shape-handle"
+          :class="handle.class"
+          @mousedown.stop="onHandleMouseDown($event, handle)"
+        />
+
+        <!-- 旋转手柄（随动画一起） -->
+        <div class="shape-rotate" @mousedown.stop="onRotateMouseDown">
+          <div class="rotate-icon">↻</div>
+        </div>
+      </template>
+    </div>
   </div>
 </template>
 
@@ -43,6 +45,8 @@ const {
   handles,
   onHandleMouseDown,
   onRotateMouseDown,
+  contentClass,
+  contentStyle,
 } = useShape(props.id)
 
 const emit = defineEmits<{
@@ -54,6 +58,11 @@ function emitOpenContextMenu(e: MouseEvent) {
 </script>
 
 <style>
+.shape-box {
+  position: relative;
+  width: 100%;
+  height: 100%;
+}
 .shape-handle {
   position: absolute;
   width: 8px;

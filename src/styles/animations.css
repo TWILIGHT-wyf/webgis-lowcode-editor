@@ -1,0 +1,90 @@
+/* 全局动画样式，供各组件复用 */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+.anim-fade {
+  animation: fadeIn 0.8s ease both;
+}
+
+@keyframes zoomIn {
+  0% {
+    transform: scale(0.3);
+    opacity: 0;
+  }
+  60% {
+    opacity: 1;
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+.anim-zoom {
+  animation: zoomIn 0.7s cubic-bezier(0.4, 0, 0.2, 1) both;
+}
+
+@keyframes slideLeft {
+  0% {
+    transform: translateX(40px);
+    opacity: 0;
+  }
+  100% {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+.anim-slide-left {
+  animation: slideLeft 0.6s ease-out both;
+}
+
+@keyframes slideUp {
+  0% {
+    transform: translateY(40px);
+    opacity: 0;
+  }
+  100% {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+.anim-slide-up {
+  animation: slideUp 0.6s ease-out both;
+}
+
+@keyframes bounceIn {
+  0% {
+    transform: scale(0.5);
+    opacity: 0;
+  }
+  60% {
+    transform: scale(1.1);
+    opacity: 1;
+  }
+  80% {
+    transform: scale(0.95);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+.anim-bounce {
+  animation: bounceIn 0.7s cubic-bezier(0.68, -0.55, 0.27, 1.55) both;
+}
+
+@keyframes rotateIn {
+  0% {
+    transform: rotate(-180deg);
+    opacity: 0;
+  }
+  100% {
+    transform: rotate(0deg);
+    opacity: 1;
+  }
+}
+.anim-rotate {
+  animation: rotateIn 0.7s ease-out both;
+}

@@ -8,6 +8,9 @@ export function useCanvasInteraction(
     enableZoom?: boolean
     enablePan?: boolean
     enableDrag?: boolean
+    // 开启在容器上监听 drop，并通过回调抛出落点
+    enableDrop?: boolean
+    onDrop?: (data: unknown, position: { x: number; y: number }) => void
     dragCallback?: (x: number, y: number) => void
     preventBubble?: boolean
     dragThreshold?: number
@@ -118,14 +121,33 @@ export function useCanvasInteraction(
     }) as any, // eslint-disable-line @typescript-eslint/no-explicit-any
     16,
   )
+
   const onDragEnd = () => {
     window.removeEventListener('mousemove', onDragMove)
     window.removeEventListener('mouseup', onDragEnd)
     isDragging.value = false
-    // 通知外部拖拽结束
     if (options.onDragEnd) options.onDragEnd()
     anchorX = 0
     anchorY = 0
+  }
+
+  // 处理容器上的 Drop
+  const handleDrop = (e: DragEvent) => {
+    if (!options.enableDrop) return
+    e.preventDefault()
+    const data = e.dataTransfer?.getData('application/x-component')
+    if (!data) return
+    try {
+      const item = JSON.parse(data)
+      const el = wrapRef.value
+      if (!el) return
+      const rect = el.getBoundingClientRect()
+      const x = (e.clientX - rect.left - panX.value) / (scaleRef.value || 1)
+      const y = (e.clientY - rect.top - panY.value) / (scaleRef.value || 1)
+      if (options.onDrop) options.onDrop(item as unknown, { x, y })
+    } catch (err) {
+      console.error('Drop error:', err)
+    }
   }
 
   // 鼠标按下处理
@@ -142,13 +164,21 @@ export function useCanvasInteraction(
       if (options.enableZoom !== false)
         el.addEventListener('wheel', handleWheel, { passive: false })
       el.addEventListener('mousedown', handleMouseDown)
+      if (options.enableDrop) {
+        el.addEventListener('dragover', (e) => e.preventDefault())
+        el.addEventListener('drop', handleDrop)
+      }
     }
   })
+
   onBeforeUnmount(() => {
     const el = wrapRef.value
     if (el) {
       if (options.enableZoom !== false) el.removeEventListener('wheel', handleWheel)
       el.removeEventListener('mousedown', handleMouseDown)
+      if (options.enableDrop) {
+        el.removeEventListener('drop', handleDrop)
+      }
     }
     window.removeEventListener('mousemove', onPanMove)
     window.removeEventListener('mouseup', onPanEnd)

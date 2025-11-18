@@ -2,7 +2,7 @@
 import headerNav from './components/header.vue'
 import SiderBar from './components/siderBar/siderBar.vue'
 import componentBar from './components/componentBar.vue';
-import CanvasBoard from './components/Editor/canvasBoard.vue';
+import CanvasBoard from './components/Editor/canvasBoard/canvasBoard.vue';
 </script>
 
 

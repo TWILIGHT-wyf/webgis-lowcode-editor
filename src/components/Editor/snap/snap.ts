@@ -28,12 +28,6 @@ export function useSnap() {
   const store = useComponent()
   const { componentStore, selectComponent } = storeToRefs(store)
 
-  function parseDeg(input?: string | number): number {
-    if (input == null) return 0
-    if (typeof input === 'number' && Number.isFinite(input)) return input
-    const n = Number(String(input).match(/-?\d+(\.\d+)?/)?.[0])
-    return Number.isFinite(n) ? n : 0
-  }
   function deg2rad(deg: number): number {
     return (deg * Math.PI) / 180
   }
@@ -44,7 +38,7 @@ export function useSnap() {
         id: com.id,
         position: com.position,
         size: com.size,
-        rotation: deg2rad(parseDeg(com.rotation)),
+        rotation: deg2rad(com.rotation ?? 0),
       })) as SnapComp[],
   )
 
@@ -52,7 +46,7 @@ export function useSnap() {
     id: selectComponent.value?.id ?? '',
     position: selectComponent.value?.position ?? { x: 0, y: 0 },
     size: selectComponent.value?.size ?? { width: 0, height: 0 },
-    rotation: deg2rad(parseDeg(selectComponent.value?.rotation)),
+    rotation: deg2rad(selectComponent.value?.rotation ?? 0),
   }))
 
   const meBox = computed(() => toBox(meComp.value))

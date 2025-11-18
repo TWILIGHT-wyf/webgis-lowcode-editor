@@ -4,7 +4,6 @@
     ref="wrap"
     :class="{ dragging: isPanning }"
     @dragover.prevent
-    @drop="onDrop"
     @contextmenu.prevent="onCanvasContextMenu"
   >
     <div class="world" :style="worldStyle">
@@ -20,6 +19,7 @@
         >
           <component
             :is="getComponent(com.type)"
+            :id="com.id"
             :style="{
               width: '100%',
               height: '100%',
@@ -48,10 +48,10 @@ import { storeToRefs } from 'pinia'
 import { useComponent } from '@/stores/component'
 import { getComponent } from '@/customComponents/registry'
 import { useCanvasInteraction } from '@/components/Editor/canvasBoard/canvasBoard'
-import { useContextMenu } from '@/components/Editor/contextMenu'
-import Shape from './shape.vue'
-import Snap from './snap.vue'
-import ContextMenu from './contextMenu.vue'
+import { useContextMenu } from '@/components/Editor/contextMenu/contextMenu'
+import Shape from '../shape/shape.vue'
+import Snap from '../snap/snap.vue'
+import ContextMenu from '../contextMenu/contextMenu.vue'
 import { onMounted, onBeforeUnmount } from 'vue'
 const wrap = ref<HTMLDivElement | null>(null)
 
@@ -83,34 +83,6 @@ onBeforeUnmount(() => {
   window.removeEventListener('scroll', hideContextMenu, true)
 })
 
-// 添加组件
-function onDrop(e: DragEvent) {
-  e.preventDefault()
-  const data = e.dataTransfer?.getData('application/x-component')
-  if (!data) return
-  try {
-    console.log(componentStore)
-
-    const item = JSON.parse(data)
-    const el = wrap.value
-    if (!el) return
-    const rect = el.getBoundingClientRect()
-    // 计算相对于stage的位置
-    const x = (e.clientX - rect.left - panX.value) / scale.value
-    const y = (e.clientY - rect.top - panY.value) / scale.value
-    // 添加组件
-    console.log(item)
-    addComponent({
-      type: item.type,
-      position: { x, y },
-      size: { width: item.width, height: item.height },
-      rotation: 0,
-    })
-  } catch (error) {
-    console.error('Drop error:', error)
-  }
-}
-
 // stage层大小与网格变量
 const stageStyle = computed(() => ({
   width: width.value + 'px',
@@ -127,7 +99,18 @@ const stageStyle = computed(() => ({
 const { panX, panY, isPanning } = useCanvasInteraction(wrap, scale, {
   enablePan: true,
   enableZoom: true,
+  enableDrop: true,
+  onDrop: (item: unknown, position) => {
+    const payload = item as { type: string; width: number; height: number }
+    addComponent({
+      type: payload.type,
+      position,
+      size: { width: payload.width, height: payload.height },
+      rotation: 0,
+    })
+  },
 })
+
 const worldStyle = computed(() => ({
   transform: `translate(${panX.value}px, ${panY.value}px) scale(${scale.value})`,
   transformOrigin: '0 0',

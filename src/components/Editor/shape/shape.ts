@@ -2,19 +2,10 @@ import { computed, type CSSProperties, ref, inject, type Ref } from 'vue'
 import { useComponent } from '@/stores/component'
 import { useSizeStore } from '@/stores/size'
 import { storeToRefs } from 'pinia'
-import { useCanvasInteraction } from '@/components/Editor/canvasBoard'
+import { useCanvasInteraction } from '@/components/Editor/canvasBoard/canvasBoard'
 import { throttle, debounce } from '@/utils/throttleDebounce'
-import { useSnap } from './snap'
+import { useSnap } from '../snap/snap'
 
-/**
- * 组合式函数：封装 Shape 组件的交互与状态
- * - 选择/样式/拖拽/缩放/旋转
- * 使用方式：
- * const {
- *   wrapperRef, isSelected, wrapperStyle, borderStyle, handles,
- *   onHandleMouseDown, onRotateMouseDown
- * } = useShape(props.id)
- */
 export function useShape(id: string) {
   const compStore = useComponent()
   const { selectComponent, isDragging } = storeToRefs(compStore)
@@ -29,7 +20,7 @@ export function useShape(id: string) {
   const currentComponent = computed(() => compStore.componentStore.find((comp) => comp.id === id))
   const position = computed(() => currentComponent.value?.position || { x: 0, y: 0 })
   const size = computed(() => currentComponent.value?.size || { width: 100, height: 100 })
-  const rotation = computed(() => currentComponent.value?.rotation || '0deg')
+  const rotation = computed(() => currentComponent.value?.rotation ?? 0)
   const zIndex = computed(() => currentComponent.value?.zindex ?? 0)
 
   // 全局缩放
@@ -46,7 +37,7 @@ export function useShape(id: string) {
     10,
   ) as (pos: { x: number; y: number }) => void
 
-  const { snapToNeighbors } = useSnap()
+  const { snapToNeighbors, boxCache, meComp } = useSnap()
 
   // 绑定拖拽（移动）行为
   useCanvasInteraction(wrapperRef, scale, {
@@ -83,7 +74,7 @@ export function useShape(id: string) {
         top: position.value.y + 'px',
         width: size.value.width + 'px',
         height: size.value.height + 'px',
-        transform: `rotate(${rotation.value})`,
+        transform: `rotate(${rotation.value}deg)`,
         transformOrigin: 'center center',
         zIndex: zIndex.value,
       }) as CSSProperties,
@@ -122,6 +113,7 @@ export function useShape(id: string) {
   let startMouseX = 0,
     startMouseY = 0
   let startSize = { width: 0, height: 0 }
+  let startPos = { x: 0, y: 0 }
   let currentHandle = ''
   const onHandleMouseDown = (e: MouseEvent, handle: HandleMeta) => {
     e.preventDefault()
@@ -129,6 +121,7 @@ export function useShape(id: string) {
     startMouseX = e.clientX
     startMouseY = e.clientY
     startSize = { ...size.value }
+    startPos = { ...position.value }
     currentHandle = handle.id
     window.addEventListener('mousemove', throttledHandleMouseMove)
     window.addEventListener('mouseup', onHandleMouseUp)
@@ -137,17 +130,114 @@ export function useShape(id: string) {
     isDragging.value = true
     const dx = (e.clientX - startMouseX) / (scale.value || 1)
     const dy = (e.clientY - startMouseY) / (scale.value || 1)
-    const newSize = { ...startSize }
+    // 新尺寸与位置基于按下时的原始值计算
+    let newWidth = startSize.width
+    let newHeight = startSize.height
+    let newX = startPos.x
+    let newY = startPos.y
 
-    if (currentHandle.includes('e')) newSize.width = startSize.width + dx
-    if (currentHandle.includes('w')) newSize.width = startSize.width - dx
-    if (currentHandle.includes('s')) newSize.height = startSize.height + dy
-    if (currentHandle.includes('n')) newSize.height = startSize.height - dy
+    if (currentHandle.includes('e')) newWidth = startSize.width + dx
+    if (currentHandle.includes('w')) {
+      newWidth = startSize.width - dx
+      newX = startPos.x + dx
+    }
+    if (currentHandle.includes('s')) newHeight = startSize.height + dy
+    if (currentHandle.includes('n')) {
+      newHeight = startSize.height - dy
+      newY = startPos.y + dy
+    }
 
-    newSize.width = Math.max(10, newSize.width)
-    newSize.height = Math.max(10, newSize.height)
+    // 最小尺寸限制
+    if (newWidth < 10) {
+      if (currentHandle.includes('w')) {
+        newX = startPos.x + (startSize.width - 10)
+      }
+      newWidth = 10
+    }
+    if (newHeight < 10) {
+      if (currentHandle.includes('n')) {
+        newY = startPos.y + (startSize.height - 10)
+      }
+      newHeight = 10
+    }
 
-    updateComponentSize(newSize)
+    // —— 缩放吸附 ——
+    const SNAP_TOL = 10
+    const myId = meComp.value.id
+    const guideXs: number[] = []
+    const guideYs: number[] = []
+    boxCache.value.forEach((b, id) => {
+      if (!id || id === myId) return
+      guideXs.push(b.minx, b.cx, b.maxx, ...b.corners.map((p) => p.x))
+      guideYs.push(b.miny, b.cy, b.maxy, ...b.corners.map((p) => p.y))
+    })
+
+    // 水平吸附（处理 e/w 手柄）
+    if (currentHandle.includes('e') || currentHandle.includes('w')) {
+      if (currentHandle.includes('e')) {
+        const target = newX + newWidth
+        let best = { dist: SNAP_TOL + 1, gx: target }
+        for (const gx of guideXs) {
+          const d = Math.abs(gx - target)
+          if (d < best.dist) best = { dist: d, gx }
+        }
+        if (best.dist <= SNAP_TOL) {
+          const snappedRight = best.gx
+          newWidth = Math.max(10, snappedRight - newX)
+        }
+      }
+      if (currentHandle.includes('w')) {
+        const rightFixed = startPos.x + startSize.width
+        const target = newX
+        let best = { dist: SNAP_TOL + 1, gx: target }
+        for (const gx of guideXs) {
+          const d = Math.abs(gx - target)
+          if (d < best.dist) best = { dist: d, gx }
+        }
+        if (best.dist <= SNAP_TOL) {
+          newX = best.gx
+          newWidth = Math.max(10, rightFixed - newX)
+          if (newWidth === 10) {
+            newX = rightFixed - 10
+          }
+        }
+      }
+    }
+
+    // 垂直吸附（处理 n/s 手柄）
+    if (currentHandle.includes('s') || currentHandle.includes('n')) {
+      if (currentHandle.includes('s')) {
+        const target = newY + newHeight
+        let best = { dist: SNAP_TOL + 1, gy: target }
+        for (const gy of guideYs) {
+          const d = Math.abs(gy - target)
+          if (d < best.dist) best = { dist: d, gy }
+        }
+        if (best.dist <= SNAP_TOL) {
+          const snappedBottom = best.gy
+          newHeight = Math.max(10, snappedBottom - newY)
+        }
+      }
+      if (currentHandle.includes('n')) {
+        const bottomFixed = startPos.y + startSize.height
+        const target = newY
+        let best = { dist: SNAP_TOL + 1, gy: target }
+        for (const gy of guideYs) {
+          const d = Math.abs(gy - target)
+          if (d < best.dist) best = { dist: d, gy }
+        }
+        if (best.dist <= SNAP_TOL) {
+          newY = best.gy
+          newHeight = Math.max(10, bottomFixed - newY)
+          if (newHeight === 10) {
+            newY = bottomFixed - 10
+          }
+        }
+      }
+    }
+
+    updateComponentSize({ width: newWidth, height: newHeight })
+    updateComponentPosition({ x: newX, y: newY })
   }
   const throttledHandleMouseMove = throttle(onHandleMouseMove as any, 16) // eslint-disable-line @typescript-eslint/no-explicit-any
   const onHandleMouseUp = () => {
@@ -168,8 +258,7 @@ export function useShape(id: string) {
     const rect = wrapperEl.getBoundingClientRect()
     centerX = rect.left + rect.width / 2
     centerY = rect.top + rect.height / 2
-    const currentRotationDeg =
-      typeof rotation.value === 'number' ? rotation.value : parseFloat(rotation.value || '0')
+    const currentRotationDeg = rotation.value || 0
     startAngle =
       Math.atan2(e.clientY - centerY, e.clientX - centerX) - (currentRotationDeg * Math.PI) / 180
     window.addEventListener('mousemove', throttledRotateMouseMove)
@@ -179,7 +268,7 @@ export function useShape(id: string) {
     isDragging.value = true
     const angle = Math.atan2(e.clientY - centerY, e.clientX - centerX) - startAngle
     const deg = (angle * 180) / Math.PI
-    updateComponentRotation(`${deg}deg`)
+    updateComponentRotation(deg)
   }
   const throttledRotateMouseMove = throttle(onRotateMouseMove as any, 16) // eslint-disable-line @typescript-eslint/no-explicit-any
   const onRotateMouseUp = () => {
@@ -188,16 +277,33 @@ export function useShape(id: string) {
     window.removeEventListener('mouseup', onRotateMouseUp)
   }
 
+  // —— 动画应用到 shape-content ——
+  const contentClass = computed(() => currentComponent.value?.animation?.class || '')
+  const contentStyle = computed<CSSProperties>(() => {
+    const anim = currentComponent.value?.animation
+    if (!anim) return {}
+    const iteration = anim.iterationCount
+    return {
+      animationDuration: anim.duration ? `${anim.duration}s` : undefined,
+      animationTimingFunction: anim.timingFunction || undefined,
+      animationIterationCount: (iteration === undefined
+        ? undefined
+        : iteration === 'infinite'
+          ? 'infinite'
+          : String(iteration)) as CSSProperties['animationIterationCount'],
+      animationFillMode: 'both',
+    }
+  })
+
   return {
-    // Refs & state
     wrapperRef,
     isSelected,
-    // Styles
     wrapperStyle,
     borderStyle,
     handles,
-    // Handlers
     onHandleMouseDown,
     onRotateMouseDown,
+    contentClass,
+    contentStyle,
   }
 }
