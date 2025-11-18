@@ -8,11 +8,12 @@ export function useCanvasInteraction(
     enableZoom?: boolean
     enablePan?: boolean
     enableDrag?: boolean
-    dragCallback?: (x: number, y: number) => void // 传递绝对位置 (x, y)
+    dragCallback?: (x: number, y: number) => void
     preventBubble?: boolean
     dragThreshold?: number
-    // 用于计算绝对坐标时的参考容器（通常传入 canvasWrapRef）；不传则使用 wrapRef
     rootRefForAbs?: Ref<HTMLDivElement | null>
+    onDragStart?: () => void
+    onDragEnd?: () => void
   } = {},
 ) {
   const panX = ref(0)
@@ -99,6 +100,8 @@ export function useCanvasInteraction(
           Math.abs(e.clientY - startDragMouseY) > threshold
         ) {
           isDragging.value = true
+          // 通知外部拖拽开始
+          if (options.onDragStart) options.onDragStart()
         } else {
           return
         }
@@ -119,6 +122,8 @@ export function useCanvasInteraction(
     window.removeEventListener('mousemove', onDragMove)
     window.removeEventListener('mouseup', onDragEnd)
     isDragging.value = false
+    // 通知外部拖拽结束
+    if (options.onDragEnd) options.onDragEnd()
     anchorX = 0
     anchorY = 0
   }

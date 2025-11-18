@@ -12,6 +12,7 @@ export interface component {
 export const useComponent = defineStore('component', () => {
   const componentStore = ref<component[]>([])
   const selectComponent = ref<component>()
+  const isDragging = ref<boolean>(false)
 
   // 添加组件
   function addComponent(component: Omit<component, 'id'>) {
@@ -59,6 +60,7 @@ export const useComponent = defineStore('component', () => {
     updateComponentPosition,
     selectedId,
     updateComponentRotation,
-    selectComponent
+    selectComponent,
+    isDragging
   }
 })

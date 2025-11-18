@@ -8,6 +8,7 @@
   >
     <div class="world" :style="worldStyle">
       <div class="stage" :style="stageStyle">
+      <!-- 缩放平移容器 -->
         <Shape
           v-for="com in componentStore"
           :key="com.id"
@@ -23,6 +24,11 @@
             }"
           />
         </Shape>
+        <!-- 吸附辅助线 -->
+        <Snap
+          ref="snapref"
+          v-if="isDragging"
+          />
       </div>
     </div>
   </div>
@@ -34,14 +40,15 @@ import { useSizeStore } from '@/stores/size'
 import { storeToRefs } from 'pinia'
 import { useComponent } from '@/stores/component'
 import { getComponent } from '@/customComponents/registry'
-import { useCanvasInteraction } from '@/composable/useCanvasInteraction'
+import { useCanvasInteraction } from '@/components/Editor/canvasBoard'
 import Shape from './shape.vue'
+import Snap from './snap.vue'
 const wrap = ref<HTMLDivElement | null>(null)
 // 向子组件提供画布容器，用于将屏幕坐标映射为 stage 坐标
 provide('canvasWrapRef', wrap)
 const sizeStore = useSizeStore()
 const { width, height, scale } = storeToRefs(sizeStore)
-
+const { isDragging } = storeToRefs(useComponent())
 // 组件存储数组
 const { componentStore, addComponent, selectedId } = useComponent()
 
@@ -94,6 +101,7 @@ const worldStyle = computed(() => ({
   transform: `translate(${panX.value}px, ${panY.value}px) scale(${scale.value})`,
   transformOrigin: '0 0',
 }))
+
 </script>
 
 <style scoped>
@@ -116,7 +124,6 @@ const worldStyle = computed(() => ({
 }
 
 .stage {
-  /* 网格背景：随 world 的缩放和平移一起变化 */
   background-color: var(--grid-bg);
   background-image:
     linear-gradient(to right, var(--grid-color) 1px, transparent 1px),
