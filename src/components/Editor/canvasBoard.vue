@@ -51,7 +51,7 @@ import { useCanvasInteraction } from '@/components/Editor/canvasBoard'
 import { useContextMenu } from '@/components/Editor/contextMenu'
 import Shape from './shape.vue'
 import Snap from './snap.vue'
-import ContextMenu from './ContextMenu.vue'
+import ContextMenu from './contextMenu.vue'
 import { onMounted, onBeforeUnmount } from 'vue'
 const wrap = ref<HTMLDivElement | null>(null)
 
@@ -59,8 +59,6 @@ const wrap = ref<HTMLDivElement | null>(null)
 provide('canvasWrapRef', wrap)
 const sizeStore = useSizeStore()
 const { width, height, scale } = storeToRefs(sizeStore)
-
-
 
 // 组件存储数组
 const compStore = useComponent()
@@ -73,9 +71,8 @@ const {
   hideContextMenu,
   onMenuAction,
   handleGlobalClick,
-  onCanvasContextMenu
-} =
-  useContextMenu(wrap)
+  onCanvasContextMenu,
+} = useContextMenu(wrap)
 
 onMounted(() => {
   window.addEventListener('mousedown', handleGlobalClick)
@@ -113,8 +110,6 @@ function onDrop(e: DragEvent) {
     console.error('Drop error:', error)
   }
 }
-
-
 
 // stage层大小与网格变量
 const stageStyle = computed(() => ({

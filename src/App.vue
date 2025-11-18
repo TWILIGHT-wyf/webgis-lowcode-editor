@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import headerNav from './components/header.vue'
-import SiderBar from './components/siderBar.vue'
+import SiderBar from './components/siderBar/siderBar.vue'
 import componentBar from './components/componentBar.vue';
 import CanvasBoard from './components/Editor/canvasBoard.vue';
 </script>
@@ -15,7 +15,7 @@ import CanvasBoard from './components/Editor/canvasBoard.vue';
       <el-container>
         <el-aside width="200px"><componentBar/></el-aside>
         <el-main><CanvasBoard/></el-main>
-        <el-aside width="200px"><SiderBar/></el-aside>
+        <el-aside width="290px"><SiderBar/></el-aside>
       </el-container>
     </el-container>
   </div>

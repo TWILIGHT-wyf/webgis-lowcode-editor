@@ -1,8 +1,18 @@
-import { ref,type Ref } from 'vue'
+import { ref, type Ref } from 'vue'
 import { useComponent } from '@/stores/component'
 
 export function useContextMenu(wrap: Ref<HTMLDivElement | null>) {
-  const { selectedId, removeComponent, copy, cut, paste } = useComponent()
+  const {
+    selectedId,
+    removeComponent,
+    copy,
+    cut,
+    paste,
+    bringForward,
+    sendBackward,
+    bringToFront,
+    sendToBack,
+  } = useComponent()
   // 右键菜单状态
   const menuState = ref<{ x: number; y: number; visible: boolean; targetId?: string }>({
     x: 0,
@@ -44,9 +54,20 @@ export function useContextMenu(wrap: Ref<HTMLDivElement | null>) {
         case 'paste':
           paste(position)
           break
+        case 'bringForward':
+          bringForward(targetId)
+          break
+        case 'sendBackward':
+          sendBackward(targetId)
+          break
+        case 'bringToFront':
+          bringToFront(targetId)
+          break
+        case 'sendToBack':
+          sendToBack(targetId)
+          break
       }
     } else {
-      // 空白区域菜单（只有粘贴）
       if (action === 'paste') {
         paste(position)
       }
@@ -79,6 +100,6 @@ export function useContextMenu(wrap: Ref<HTMLDivElement | null>) {
     hideContextMenu,
     onMenuAction,
     handleGlobalClick,
-    onCanvasContextMenu
+    onCanvasContextMenu,
   }
 }

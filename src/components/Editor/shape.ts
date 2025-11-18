@@ -30,6 +30,7 @@ export function useShape(id: string) {
   const position = computed(() => currentComponent.value?.position || { x: 0, y: 0 })
   const size = computed(() => currentComponent.value?.size || { width: 100, height: 100 })
   const rotation = computed(() => currentComponent.value?.rotation || '0deg')
+  const zIndex = computed(() => currentComponent.value?.zindex ?? 0)
 
   // 全局缩放
   const sizeStore = useSizeStore()
@@ -84,6 +85,7 @@ export function useShape(id: string) {
         height: size.value.height + 'px',
         transform: `rotate(${rotation.value})`,
         transformOrigin: 'center center',
+        zIndex: zIndex.value,
       }) as CSSProperties,
   )
 
