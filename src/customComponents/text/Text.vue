@@ -1,6 +1,8 @@
 <template>
   <div>
-111
+    <el-text>
+      123
+    </el-text>
   </div>
 </template>
 

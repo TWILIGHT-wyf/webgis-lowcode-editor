@@ -1,6 +1,11 @@
 # webgis
 
-This template should help get you started developing with Vue 3 in Vite.
+当前项目已切换为“数据可视化大屏搭建平台”最小可用版本（MVP）。默认无登录模式，主要入口：
+
+- 预览运行态：/runtime
+- 可视化编辑态：/studio
+
+如果未来需要接入登录/鉴权，可在后续迭代中按需恢复（Pinia + 路由守卫 + Axios 拦截器）。
 
 ## Recommended IDE Setup
 
@@ -9,7 +14,7 @@ This template should help get you started developing with Vue 3 in Vite.
 ## Recommended Browser Setup
 
 - Chromium-based browsers (Chrome, Edge, Brave, etc.):
-  - [Vue.js devtools](https://chromewebstore.google.com/detail/vuejs-devtools/nhdogjmejiglipccpnnnanhbledajbpd) 
+  - [Vue.js devtools](https://chromewebstore.google.com/detail/vuejs-devtools/nhdogjmejiglipccpnnnanhbledajbpd)
   - [Turn on Custom Object Formatter in Chrome DevTools](http://bit.ly/object-formatters)
 - Firefox:
   - [Vue.js devtools](https://addons.mozilla.org/en-US/firefox/addon/vue-js-devtools/)
