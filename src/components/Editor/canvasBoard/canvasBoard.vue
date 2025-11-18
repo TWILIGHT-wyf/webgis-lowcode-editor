@@ -67,9 +67,32 @@ const { addComponent, selectedId, clearSelection } = compStore
 
 // 点击画布空白处清空选择
 const handleCanvasClick = (e: MouseEvent) => {
-  // 如果点击的不是shape组件，清空选择
+  // 如果点击的不是shape组件：尝试命中 Group 空白区域，否则清空选择
   if (!(e.target as HTMLElement).closest('.shape-wrapper')) {
-    clearSelection()
+    const el = wrap.value
+    if (!el) return
+    const rect = el.getBoundingClientRect()
+    // 计算鼠标在 stage 坐标中的位置
+    const stageX = (e.clientX - rect.left - panX.value) / (scale.value || 1)
+    const stageY = (e.clientY - rect.top - panY.value) / (scale.value || 1)
+
+    // 命中测试：找到包含该点的 Group（取 zindex 最大者）
+    const groups = componentStore.value
+      .filter((c) => c.type === 'Group')
+      .filter(
+        (g) =>
+          stageX >= g.position.x &&
+          stageX <= g.position.x + g.size.width &&
+          stageY >= g.position.y &&
+          stageY <= g.position.y + g.size.height,
+      )
+      .sort((a, b) => a.zindex - b.zindex)
+    const hit = groups[groups.length - 1]
+    if (hit) {
+      selectedId(hit.id)
+    } else {
+      clearSelection()
+    }
   }
 }
 

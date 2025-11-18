@@ -1,5 +1,6 @@
 import { defineStore } from 'pinia'
 import { ref } from 'vue'
+import { createHistory, createClipboard, createGrouping, createZOrder } from '@/stores/componentOps'
 
 export interface DataSource {
   enabled: boolean
@@ -45,6 +46,27 @@ export const useComponent = defineStore('component', () => {
   const selectComponent = ref<component | null>(null)
   const selectedIds = ref<string[]>([])
   const isDragging = ref<boolean>(false)
+
+  // —— 历史快照（撤销/重做）—— 抽离到模块
+  const {
+    commit,
+    undo: _undo,
+    redo: _redo,
+    canUndo,
+    canRedo,
+    commitDebounced,
+    commitThrottled,
+    init: initHistory,
+  } = createHistory<component>(componentStore)
+
+  function undo() {
+    _undo()
+    clearSelection()
+  }
+  function redo() {
+    _redo()
+    clearSelection()
+  }
 
   // 不同类型组件的默认样式
   function defaultStyleByType(type: string): component['style'] {
@@ -131,6 +153,7 @@ export const useComponent = defineStore('component', () => {
       animation: component.animation || defaultAnimationByType(),
     }
     componentStore.value.push(newComponent)
+    commit()
   }
 
   // 组件Id
@@ -193,6 +216,7 @@ export const useComponent = defineStore('component', () => {
     if (selectComponent.value) {
       selectComponent.value.size.width = size.width
       selectComponent.value.size.height = size.height
+      commitDebounced()
     }
   }
   // 更新组件位置
@@ -200,6 +224,7 @@ export const useComponent = defineStore('component', () => {
     if (selectComponent.value) {
       selectComponent.value.position.x = position.x
       selectComponent.value.position.y = position.y
+      commitDebounced()
     }
   }
 
@@ -207,6 +232,7 @@ export const useComponent = defineStore('component', () => {
   function updateComponentRotation(rotate: number) {
     if (selectComponent.value) {
       selectComponent.value.rotation = rotate
+      commitDebounced()
     }
   }
 
@@ -224,6 +250,7 @@ export const useComponent = defineStore('component', () => {
     if (selectComponent.value?.id === id) {
       selectComponent.value = null
     }
+    commit()
   }
 
   // 批量删除组件
@@ -235,260 +262,27 @@ export const useComponent = defineStore('component', () => {
       }
     })
     clearSelection()
+    commit()
   }
 
-  // 复制剪切粘贴组件
-  const clipboard = ref<component[]>([])
+  // 复制/剪切/粘贴模块化
+  const { clipboard, copy, cut, copyMultiple, cutMultiple, paste } = createClipboard<component>(
+    componentStore,
+    { selectedId, selectMultiple, commit },
+  )
 
-  // 规范化待复制/剪切目标：去重并保持顺序
-  function resolveCopyTargets(ids: string[]): component[] {
-    const result: component[] = []
-    const seen = new Set<string>()
-    ids.forEach((id) => {
-      if (seen.has(id)) return
-      const comp = componentStore.value.find((c) => c.id === id)
-      if (comp) {
-        result.push(comp)
-        seen.add(id)
-      }
-    })
-    return result
-  }
+  // —— 图层（z-index）操作模块 ——
+  const { bringForward, sendBackward, bringToFront, sendToBack } = createZOrder<component>(
+    componentStore,
+    { commit },
+  )
 
-  function snapshotWithoutGrouping(comp: component): component {
-    const snap = JSON.parse(JSON.stringify(comp)) as component
-    snap.groupId = undefined
-    snap.children = undefined
-    return snap
-  }
-
-  function copy(id: string) {
-    const comps = resolveCopyTargets([id])
-    if (comps.length === 0) return
-    clipboard.value = comps.map((c) => snapshotWithoutGrouping(c))
-  }
-
-  function cut(id: string) {
-    const comps = resolveCopyTargets([id])
-    if (comps.length === 0) return
-    clipboard.value = comps.map((c) => snapshotWithoutGrouping(c))
-    // 从画布移除原对象
-    const idsToRemove = comps.map((c) => c.id)
-    removeMultipleComponents(idsToRemove)
-  }
-
-  // 批量复制：以第一个为锚点，记录其他组件相对偏移
-  function copyMultiple(ids: string[]) {
-    const comps = resolveCopyTargets(ids)
-    if (comps.length === 0) return
-    clipboard.value = comps.map((c) => snapshotWithoutGrouping(c))
-  }
-
-  // 批量剪切：以第一个为锚点，记录其他组件相对偏移
-  function cutMultiple(ids: string[]) {
-    const comps = resolveCopyTargets(ids)
-    if (comps.length === 0) return
-    clipboard.value = comps.map((c) => snapshotWithoutGrouping(c))
-    const idsToRemove = comps.map((c) => c.id)
-    removeMultipleComponents(idsToRemove)
-  }
-
-  function paste(position: { x: number; y: number }) {
-    if (clipboard.value.length === 0) return
-
-    const maxZ = componentStore.value.reduce((max, c) => Math.max(max, c.zindex ?? 0), 0)
-
-    if (clipboard.value.length === 1) {
-      // 单个组件粘贴
-      const lastComp = clipboard.value[0]!
-      const base: component = snapshotWithoutGrouping(lastComp)
-      const newComp: component = {
-        ...base,
-        id: Date.now().toString(),
-        position: { x: position.x, y: position.y },
-        zindex: maxZ + 1,
-      }
-      componentStore.value.push(newComp)
-      selectedId(newComp.id)
-    } else {
-      // 多个组件粘贴：第一个组件位置 = 鼠标位置，其他组件按与第一个的偏移定位
-      const snaps = clipboard.value.map((c) => snapshotWithoutGrouping(c))
-      const anchor = snaps[0]!
-      const newIds: string[] = []
-      const timestamp = Date.now()
-
-      const expectedPos: Record<string, { x: number; y: number }> = {}
-      snaps.forEach((comp, index) => {
-        const offsetX = comp.position.x - anchor.position.x
-        const offsetY = comp.position.y - anchor.position.y
-
-        const expectedX = position.x + offsetX
-        const expectedY = position.y + offsetY
-
-        const newComp: component = {
-          ...comp,
-          id: `${timestamp}_${index}`,
-          position: { x: expectedX, y: expectedY },
-          zindex: maxZ + 1 + index,
-        }
-        expectedPos[newComp.id] = { x: expectedX, y: expectedY }
-        componentStore.value.push(newComp)
-        newIds.push(newComp.id)
-      })
-
-      selectMultiple(newIds)
-      // 下一帧再矫正一次，避免外部副作用把位置拉到一起
-      setTimeout(() => {
-        newIds.forEach((id) => {
-          const comp = componentStore.value.find((c) => c.id === id)
-          const exp = expectedPos[id]
-          if (!comp || !exp) return
-          const changed = comp.position.x !== exp.x || comp.position.y !== exp.y
-          if (changed) {
-            comp.position.x = exp.x
-            comp.position.y = exp.y
-          }
-        })
-      }, 0)
-    }
-  }
-
-  // —— 图层（z-index）操作 ——
-  function normalizeZ() {
-    const sorted = [...componentStore.value].sort((a, b) => (a.zindex ?? 0) - (b.zindex ?? 0))
-    sorted.forEach((c, i) => {
-      c.zindex = i
-    })
-  }
-
-  function bringForward(id: string) {
-    if (componentStore.value.length <= 1) return
-    normalizeZ()
-    const sorted = [...componentStore.value].sort((a, b) => a.zindex - b.zindex)
-    const idx = sorted.findIndex((c) => c.id === id)
-    if (idx === -1 || idx === sorted.length - 1) return
-    const a = sorted[idx]!
-    const b = sorted[idx + 1]!
-    const tmp = a.zindex
-    a.zindex = b.zindex
-    b.zindex = tmp
-  }
-
-  function sendBackward(id: string) {
-    if (componentStore.value.length <= 1) return
-    normalizeZ()
-    const sorted = [...componentStore.value].sort((a, b) => a.zindex - b.zindex)
-    const idx = sorted.findIndex((c) => c.id === id)
-    if (idx <= 0) return
-    const a = sorted[idx]!
-    const b = sorted[idx - 1]!
-    const tmp = a.zindex
-    a.zindex = b.zindex
-    b.zindex = tmp
-  }
-
-  function bringToFront(id: string) {
-    const target = componentStore.value.find((c) => c.id === id)
-    if (!target) return
-    const maxZ = componentStore.value.reduce((max, c) => Math.max(max, c.zindex ?? 0), 0)
-    target.zindex = maxZ + 1
-    normalizeZ()
-  }
-
-  function sendToBack(id: string) {
-    const target = componentStore.value.find((c) => c.id === id)
-    if (!target) return
-    const minZ = componentStore.value.reduce((min, c) => Math.min(min, c.zindex ?? 0), 0)
-    target.zindex = minZ - 1
-    normalizeZ()
-  }
-
-  // 组合多个组件：以第一个选中组件为锚点
-  function groupComponents(ids: string[]) {
-    if (ids.length < 2) return
-
-    const members = ids
-      .map((id) => componentStore.value.find((c) => c.id === id))
-      .filter(Boolean) as component[]
-    if (members.length < 2) return
-
-    // 计算组合边界框(覆盖所有成员)
-    const minX = Math.min(...members.map((c) => c.position.x))
-    const minY = Math.min(...members.map((c) => c.position.y))
-    const maxX = Math.max(...members.map((c) => c.position.x + c.size.width))
-    const maxY = Math.max(...members.map((c) => c.position.y + c.size.height))
-
-    const groupId = `group_${Date.now()}`
-
-    // 创建组合组件
-    const groupComponent: component = {
-      id: groupId,
-      type: 'Group',
-      position: { x: minX, y: minY },
-      size: { width: maxX - minX, height: maxY - minY },
-      rotation: 0,
-      zindex: Math.max(...members.map((c) => c.zindex)),
-      style: {
-        opacity: 100,
-        visible: true,
-        locked: false,
-      },
-      props: {},
-      children: [...ids],
-    }
-
-    // 更新成员组件：设置 groupId（保持绝对位置不变，shape 内可独立移动）
-    members.forEach((comp) => {
-      comp.groupId = groupId
-    })
-
-    componentStore.value.push(groupComponent)
-    selectComponent.value = groupComponent
-    selectedIds.value = [groupId]
-  }
-
-  // 取消组合:子组件保持当前绝对位置不变,只移除 groupId
-  function ungroupComponents(groupId: string) {
-    const group = componentStore.value.find((c) => c.id === groupId)
-    if (!group || group.type !== 'Group' || !group.children) return
-
-    // 记录子组件的期望绝对位置
-    const expectedPos: Record<string, { x: number; y: number }> = {}
-    group.children.forEach((childId) => {
-      const child = componentStore.value.find((c) => c.id === childId)
-      if (child) expectedPos[childId] = { x: child.position.x, y: child.position.y }
-    })
-
-    // 恢复子组件的独立状态,位置保持不变
-    group.children.forEach((childId) => {
-      const child = componentStore.value.find((c) => c.id === childId)
-      if (child) {
-        delete child.groupId
-        // 子组件位置已经是绝对位置,无需转换
-      }
-    })
-
-    // 移除组合容器
-    const index = componentStore.value.findIndex((c) => c.id === groupId)
-    if (index > -1) {
-      componentStore.value.splice(index, 1)
-    }
-
-    // 选中原来的成员
-    selectMultiple(group.children)
-    // 下一帧矫正子组件位置，避免外部副作用改写
-    setTimeout(() => {
-      group.children?.forEach((childId) => {
-        const child = componentStore.value.find((c) => c.id === childId)
-        const exp = expectedPos[childId]
-        if (!child || !exp) return
-        if (child.position.x !== exp.x || child.position.y !== exp.y) {
-          child.position.x = exp.x
-          child.position.y = exp.y
-        }
-      })
-    }, 0)
-  }
+  // 组合/取消组合模块化
+  const { groupComponents, ungroupComponents } = createGrouping<component>(componentStore, {
+    selectedId,
+    selectMultiple,
+    commit,
+  })
 
   // 清空画布
   function reset() {
@@ -497,7 +291,11 @@ export const useComponent = defineStore('component', () => {
     selectedIds.value = []
     clipboard.value.length = 0
     isDragging.value = false
+    commit()
   }
+
+  // 初始化历史：记录初始空白状态
+  initHistory()
   return {
     cut,
     copy,
@@ -526,6 +324,13 @@ export const useComponent = defineStore('component', () => {
     selectedIds,
     isDragging,
     clipboard,
+    commit,
+    undo,
+    redo,
+    canUndo,
+    canRedo,
+    commitDebounced,
+    commitThrottled,
     reset,
   }
 })

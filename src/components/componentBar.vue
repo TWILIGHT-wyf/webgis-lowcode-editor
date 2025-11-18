@@ -551,4 +551,19 @@ function onDrag(e: DragEvent, item: Item) {
   box-shadow: var(--el-box-shadow-light);
   border-color: var(--el-color-primary-light-5);
 }
+
+/* Dark theme */
+:deep(.theme-dark) .componentBar {
+  background: #0f1720;
+  color: #e6eef8;
+}
+:deep(.theme-dark) .palette-item {
+  background: #111319;
+  border-color: #2b2f36;
+  color: #d8dbe0;
+}
+:deep(.theme-dark) .palette-item:hover {
+  background: #16202a;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.6);
+}
 </style>

@@ -78,4 +78,19 @@ const menuSelect = (index: string) => {
   width: 100%;
   min-width: 0;
 }
+
+/* Dark theme */
+:deep(.theme-dark) .sider-root {
+  background: #0b1116;
+  color: #dfe7ee;
+}
+:deep(.theme-dark) .sider-menu {
+  background: transparent;
+}
+:deep(.theme-dark) .sidebar-content {
+  background: transparent;
+}
+:deep(.theme-dark) .fill {
+  background: transparent;
+}
 </style>
