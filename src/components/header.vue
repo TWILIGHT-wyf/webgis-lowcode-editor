@@ -4,10 +4,9 @@
         <el-button type="primary"><el-icon><Back /></el-icon></el-button>
         <el-button type="primary"><el-icon><Right /></el-icon></el-button>
     </el-button-group>
-    <el-button type="primary"><el-icon><Remove /></el-icon>重做</el-button>
     <el-button type="primary"><el-icon><View /></el-icon>预览</el-button>
     <el-button type="primary"><el-icon><Finished /></el-icon>保存</el-button>
-    <el-button type="primary">清空画布</el-button>
+    <el-button type="primary" @click="reset()">清空画布</el-button>
     <div class="size">
       画布大小
       <el-input-number label="size" v-model="width"/>
@@ -25,6 +24,7 @@
 </template>
 
 <script setup lang="ts">
+import { useComponent } from '@/stores/component';
 import { useSizeStore } from '@/stores/size';
 import { storeToRefs } from 'pinia';
 import { computed } from 'vue'
@@ -32,7 +32,7 @@ import { computed } from 'vue'
 
 const sizeStore = useSizeStore()
 const { width, height, scale } = storeToRefs(sizeStore)
-
+const { reset } = useComponent()
 // 缩放
 const scalePercent = computed({
   get: () => Math.round((scale.value ?? 0) * 100),

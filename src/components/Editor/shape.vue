@@ -1,5 +1,10 @@
 <template>
-  <div ref="wrapperRef" class="shape-wrapper" :style="wrapperStyle">
+  <div
+    ref="wrapperRef"
+    class="shape-wrapper"
+    :style="wrapperStyle"
+    @contextmenu.stop.prevent="emitOpenContextMenu"
+  >
     <div class="shape-content">
       <slot />
     </div>
@@ -39,6 +44,13 @@ const {
   onHandleMouseDown,
   onRotateMouseDown,
 } = useShape(props.id)
+
+const emit = defineEmits<{
+  (e: 'open-context-menu', payload: { id: string; event: MouseEvent }): void
+}>()
+function emitOpenContextMenu(e: MouseEvent) {
+  emit('open-context-menu', { id: props.id, event: e })
+}
 </script>
 
 <style>

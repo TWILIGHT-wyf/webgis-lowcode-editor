@@ -5,16 +5,18 @@
     :class="{ dragging: isPanning }"
     @dragover.prevent
     @drop="onDrop"
+    @contextmenu.prevent="onCanvasContextMenu"
   >
     <div class="world" :style="worldStyle">
       <div class="stage" :style="stageStyle">
-      <!-- 缩放平移容器 -->
+        <!-- 缩放平移容器 -->
         <Shape
           v-for="com in componentStore"
           :key="com.id"
           v-bind="com"
           @click.stop="selectedId(com.id)"
           :id="com.id"
+          @open-context-menu="openContextMenu"
         >
           <component
             :is="getComponent(com.type)"
@@ -25,10 +27,15 @@
           />
         </Shape>
         <!-- 吸附辅助线 -->
-        <Snap
-          ref="snapref"
-          v-if="isDragging"
-          />
+        <Snap ref="snapref" v-if="isDragging" />
+        <!-- 右键菜单 -->
+        <ContextMenu
+          :x="menuState.x"
+          :y="menuState.y"
+          :visible="menuState.visible"
+          :target-id="menuState.targetId"
+          @action="onMenuAction"
+        />
       </div>
     </div>
   </div>
@@ -41,16 +48,43 @@ import { storeToRefs } from 'pinia'
 import { useComponent } from '@/stores/component'
 import { getComponent } from '@/customComponents/registry'
 import { useCanvasInteraction } from '@/components/Editor/canvasBoard'
+import { useContextMenu } from '@/components/Editor/contextMenu'
 import Shape from './shape.vue'
 import Snap from './snap.vue'
+import ContextMenu from './ContextMenu.vue'
+import { onMounted, onBeforeUnmount } from 'vue'
 const wrap = ref<HTMLDivElement | null>(null)
+
 // 向子组件提供画布容器，用于将屏幕坐标映射为 stage 坐标
 provide('canvasWrapRef', wrap)
 const sizeStore = useSizeStore()
 const { width, height, scale } = storeToRefs(sizeStore)
-const { isDragging } = storeToRefs(useComponent())
+
+
+
 // 组件存储数组
-const { componentStore, addComponent, selectedId } = useComponent()
+const compStore = useComponent()
+const { componentStore, isDragging } = storeToRefs(compStore)
+const { addComponent, selectedId } = compStore
+
+const {
+  menuState,
+  openContextMenu,
+  hideContextMenu,
+  onMenuAction,
+  handleGlobalClick,
+  onCanvasContextMenu
+} =
+  useContextMenu(wrap)
+
+onMounted(() => {
+  window.addEventListener('mousedown', handleGlobalClick)
+  window.addEventListener('scroll', hideContextMenu, true)
+})
+onBeforeUnmount(() => {
+  window.removeEventListener('mousedown', handleGlobalClick)
+  window.removeEventListener('scroll', hideContextMenu, true)
+})
 
 // 添加组件
 function onDrop(e: DragEvent) {
@@ -80,6 +114,8 @@ function onDrop(e: DragEvent) {
   }
 }
 
+
+
 // stage层大小与网格变量
 const stageStyle = computed(() => ({
   width: width.value + 'px',
@@ -101,7 +137,6 @@ const worldStyle = computed(() => ({
   transform: `translate(${panX.value}px, ${panY.value}px) scale(${scale.value})`,
   transformOrigin: '0 0',
 }))
-
 </script>
 
 <style scoped>
