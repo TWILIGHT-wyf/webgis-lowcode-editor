@@ -10,6 +10,10 @@ export interface DataSource {
   body?: string
   interval?: number
   dataPath?: string
+  xAxisPath?: string // 用于图表的 X 轴标签路径
+  seriesNamePath?: string // 用于图表的系列名称路径
+  seriesNamesPath?: string // 用于堆叠图表的多个系列名称路径
+  seriesDataPath?: string // 用于堆叠图表的多个系列数据路径
   [key: string]: unknown
 }
 
@@ -101,6 +105,80 @@ export const useComponent = defineStore('component', () => {
         return {
           text: '示例文本',
         }
+      case 'lineChart':
+        return {
+          dataInput: '150, 230, 224, 218, 135, 147, 260',
+          xAxisInput: 'Mon, Tue, Wed, Thu, Fri, Sat, Sun',
+          seriesName: 'Series',
+          title: '',
+          lineColor: '#5470c6',
+          lineWidth: 2,
+          smooth: true,
+          showArea: false,
+          areaOpacity: 0.3,
+          showSymbol: true,
+          symbolSize: 6,
+          lineType: 'solid',
+          showLegend: true,
+          legendPosition: 'top',
+          showTooltip: true,
+          xAxisName: '',
+          yAxisName: '',
+          showXAxisLine: true,
+          showYAxisLine: true,
+          showXAxisLabel: true,
+          showYAxisLabel: true,
+          showGrid: true,
+          option: undefined,
+        }
+      case 'chart.bar':
+        return {
+          dataInput: '120, 200, 150, 180, 270, 210, 220',
+          xAxisInput: 'Mon, Tue, Wed, Thu, Fri, Sat, Sun',
+          seriesName: 'Series',
+          title: '',
+          barColor: '#5470c6',
+          barWidth: '60%',
+          borderRadius: 0,
+          showLabel: false,
+          showLegend: true,
+          legendPosition: 'top',
+          showTooltip: true,
+          xAxisName: '',
+          yAxisName: '',
+          showXAxisLine: true,
+          showYAxisLine: true,
+          showXAxisLabel: true,
+          showYAxisLabel: true,
+          showGrid: true,
+          option: undefined,
+        }
+      case 'chart.stackedBar':
+        return {
+          xAxisInput: 'Mon, Tue, Wed, Thu, Fri, Sat, Sun',
+          seriesNamesInput: 'Series 1, Series 2, Series 3',
+          series1Input: '120, 132, 101, 134, 90, 230, 210',
+          series2Input: '220, 182, 191, 234, 290, 330, 310',
+          series3Input: '150, 232, 201, 154, 190, 330, 410',
+          title: '',
+          color1: '#5470c6',
+          color2: '#91cc75',
+          color3: '#fac858',
+          barWidth: '60%',
+          borderRadius: 0,
+          showLabel: false,
+          showLegend: true,
+          legendPosition: 'top',
+          showTooltip: true,
+          xAxisName: '',
+          yAxisName: '',
+          showXAxisLine: true,
+          showYAxisLine: true,
+          showXAxisLabel: true,
+          showYAxisLabel: true,
+          showGrid: true,
+          option: undefined,
+        }
       default:
         return {}
     }
@@ -118,6 +196,29 @@ export const useComponent = defineStore('component', () => {
           body: '',
           interval: 0,
           dataPath: '',
+        }
+      case 'lineChart':
+      case 'chart.bar':
+        return {
+          enabled: false,
+          url: '',
+          method: 'GET',
+          headers: {},
+          interval: 0,
+          dataPath: '',
+          xAxisPath: '',
+          seriesNamePath: '',
+        }
+      case 'chart.stackedBar':
+        return {
+          enabled: false,
+          url: '',
+          method: 'GET',
+          headers: {},
+          interval: 0,
+          xAxisPath: '',
+          seriesNamesPath: '',
+          seriesDataPath: '',
         }
       default:
         return undefined

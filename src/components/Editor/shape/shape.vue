@@ -72,6 +72,11 @@ function handleClick(e: MouseEvent) {
   width: 100%;
   height: 100%;
 }
+.shape-content {
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+}
 .shape-handle {
   position: absolute;
   width: 8px;

@@ -70,11 +70,17 @@ export function useDataSource(dataSource: Ref<DataSource | undefined>) {
       // 发送请求
       const response = await axios(config)
 
-      // 根据数据路径提取数据
-      if (ds.dataPath) {
-        data.value = getValueByPath(response.data, ds.dataPath)
-      } else {
+      
+      // 让组件自己根据 dataPath、xAxisPath 等提取数据
+      if (ds.xAxisPath || ds.seriesNamePath) {
         data.value = response.data
+      } else {
+        // 其他类型（如 Text），根据 dataPath 提取数据
+        if (ds.dataPath) {
+          data.value = getValueByPath(response.data, ds.dataPath)
+        } else {
+          data.value = response.data
+        }
       }
 
       error.value = null

@@ -7,10 +7,13 @@ import router from './router'
 import 'leaflet/dist/leaflet.css'
 import * as ElementPlusIconsVue from '@element-plus/icons-vue'
 import './styles/animations.css'
+import VueECharts from 'vue-echarts'
 
 if (import.meta.env.DEV) {
   const { worker } = await import('./mock/browser')
-  await worker.start()
+  await worker.start({
+    onUnhandledRequest: 'bypass', // 忽略未定义的请求，不拦截
+  })
 }
 
 const app = createApp(App)
@@ -21,4 +24,5 @@ for (const [key, component] of Object.entries(ElementPlusIconsVue)) {
 app.use(ElementPlus)
 app.use(createPinia())
 app.use(router)
+app.component('v-chart', VueECharts)
 app.mount('#app')

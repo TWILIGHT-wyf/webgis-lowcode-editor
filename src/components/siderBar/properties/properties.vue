@@ -140,42 +140,84 @@
             </el-form>
             <el-form label-position="top" size="small">
               <template v-if="styleSchema.length">
-                <template v-for="field in styleSchema" :key="field.key">
-                  <el-form-item :label="field.label">
-                    <el-input
-                      v-if="field.type === 'text'"
-                      v-model="selectComponent.style[field.key]"
-                      :placeholder="field.placeholder"
-                    />
-                    <el-input-number
-                      v-else-if="field.type === 'number'"
-                      v-model="selectComponent.style[field.key]"
-                      :min="field.min"
-                      :max="field.max"
-                      :step="field.step ?? 1"
-                      style="width: 100%"
-                    />
-                    <el-color-picker
-                      v-else-if="field.type === 'color'"
-                      v-model="selectComponent.style[field.key]"
-                    />
-                    <el-select
-                      v-else-if="field.type === 'select'"
-                      v-model="selectComponent.style[field.key]"
-                      style="width: 100%"
-                    >
-                      <el-option
-                        v-for="opt in field.options"
-                        :key="opt.value"
-                        :label="opt.label"
-                        :value="opt.value"
+                <!-- Row 类型：样式字段写入 props，其他类型写入 style -->
+                <template v-if="isRow">
+                  <template v-for="field in styleSchema" :key="field.key">
+                    <el-form-item :label="field.label">
+                      <el-input
+                        v-if="field.type === 'text'"
+                        v-model="selectComponent.props[field.key]"
+                        :placeholder="field.placeholder"
                       />
-                    </el-select>
-                    <el-switch
-                      v-else-if="field.type === 'switch'"
-                      v-model="selectComponent.style[field.key]"
-                    />
-                  </el-form-item>
+                      <el-input-number
+                        v-else-if="field.type === 'number'"
+                        v-model="selectComponent.props[field.key]"
+                        :min="field.min"
+                        :max="field.max"
+                        :step="field.step ?? 1"
+                        style="width: 100%"
+                      />
+                      <el-color-picker
+                        v-else-if="field.type === 'color'"
+                        v-model="selectComponent.props[field.key]"
+                      />
+                      <el-select
+                        v-else-if="field.type === 'select'"
+                        v-model="selectComponent.props[field.key]"
+                        style="width: 100%"
+                      >
+                        <el-option
+                          v-for="opt in field.options"
+                          :key="opt.value"
+                          :label="opt.label"
+                          :value="opt.value"
+                        />
+                      </el-select>
+                      <el-switch
+                        v-else-if="field.type === 'switch'"
+                        v-model="selectComponent.props[field.key]"
+                      />
+                    </el-form-item>
+                  </template>
+                </template>
+                <template v-else>
+                  <template v-for="field in styleSchema" :key="field.key">
+                    <el-form-item :label="field.label">
+                      <el-input
+                        v-if="field.type === 'text'"
+                        v-model="selectComponent.style[field.key]"
+                        :placeholder="field.placeholder"
+                      />
+                      <el-input-number
+                        v-else-if="field.type === 'number'"
+                        v-model="selectComponent.style[field.key]"
+                        :min="field.min"
+                        :max="field.max"
+                        :step="field.step ?? 1"
+                        style="width: 100%"
+                      />
+                      <el-color-picker
+                        v-else-if="field.type === 'color'"
+                        v-model="selectComponent.style[field.key]"
+                      />
+                      <el-select
+                        v-else-if="field.type === 'select'"
+                        v-model="selectComponent.style[field.key]"
+                        style="width: 100%"
+                      >
+                        <el-option
+                          v-for="opt in field.options"
+                          :key="opt.value"
+                          :label="opt.label"
+                          :value="opt.value"
+                        />
+                      </el-select>
+                      <el-switch
+                        v-else-if="field.type === 'switch'"
+                        v-model="selectComponent.style[field.key]"
+                      />
+                    </el-form-item>
+                  </template>
                 </template>
               </template>
             </el-form>
@@ -186,11 +228,22 @@
             <el-form label-position="top" size="small">
               <template v-for="field in dataSourceSchema" :key="field.key">
                 <el-form-item :label="field.label">
-                  <el-input
-                    v-if="field.type === 'text' && selectComponent.dataSource"
-                    v-model="selectComponent.dataSource[field.key]"
-                    :placeholder="field.placeholder"
-                  />
+                  <template v-if="field.type === 'text' && selectComponent.dataSource">
+                    <el-input
+                      v-if="field.key === 'headers'"
+                      v-model="headersInput"
+                      :placeholder="field.placeholder"
+                      type="textarea"
+                      :rows="3"
+                      @change="applyHeadersFromInput"
+                      @blur="applyHeadersFromInput"
+                    />
+                    <el-input
+                      v-else
+                      v-model="selectComponent.dataSource[field.key]"
+                      :placeholder="field.placeholder"
+                    />
+                  </template>
                   <el-input-number
                     v-else-if="field.type === 'number' && selectComponent.dataSource"
                     v-model="selectComponent.dataSource[field.key]"
@@ -214,6 +267,81 @@
                   <el-switch
                     v-else-if="field.type === 'switch' && selectComponent.dataSource"
                     v-model="selectComponent.dataSource[field.key]"
+                  />
+                </el-form-item>
+              </template>
+            </el-form>
+
+            <!-- 数据源预览 -->
+            <el-divider v-if="selectComponent.dataSource?.enabled" content-position="left">
+              <el-text size="small" type="info">数据预览</el-text>
+            </el-divider>
+            <div v-if="selectComponent.dataSource?.enabled" style="margin-top: 12px">
+              <el-alert v-if="previewLoading" type="info" :closable="false" show-icon>
+                <template #title>正在加载数据...</template>
+              </el-alert>
+              <el-alert v-else-if="previewError" type="error" :closable="false" show-icon>
+                <template #title>{{ previewError }}</template>
+              </el-alert>
+              <div v-else-if="previewData" style="max-height: 300px; overflow: auto">
+                <el-input
+                  :model-value="JSON.stringify(previewData, null, 2)"
+                  type="textarea"
+                  :rows="10"
+                  readonly
+                  style="font-family: 'Consolas', monospace; font-size: 12px"
+                />
+              </div>
+              <el-empty v-else description="暂无数据" :image-size="60" />
+            </div>
+          </el-collapse-item>
+
+          <!-- 组件自定义配置 -->
+          <el-collapse-item v-if="componentSchema.length" title="组件配置" name="component">
+            <el-form label-position="top" size="small">
+              <template v-for="field in componentSchema" :key="field.key">
+                <el-form-item :label="field.label">
+                  <template v-if="field.type === 'text'">
+                    <el-input
+                      v-model="componentFieldInput[field.key]"
+                      type="textarea"
+                      :rows="4"
+                      :placeholder="field.placeholder"
+                      @blur="applyComponentField(field.key)"
+                    />
+                  </template>
+                  <el-color-picker
+                    v-else-if="field.type === 'color'"
+                    v-model="selectComponent.props[field.key]"
+                    show-alpha
+                    @change="storeComponent.commitDebounced()"
+                  />
+                  <el-input-number
+                    v-else-if="field.type === 'number'"
+                    v-model="selectComponent.props[field.key]"
+                    :min="field.min"
+                    :max="field.max"
+                    :step="field.step ?? 1"
+                    style="width: 100%"
+                    @change="storeComponent.commitDebounced()"
+                  />
+                  <el-select
+                    v-else-if="field.type === 'select'"
+                    v-model="selectComponent.props[field.key]"
+                    style="width: 100%"
+                    @change="storeComponent.commitDebounced()"
+                  >
+                    <el-option
+                      v-for="opt in field.options"
+                      :key="opt.value"
+                      :label="opt.label"
+                      :value="opt.value"
+                    />
+                  </el-select>
+                  <el-switch
+                    v-else-if="field.type === 'switch'"
+                    v-model="selectComponent.props[field.key]"
+                    @change="storeComponent.commitDebounced()"
                   />
                 </el-form-item>
               </template>
@@ -252,11 +380,99 @@ import { Top, Bottom, CaretTop, CaretBottom } from '@element-plus/icons-vue'
 import { useComponent } from '@/stores/component'
 import { storeToRefs } from 'pinia'
 import { customProperties } from './properties'
+import { useDataSource } from '@/datasource/useDataSource'
 // 状态管理
 const storeComponent = useComponent()
 const { selectComponent, selectedIds } = storeToRefs(storeComponent)
 const activeCollapse = ref(['basic'])
-const { styleSchema, dataSourceSchema } = customProperties()
+const { styleSchema, dataSourceSchema, componentSchema } = customProperties()
+const isRow = computed(() => {
+  const t = selectComponent.value?.type
+  return t === 'Row' || t === 'layout.row'
+})
+
+// 数据源预览
+const {
+  data: previewData,
+  loading: previewLoading,
+  error: previewError,
+} = useDataSource(computed(() => selectComponent.value?.dataSource))
+
+// DataSource.headers 使用字符串输入并在提交时解析为对象，避免类型不匹配
+const headersInput = ref('')
+
+function applyHeadersFromInput() {
+  const ds = selectComponent.value?.dataSource
+  if (!ds) return
+  try {
+    const text = headersInput.value.trim()
+    ds.headers = text ? (JSON.parse(text) as Record<string, string>) : {}
+    storeComponent.commitDebounced()
+  } catch {
+    // 非法 JSON 时，不落库，仅保持输入框文本
+  }
+}
+
+// 切换组件或数据源变更时，同步输入框展示
+watch(
+  () => selectComponent.value?.dataSource,
+  (ds) => {
+    if (!ds) return
+    const raw = ds.headers
+    if (typeof raw === 'string') {
+      headersInput.value = raw
+    } else {
+      headersInput.value = JSON.stringify(raw ?? {}, null, 2)
+    }
+  },
+  { immediate: true, deep: true },
+)
+
+// 组件字段输入缓存（用于 JSON 文本输入 -> props 值）
+const componentFieldInput = ref<Record<string, string>>({})
+
+function applyComponentField(key: string) {
+  const comp = selectComponent.value
+  if (!comp) return
+  const text = componentFieldInput.value[key]?.trim() ?? ''
+  if (!text) {
+    // 设置为空值
+    Reflect.set(comp.props as Record<string, unknown>, key, undefined)
+    storeComponent.commitDebounced()
+    return
+  }
+  // 尝试解析 JSON，否则当作普通字符串
+  try {
+    const parsed = JSON.parse(text)
+    Reflect.set(comp.props as Record<string, unknown>, key, parsed)
+  } catch {
+    Reflect.set(comp.props as Record<string, unknown>, key, text)
+  }
+  storeComponent.commitDebounced()
+}
+
+// 当切换组件或组件 props 改变时，同步 componentFieldInput
+watch(
+  () => selectComponent.value,
+  (comp) => {
+    if (!comp) {
+      componentFieldInput.value = {}
+      return
+    }
+    // 初始化 componentSchema 字段默认值（若 props 缺失）
+    for (const f of componentSchema.value) {
+      if (!('props' in comp) || !comp.props) comp.props = {}
+      if (comp.props[f.key] === undefined) {
+        Reflect.set(comp.props as Record<string, unknown>, f.key, f.default ?? undefined)
+      }
+      // 同步到输入缓存（JSON 格式化）
+      const v = comp.props[f.key]
+      componentFieldInput.value[f.key] =
+        v === undefined ? '' : typeof v === 'string' ? v : JSON.stringify(v, null, 2)
+    }
+  },
+  { immediate: true, deep: true },
+)
 
 // 多选提示
 const isMultiSelect = computed(() => selectedIds.value.length > 1)
@@ -320,6 +536,8 @@ watch(
         comp.position.y = newPos.y
       }
     })
+    // 记录批量修改历史
+    storeComponent.commitDebounced()
   },
   { deep: true },
 )
@@ -335,6 +553,8 @@ watch(
         comp.size.height = newSize.height
       }
     })
+    // 记录批量修改历史
+    storeComponent.commitDebounced()
   },
   { deep: true },
 )
@@ -349,6 +569,8 @@ watch(
         comp.rotation = newRotation
       }
     })
+    // 记录批量修改历史
+    storeComponent.commitDebounced()
   },
 )
 
@@ -363,6 +585,8 @@ watch(
         Object.assign(comp.style, { ...newStyle })
       }
     })
+    // 记录批量修改历史
+    storeComponent.commitDebounced()
   },
   { deep: true },
 )
@@ -379,7 +603,15 @@ watch(
     if (comp.style.locked === undefined) comp.style.locked = false
     // 初始化样式字段默认值
     for (const f of styleSchema.value) {
-      if (comp.style[f.key] === undefined) comp.style[f.key] = f.default as never
+      if (isRow.value) {
+        if (comp.props[f.key] === undefined) {
+          Reflect.set(comp.props as Record<string, unknown>, f.key, f.default)
+        }
+      } else {
+        if (comp.style[f.key] === undefined) {
+          Reflect.set(comp.style as Record<string, unknown>, f.key, f.default)
+        }
+      }
     }
     // 初始化 props
     if (!('props' in comp) || !comp.props) comp.props = {}
