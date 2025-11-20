@@ -269,6 +269,65 @@ app.get('/api/chart/stacked', (req, res) => {
   })
 })
 
+// 20. 图表数据 - 饼图
+app.get('/api/chart/pie', (req, res) => {
+  res.json({
+    title: '市场份额分布',
+    data: {
+      values: [335, 310, 234, 135, 148],
+      labels: ['产品A', '产品B', '产品C', '产品D', '产品E'],
+    },
+  })
+})
+
+// 21. 图表数据 - 环形图 (动态数据)
+app.get('/api/chart/doughnut', (req, res) => {
+  const categories = ['直接访问', '邮件营销', '联盟广告', '视频广告', '搜索引擎']
+  const values = categories.map(() => Math.floor(Math.random() * 2000) + 100)
+
+  res.json({
+    title: '访问来源',
+    data: {
+      values: values,
+      labels: categories,
+    },
+    timestamp: Date.now(),
+  })
+})
+
+// 22. 图表数据 - 散点图
+app.get('/api/chart/scatter', (req, res) => {
+  // 生成随机散点数据
+  const points = []
+  for (let i = 0; i < 20; i++) {
+    points.push([
+      parseFloat((Math.random() * 15 + 5).toFixed(2)),
+      parseFloat((Math.random() * 10 + 3).toFixed(2)),
+    ])
+  }
+
+  res.json({
+    title: '相关性分析',
+    data: {
+      points: points,
+    },
+  })
+})
+
+// 23. 图表数据 - 饼图 (实时变化)
+app.get('/api/chart/pie-realtime', (req, res) => {
+  const categories = ['分类1', '分类2', '分类3', '分类4', '分类5']
+  const values = categories.map(() => Math.floor(Math.random() * 500) + 50)
+
+  res.json({
+    data: {
+      values: values,
+      labels: categories,
+    },
+    updateTime: new Date().toLocaleTimeString('zh-CN'),
+  })
+})
+
 // 启动服务器
 app.listen(PORT, () => {
   console.log('\n' + '='.repeat(60))
@@ -331,6 +390,22 @@ app.listen(PORT, () => {
   console.log('   X轴路径: data.categories')
   console.log('   系列名称路径: data.seriesNames')
   console.log('   系列数据路径: data.seriesData\n')
+
+  console.log('1️⃣4️⃣ 饼图')
+  console.log(`   URL: http://localhost:${PORT}/api/chart/pie`)
+  console.log('   数据路径: data.values | 标签路径: data.labels\n')
+
+  console.log('1️⃣5️⃣ 环形图 (动态数据，建议刷新: 3秒)')
+  console.log(`   URL: http://localhost:${PORT}/api/chart/doughnut`)
+  console.log('   数据路径: data.values | 标签路径: data.labels\n')
+
+  console.log('1️⃣6️⃣ 散点图')
+  console.log(`   URL: http://localhost:${PORT}/api/chart/scatter`)
+  console.log('   数据路径: data.points (二维数组格式)\n')
+
+  console.log('1️⃣7️⃣ 饼图 - 实时变化 (建议刷新: 2秒)')
+  console.log(`   URL: http://localhost:${PORT}/api/chart/pie-realtime`)
+  console.log('   数据路径: data.values | 标签路径: data.labels\n')
 
   console.log('='.repeat(60))
   console.log('💡 提示: 按 Ctrl+C 停止服务器')

@@ -3,32 +3,11 @@ import axios, { type AxiosRequestConfig } from 'axios'
 import type { DataSource } from '@/stores/component'
 
 /**
- * 从嵌套对象中根据路径获取值
- * 支持点号和数组索引，如: 'data.items[0].name'
- */
-function getValueByPath(obj: unknown, path: string): unknown {
-  if (!path) return obj
-
-  try {
-    // 处理路径如 'data.items[0].name'
-    const keys = path.replace(/\[(\d+)\]/g, '.$1').split('.')
-    let result: unknown = obj
-
-    for (const key of keys) {
-      if (result === null || result === undefined) return undefined
-      result = (result as Record<string, unknown>)[key]
-    }
-
-    return result
-  } catch (error) {
-    console.error('Path parsing error:', error)
-    return undefined
-  }
-}
-
-/**
  * 数据源 Hook
  * 支持 HTTP 请求和自动刷新
+ *
+ * 注意：此 Hook 始终返回完整的响应数据
+ * 由各个组件使用 chartUtils 中的工具函数自行提取所需数据
  */
 export function useDataSource(dataSource: Ref<DataSource | undefined>) {
   const data = ref<unknown>(null)
@@ -70,17 +49,21 @@ export function useDataSource(dataSource: Ref<DataSource | undefined>) {
       // 发送请求
       const response = await axios(config)
 
-      
-      // 让组件自己根据 dataPath、xAxisPath 等提取数据
-      if (ds.xAxisPath || ds.seriesNamePath) {
+      // 对于图表类型（有多个路径配置或存在 dataPath），返回完整响应数据
+      // 让组件自己根据 dataPath、xAxisPath、labelsPath 等提取数据
+      // 这样确保图表组件始终能正确提取嵌套数据
+      if (
+        ds.dataPath ||
+        ds.xAxisPath ||
+        ds.seriesNamePath ||
+        ds.labelsPath ||
+        ds.seriesNamesPath ||
+        ds.seriesDataPath
+      ) {
         data.value = response.data
       } else {
-        // 其他类型（如 Text），根据 dataPath 提取数据
-        if (ds.dataPath) {
-          data.value = getValueByPath(response.data, ds.dataPath)
-        } else {
-          data.value = response.data
-        }
+        // 如果没有任何路径配置，直接返回完整响应
+        data.value = response.data
       }
 
       error.value = null

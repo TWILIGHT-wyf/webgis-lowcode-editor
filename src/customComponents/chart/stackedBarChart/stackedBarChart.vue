@@ -19,6 +19,12 @@ import {
 import { useComponent } from '@/stores/component'
 import { storeToRefs } from 'pinia'
 import { useDataSource } from '@/datasource/useDataSource'
+import {
+  parseNumberInput,
+  parseStringInput,
+  extractStringArray,
+  getValueByPath,
+} from '../chartUtils'
 
 use([TitleComponent, TooltipComponent, GridComponent, LegendComponent, BarChart, CanvasRenderer])
 
@@ -29,30 +35,6 @@ const comp = computed(() => componentStore.value.find((c) => c.id === props.id))
 const { data: remoteData } = useDataSource(computed(() => comp.value?.dataSource))
 
 const chartOption = ref<EChartsOption>({})
-
-function parseDataInput(input: string | undefined): number[] {
-  if (!input) return []
-  return input
-    .split(',')
-    .map((v) => parseFloat(v.trim()))
-    .filter((v) => !isNaN(v))
-}
-
-function parseXAxisInput(input: string | undefined): string[] {
-  if (!input) return ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun']
-  return input
-    .split(',')
-    .map((v) => v.trim())
-    .filter((v) => v.length > 0)
-}
-
-function parseSeriesNamesInput(input: string | undefined): string[] {
-  if (!input) return []
-  return input
-    .split(',')
-    .map((v) => v.trim())
-    .filter((v) => v.length > 0)
-}
 
 function buildOption(): EChartsOption {
   if (!comp.value) return {}
@@ -77,43 +59,24 @@ function buildSimpleOption(): EChartsOption {
   const p = comp.value.props
   const ds = comp.value.dataSource
 
-  function getValueByPath(obj: unknown, path: string): unknown {
-    if (!path || !obj) return undefined
-    try {
-      const keys = path.replace(/\[(\d+)\]/g, '.$1').split('.')
-      let result: unknown = obj
-      for (const key of keys) {
-        if (result === null || result === undefined) return undefined
-        result = (result as Record<string, unknown>)[key]
-      }
-      return result
-    } catch {
-      return undefined
-    }
-  }
-
-  let xAxisData: string[] = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun']
-  let seriesNames: string[] = ['Series 1', 'Series 2', 'Series 3']
-  let seriesData: number[][] = [
+  const defaultXAxis = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun']
+  const defaultSeriesNames = ['Series 1', 'Series 2', 'Series 3']
+  const defaultSeriesData = [
     [120, 132, 101, 134, 90, 230, 210],
     [220, 182, 191, 234, 290, 330, 310],
     [150, 232, 201, 154, 190, 330, 410],
   ]
 
-  if (ds?.enabled && remoteData.value) {
-    if (ds.xAxisPath) {
-      const extractedXAxis = getValueByPath(remoteData.value, ds.xAxisPath)
-      if (Array.isArray(extractedXAxis)) {
-        xAxisData = extractedXAxis.map((v) => String(v))
-      }
-    }
+  let xAxisData: string[] = defaultXAxis
+  let seriesNames: string[] = defaultSeriesNames
+  let seriesData: number[][] = defaultSeriesData
 
-    if (ds.seriesNamesPath) {
-      const extractedNames = getValueByPath(remoteData.value, ds.seriesNamesPath)
-      if (Array.isArray(extractedNames)) {
-        seriesNames = extractedNames.map((v) => String(v))
-      }
-    }
+  if (ds?.enabled && remoteData.value) {
+    const extractedXAxis = extractStringArray(remoteData.value, ds.xAxisPath)
+    if (extractedXAxis) xAxisData = extractedXAxis
+
+    const extractedNames = extractStringArray(remoteData.value, ds.seriesNamesPath)
+    if (extractedNames) seriesNames = extractedNames
 
     if (ds.seriesDataPath) {
       const extractedData = getValueByPath(remoteData.value, ds.seriesDataPath)
@@ -128,25 +91,25 @@ function buildSimpleOption(): EChartsOption {
     }
   } else {
     if (p.xAxisInput) {
-      xAxisData = parseXAxisInput(p.xAxisInput as string)
+      xAxisData = parseStringInput(p.xAxisInput as string, defaultXAxis)
     } else if (p.xAxisData) {
       xAxisData = p.xAxisData as string[]
     }
 
     if (p.seriesNamesInput) {
-      seriesNames = parseSeriesNamesInput(p.seriesNamesInput as string)
+      seriesNames = parseStringInput(p.seriesNamesInput as string, defaultSeriesNames)
     } else if (p.seriesNames) {
       seriesNames = p.seriesNames as string[]
     }
 
     if (p.series1Input) {
-      seriesData[0] = parseDataInput(p.series1Input as string)
+      seriesData[0] = parseNumberInput(p.series1Input as string, [])
     }
     if (p.series2Input) {
-      seriesData[1] = parseDataInput(p.series2Input as string)
+      seriesData[1] = parseNumberInput(p.series2Input as string, [])
     }
     if (p.series3Input) {
-      seriesData[2] = parseDataInput(p.series3Input as string)
+      seriesData[2] = parseNumberInput(p.series3Input as string, [])
     }
 
     if (p.seriesData && Array.isArray(p.seriesData)) {

@@ -11,6 +11,7 @@ export interface DataSource {
   interval?: number
   dataPath?: string
   xAxisPath?: string // 用于图表的 X 轴标签路径
+  labelsPath?: string // 用于饼图/环形图的标签路径
   seriesNamePath?: string // 用于图表的系列名称路径
   seriesNamesPath?: string // 用于堆叠图表的多个系列名称路径
   seriesDataPath?: string // 用于堆叠图表的多个系列数据路径
@@ -179,6 +180,160 @@ export const useComponent = defineStore('component', () => {
           showGrid: true,
           option: undefined,
         }
+      case 'pieChart':
+        return {
+          dataInput: '335, 310, 234, 135, 148',
+          labelsInput: 'Category A, Category B, Category C, Category D, Category E',
+          seriesName: 'Data',
+          title: '',
+          titleAlign: 'center',
+          titleSize: 16,
+          titleColor: '#333',
+          radius: '60%',
+          centerX: '50%',
+          centerY: '50%',
+          showLabel: true,
+          labelFormatter: '{b}: {c}',
+          showLegend: true,
+          legendOrient: 'horizontal',
+          legendLeft: 'center',
+          legendTop: 'bottom',
+        }
+      case 'doughnutChart':
+        return {
+          dataInput: '335, 310, 234, 135, 1548',
+          labelsInput: 'Direct, Email, Union Ads, Video Ads, Search Engine',
+          seriesName: 'Access From',
+          title: '',
+          titleAlign: 'center',
+          titleSize: 16,
+          titleColor: '#333',
+          innerRadius: '40%',
+          outerRadius: '70%',
+          centerX: '50%',
+          centerY: '50%',
+          borderRadius: 10,
+          borderColor: '#fff',
+          borderWidth: 2,
+          showLabel: true,
+          labelFormatter: '{b}: {c}',
+          showLabelLine: true,
+          showLegend: true,
+          legendOrient: 'horizontal',
+          legendLeft: 'center',
+          legendTop: 'bottom',
+        }
+      case 'scatterChart':
+        return {
+          dataInput:
+            '[[10.0, 8.04], [8.07, 6.95], [13.0, 7.58], [9.05, 8.81], [11.0, 8.33], [14.0, 7.66], [13.4, 6.81], [10.0, 6.33], [14.0, 8.96], [12.5, 6.82]]',
+          seriesName: 'Data',
+          title: '',
+          titleAlign: 'center',
+          titleSize: 16,
+          titleColor: '#333',
+          symbolSize: 10,
+          color: '#5470c6',
+          opacity: 0.8,
+          xAxisName: '',
+          yAxisName: '',
+          showXAxisSplitLine: true,
+          showYAxisSplitLine: true,
+          gridLeft: '10%',
+          gridRight: '10%',
+          gridTop: '15%',
+          gridBottom: '15%',
+          showLegend: true,
+          legendLeft: 'center',
+          legendTop: 'bottom',
+        }
+      case 'radarChart':
+        return {
+          indicatorNamesInput: '销售,管理,技术,客服,研发,市场',
+          indicatorMaxsInput: '100,100,100,100,100,100',
+          title: '',
+          radarShape: 'polygon',
+          splitNumber: 5,
+          axisNameColor: '#333',
+          showArea: true,
+          areaOpacity: 0.3,
+          seriesName: 'Radar',
+        }
+      case 'gaugeChart':
+        return {
+          value: 75,
+          name: 'Progress',
+          min: 0,
+          max: 100,
+          title: '',
+          startAngle: 225,
+          endAngle: -45,
+          splitNumber: 10,
+          showProgress: true,
+          progressWidth: 10,
+          axisLineWidth: 10,
+          pointerColor: 'auto',
+          pointerLength: '70%',
+          pointerWidth: 8,
+          showAxisTick: true,
+          axisTickSplitNumber: 5,
+          showSplitLine: true,
+          splitLineLength: 15,
+          showAxisLabel: true,
+          axisLabelDistance: 25,
+          axisLabelFontSize: 12,
+          detailFormatter: '{value}',
+          detailFontSize: 20,
+          detailOffsetX: '0%',
+          detailOffsetY: '70%',
+        }
+      case 'funnelChart':
+        return {
+          dataInput: '100,80,60,40,20',
+          labelsInput: '展示,访问,咨询,订单,成交',
+          title: '',
+          seriesName: 'Funnel',
+          left: '10%',
+          top: '20%',
+          bottom: '20%',
+          width: '80%',
+          min: 0,
+          max: 100,
+          minSize: '0%',
+          maxSize: '100%',
+          sort: 'descending',
+          gap: 2,
+          showLabel: true,
+          labelPosition: 'inside',
+          labelFormatter: '{b}: {c}',
+          showLabelLine: true,
+          labelLineLength: 10,
+          borderColor: '#fff',
+          borderWidth: 1,
+        }
+      case 'sankeyChart':
+        return {
+          nodesInput: '["a","b","c","d","e","f"]',
+          linksInput:
+            '[{"source":"a","target":"b","value":5},{"source":"a","target":"c","value":3},{"source":"b","target":"d","value":8},{"source":"b","target":"e","value":3},{"source":"c","target":"e","value":4},{"source":"d","target":"f","value":6},{"source":"e","target":"f","value":5}]',
+          title: '',
+          orient: 'horizontal',
+          left: '5%',
+          top: '10%',
+          right: '20%',
+          bottom: '10%',
+          nodeWidth: 20,
+          nodeGap: 8,
+          layoutIterations: 32,
+          nodeAlign: 'justify',
+          showLabel: true,
+          labelPosition: 'right',
+          labelFontSize: 12,
+          labelColor: '#000',
+          lineColor: 'source',
+          lineOpacity: 0.2,
+          lineCurveness: 0.5,
+        }
       default:
         return {}
     }
@@ -219,6 +374,70 @@ export const useComponent = defineStore('component', () => {
           xAxisPath: '',
           seriesNamesPath: '',
           seriesDataPath: '',
+        }
+      case 'pieChart':
+      case 'doughnutChart':
+        return {
+          enabled: false,
+          url: '',
+          method: 'GET',
+          headers: {},
+          interval: 0,
+          dataPath: '',
+          labelsPath: '',
+        }
+      case 'scatterChart':
+        return {
+          enabled: false,
+          url: '',
+          method: 'GET',
+          headers: {},
+          interval: 0,
+          dataPath: '',
+        }
+      case 'radarChart':
+        return {
+          enabled: false,
+          url: '',
+          method: 'GET',
+          headers: {},
+          interval: 0,
+          indicatorNamesPath: '',
+          indicatorMaxsPath: '',
+          seriesNamesPath: '',
+          seriesValuesPath: '',
+        }
+      case 'gaugeChart':
+        return {
+          enabled: false,
+          url: '',
+          method: 'GET',
+          headers: {},
+          interval: 0,
+          dataPath: '',
+          namePath: '',
+          minPath: '',
+          maxPath: '',
+        }
+      case 'funnelChart':
+        return {
+          enabled: false,
+          url: '',
+          method: 'GET',
+          headers: {},
+          interval: 0,
+          dataPath: '',
+          labelsPath: '',
+        }
+      case 'sankeyChart':
+        return {
+          enabled: false,
+          url: '',
+          method: 'GET',
+          headers: {},
+          interval: 0,
+          nodesPath: '',
+          linksPath: '',
         }
       default:
         return undefined

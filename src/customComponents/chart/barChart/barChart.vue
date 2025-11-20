@@ -19,6 +19,13 @@ import {
 import { useComponent } from '@/stores/component'
 import { storeToRefs } from 'pinia'
 import { useDataSource } from '@/datasource/useDataSource'
+import {
+  parseNumberInput,
+  parseStringInput,
+  extractNumberArray,
+  extractStringArray,
+  extractString,
+} from '../chartUtils'
 
 use([TitleComponent, TooltipComponent, GridComponent, LegendComponent, BarChart, CanvasRenderer])
 
@@ -29,22 +36,6 @@ const comp = computed(() => componentStore.value.find((c) => c.id === props.id))
 const { data: remoteData } = useDataSource(computed(() => comp.value?.dataSource))
 
 const chartOption = ref<EChartsOption>({})
-
-function parseDataInput(input: string | undefined): number[] {
-  if (!input) return [120, 200, 150, 180, 270, 210, 220]
-  return input
-    .split(',')
-    .map((v) => parseFloat(v.trim()))
-    .filter((v) => !isNaN(v))
-}
-
-function parseXAxisInput(input: string | undefined): string[] {
-  if (!input) return ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun']
-  return input
-    .split(',')
-    .map((v) => v.trim())
-    .filter((v) => v.length > 0)
-}
 
 function buildOption(): EChartsOption {
   if (!comp.value) return {}
@@ -69,55 +60,31 @@ function buildSimpleOption(): EChartsOption {
   const p = comp.value.props
   const ds = comp.value.dataSource
 
-  function getValueByPath(obj: unknown, path: string): unknown {
-    if (!path || !obj) return undefined
-    try {
-      const keys = path.replace(/\[(\d+)\]/g, '.$1').split('.')
-      let result: unknown = obj
-      for (const key of keys) {
-        if (result === null || result === undefined) return undefined
-        result = (result as Record<string, unknown>)[key]
-      }
-      return result
-    } catch {
-      return undefined
-    }
-  }
+  const defaultData = [120, 200, 150, 180, 270, 210, 220]
+  const defaultXAxis = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun']
 
-  let data: number[] = [120, 200, 150, 180, 270, 210, 220]
-  let xAxisData: string[] = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun']
+  let data: number[] = defaultData
+  let xAxisData: string[] = defaultXAxis
   let seriesName: string = (p.seriesName as string) || 'Series'
 
   if (ds?.enabled && remoteData.value) {
-    if (ds.dataPath) {
-      const extractedData = getValueByPath(remoteData.value, ds.dataPath)
-      if (Array.isArray(extractedData)) {
-        data = extractedData.map((v) => (typeof v === 'number' ? v : parseFloat(String(v))))
-      }
-    }
+    const extractedData = extractNumberArray(remoteData.value, ds.dataPath)
+    if (extractedData) data = extractedData
 
-    if (ds.xAxisPath) {
-      const extractedXAxis = getValueByPath(remoteData.value, ds.xAxisPath)
-      if (Array.isArray(extractedXAxis)) {
-        xAxisData = extractedXAxis.map((v) => String(v))
-      }
-    }
+    const extractedXAxis = extractStringArray(remoteData.value, ds.xAxisPath)
+    if (extractedXAxis) xAxisData = extractedXAxis
 
-    if (ds.seriesNamePath) {
-      const extractedName = getValueByPath(remoteData.value, ds.seriesNamePath)
-      if (extractedName) {
-        seriesName = String(extractedName)
-      }
-    }
+    const extractedName = extractString(remoteData.value, ds.seriesNamePath)
+    if (extractedName) seriesName = extractedName
   } else {
     if (p.dataInput) {
-      data = parseDataInput(p.dataInput as string)
+      data = parseNumberInput(p.dataInput as string, defaultData)
     } else if (p.data) {
       data = p.data as number[]
     }
 
     if (p.xAxisInput) {
-      xAxisData = parseXAxisInput(p.xAxisInput as string)
+      xAxisData = parseStringInput(p.xAxisInput as string, defaultXAxis)
     } else if (p.xAxisData) {
       xAxisData = p.xAxisData as string[]
     }

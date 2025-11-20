@@ -19,6 +19,13 @@ import {
 import { useComponent } from '@/stores/component'
 import { storeToRefs } from 'pinia'
 import { useDataSource } from '@/datasource/useDataSource'
+import {
+  parseNumberInput,
+  parseStringInput,
+  extractNumberArray,
+  extractStringArray,
+  extractString,
+} from '../chartUtils'
 
 //按需引入
 use([TitleComponent, TooltipComponent, GridComponent, LegendComponent, LineChart, CanvasRenderer])
@@ -33,23 +40,6 @@ const comp = computed(() => componentStore.value.find((c) => c.id === props.id))
 const { data: remoteData } = useDataSource(computed(() => comp.value?.dataSource))
 
 const chartOption = ref<EChartsOption>({})
-
-// 解析逗号分隔的字符串为数组
-function parseDataInput(input: string | undefined): number[] {
-  if (!input) return [150, 230, 224, 218, 135, 147, 260]
-  return input
-    .split(',')
-    .map((v) => parseFloat(v.trim()))
-    .filter((v) => !isNaN(v))
-}
-
-function parseXAxisInput(input: string | undefined): string[] {
-  if (!input) return ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun']
-  return input
-    .split(',')
-    .map((v) => v.trim())
-    .filter((v) => v.length > 0)
-}
 
 function buildOption(): EChartsOption {
   if (!comp.value) return {}
@@ -76,62 +66,58 @@ function buildSimpleOption(): EChartsOption {
   const p = comp.value.props
   const ds = comp.value.dataSource
 
-  // 从数据源提取数据的辅助函数
-  function getValueByPath(obj: unknown, path: string): unknown {
-    if (!path || !obj) return undefined
-    try {
-      const keys = path.replace(/\[(\d+)\]/g, '.$1').split('.')
-      let result: unknown = obj
-      for (const key of keys) {
-        if (result === null || result === undefined) return undefined
-        result = (result as Record<string, unknown>)[key]
-      }
-      return result
-    } catch {
-      return undefined
-    }
-  }
+  // 默认数据
+  const defaultData = [150, 230, 224, 218, 135, 147, 260]
+  const defaultXAxis = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun']
 
   // 获取数据 - 优先使用数据源，其次使用手动输入
-  let data: number[] = [150, 230, 224, 218, 135, 147, 260]
-  let xAxisData: string[] = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun']
+  let data: number[] = defaultData
+  let xAxisData: string[] = defaultXAxis
   let seriesName: string = (p.seriesName as string) || 'Series'
 
   // 如果数据源启用且有数据
   if (ds?.enabled && remoteData.value) {
+    console.log('=== LineChart Debug Info ===')
+    console.log('remoteData.value:', remoteData.value)
+    console.log('ds.dataPath:', ds.dataPath)
+    console.log('ds.xAxisPath:', ds.xAxisPath)
+    console.log('ds.seriesNamePath:', ds.seriesNamePath)
+
     // 提取数据值
-    if (ds.dataPath) {
-      const extractedData = getValueByPath(remoteData.value, ds.dataPath)
-      if (Array.isArray(extractedData)) {
-        data = extractedData.map((v) => (typeof v === 'number' ? v : parseFloat(String(v))))
-      }
+    const extractedData = extractNumberArray(remoteData.value, ds.dataPath)
+    console.log('extractedData:', extractedData)
+    if (extractedData) {
+      data = extractedData
     }
 
     // 提取 X 轴标签
-    if (ds.xAxisPath) {
-      const extractedXAxis = getValueByPath(remoteData.value, ds.xAxisPath)
-      if (Array.isArray(extractedXAxis)) {
-        xAxisData = extractedXAxis.map((v) => String(v))
-      }
+    const extractedXAxis = extractStringArray(remoteData.value, ds.xAxisPath)
+    console.log('extractedXAxis:', extractedXAxis)
+    if (extractedXAxis) {
+      xAxisData = extractedXAxis
     }
 
     // 提取系列名称
-    if (ds.seriesNamePath) {
-      const extractedName = getValueByPath(remoteData.value, ds.seriesNamePath)
-      if (extractedName) {
-        seriesName = String(extractedName)
-      }
+    const extractedName = extractString(remoteData.value, ds.seriesNamePath)
+    console.log('extractedName:', extractedName)
+    if (extractedName) {
+      seriesName = extractedName
     }
+
+    console.log('Final data:', data)
+    console.log('Final xAxisData:', xAxisData)
+    console.log('Final seriesName:', seriesName)
+    console.log('=== End Debug Info ===')
   } else {
     // 使用手动输入的数据
     if (p.dataInput) {
-      data = parseDataInput(p.dataInput as string)
+      data = parseNumberInput(p.dataInput as string, defaultData)
     } else if (p.data) {
       data = p.data as number[]
     }
 
     if (p.xAxisInput) {
-      xAxisData = parseXAxisInput(p.xAxisInput as string)
+      xAxisData = parseStringInput(p.xAxisInput as string, defaultXAxis)
     } else if (p.xAxisData) {
       xAxisData = p.xAxisData as string[]
     }
