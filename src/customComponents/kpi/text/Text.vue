@@ -10,6 +10,7 @@ import type { CSSProperties } from 'vue'
 import { useComponent } from '@/stores/component'
 import { storeToRefs } from 'pinia'
 import { useDataSource } from '@/datasource/useDataSource'
+import { extractWithFallback } from '@/datasource/dataUtils'
 
 const props = defineProps<{ id: string }>()
 const { componentStore } = storeToRefs(useComponent())
@@ -20,19 +21,18 @@ const comp = computed(() => componentStore.value.find((c) => c.id === props.id))
 const dataSourceRef = toRef(() => comp.value?.dataSource)
 const { data: remoteData } = useDataSource(dataSourceRef)
 
-// 优先使用远程数据，否则使用本地配置的文本
+// 优先使用远程数据（根据 dataPath 提取），否则使用本地配置的文本
 const content = computed(() => {
-  if (
-    comp.value?.dataSource?.enabled &&
-    remoteData.value !== null &&
-    remoteData.value !== undefined
-  ) {
-    return typeof remoteData.value === 'string'
-      ? remoteData.value
-      : JSON.stringify(remoteData.value, null, 2)
+  const ds = comp.value?.dataSource
+  const localText = (comp.value?.props.text as string) ?? '示例文本'
+
+  if (ds?.enabled && remoteData.value) {
+    // 使用工具函数提取数据，支持 dataPath
+    const extracted = extractWithFallback(remoteData.value, ds.dataPath, localText)
+    return typeof extracted === 'string' ? extracted : JSON.stringify(extracted, null, 2)
   }
 
-  return (comp.value?.props.text as string) ?? '示例文本'
+  return localText
 })
 const textStyle = computed<CSSProperties>(() => {
   const s = comp.value?.style || {}

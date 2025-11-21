@@ -25,7 +25,7 @@ import {
   extractNumberArray,
   extractStringArray,
   extractString,
-} from '../chartUtils'
+} from '../../../datasource/dataUtils'
 
 //按需引入
 use([TitleComponent, TooltipComponent, GridComponent, LegendComponent, LineChart, CanvasRenderer])

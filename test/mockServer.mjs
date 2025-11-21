@@ -314,17 +314,156 @@ app.get('/api/chart/scatter', (req, res) => {
   })
 })
 
-// 23. 图表数据 - 饼图 (实时变化)
-app.get('/api/chart/pie-realtime', (req, res) => {
-  const categories = ['分类1', '分类2', '分类3', '分类4', '分类5']
-  const values = categories.map(() => Math.floor(Math.random() * 500) + 50)
+// 24. 指标卡数据
+app.get('/api/stat', (req, res) => {
+  const baseValue = 10000
+  const change = (Math.random() * 20 - 10).toFixed(1) // -10% 到 +10%
+  const value = Math.floor(baseValue + Math.random() * 5000)
 
   res.json({
+    title: '月销售额',
+    value: value,
+    change: parseFloat(change),
+  })
+})
+
+// 25. 指标卡数据 - 嵌套格式
+app.get('/api/stat/nested', (req, res) => {
+  res.json({
+    code: 200,
     data: {
-      values: values,
-      labels: categories,
+      kpi: {
+        title: '用户增长率',
+        value: 85.6,
+        change: 12.3,
+      },
     },
-    updateTime: new Date().toLocaleTimeString('zh-CN'),
+  })
+})
+
+// 26. 指标卡数据 - 实时更新
+app.get('/api/stat/realtime', (req, res) => {
+  const metrics = ['销售额', '用户数', '转化率', '活跃度']
+  const title = metrics[Math.floor(Math.random() * metrics.length)]
+  const value = Math.floor(Math.random() * 10000 + 1000)
+  const change = parseFloat((Math.random() * 30 - 15).toFixed(1))
+
+  res.json({
+    title: title,
+    value: value,
+    change: change,
+    timestamp: new Date().toLocaleTimeString('zh-CN'),
+  })
+})
+
+// 27. 数字跳动 - 简单格式
+app.get('/api/countup', (req, res) => {
+  const value = Math.floor(Math.random() * 100000 + 50000)
+
+  res.json({
+    value: value,
+  })
+})
+
+// 28. 数字跳动 - 嵌套格式
+app.get('/api/countup/nested', (req, res) => {
+  res.json({
+    code: 200,
+    data: {
+      statistics: {
+        totalUsers: 123456,
+        activeToday: 8765,
+        revenue: 987654.32,
+      },
+    },
+  })
+})
+
+// 29. 数字跳动 - 实时更新
+app.get('/api/countup/realtime', (req, res) => {
+  const metrics = {
+    users: Math.floor(Math.random() * 10000 + 50000),
+    orders: Math.floor(Math.random() * 1000 + 500),
+    revenue: parseFloat((Math.random() * 100000 + 50000).toFixed(2)),
+    views: Math.floor(Math.random() * 50000 + 10000),
+  }
+
+  res.json({
+    value: metrics[Object.keys(metrics)[Math.floor(Math.random() * 4)]],
+    timestamp: new Date().getTime(),
+  })
+})
+
+// 30. 进度条 - 简单格式
+app.get('/api/progress', (req, res) => {
+  const value = Math.floor(Math.random() * 100)
+
+  res.json({
+    value: value,
+  })
+})
+
+// 31. 进度条 - 嵌套格式
+app.get('/api/progress/nested', (req, res) => {
+  res.json({
+    code: 200,
+    data: {
+      task: {
+        completed: 75,
+        total: 100,
+        percentage: 75,
+      },
+    },
+  })
+})
+
+// 32. 进度条 - 实时更新
+app.get('/api/progress/realtime', (req, res) => {
+  const progress = Math.floor(Math.random() * 100)
+  let status = ''
+  if (progress >= 80) status = 'success'
+  else if (progress >= 60) status = 'warning'
+  else if (progress < 30) status = 'exception'
+
+  res.json({
+    value: progress,
+    status: status,
+    timestamp: new Date().toLocaleTimeString('zh-CN'),
+  })
+})
+
+// 33. 徽章 - 简单格式
+app.get('/api/badge', (req, res) => {
+  const value = Math.floor(Math.random() * 200)
+
+  res.json({
+    value: value,
+  })
+})
+
+// 34. 徽章 - 嵌套格式
+app.get('/api/badge/nested', (req, res) => {
+  res.json({
+    code: 200,
+    data: {
+      notifications: {
+        unread: 99,
+        total: 156,
+      },
+    },
+  })
+})
+
+// 35. 徽章 - 实时更新
+app.get('/api/badge/realtime', (req, res) => {
+  const types = ['primary', 'success', 'warning', 'danger', 'info']
+  const value = Math.floor(Math.random() * 150)
+  const type = types[Math.floor(Math.random() * types.length)]
+
+  res.json({
+    value: value,
+    type: type,
+    timestamp: new Date().getTime(),
   })
 })
 
@@ -407,7 +546,21 @@ app.listen(PORT, () => {
   console.log(`   URL: http://localhost:${PORT}/api/chart/pie-realtime`)
   console.log('   数据路径: data.values | 标签路径: data.labels\n')
 
-  console.log('='.repeat(60))
+  console.log('📊 指标卡数据接口：\n')
+
+  console.log('1️⃣8️⃣ 指标卡 - 简单格式')
+  console.log(`   URL: http://localhost:${PORT}/api/stat`)
+  console.log('   标题路径: title | 数值路径: value | 变化路径: change\n')
+
+  console.log('1️⃣9️⃣ 指标卡 - 嵌套格式')
+  console.log(`   URL: http://localhost:${PORT}/api/stat/nested`)
+  console.log(
+    '   标题路径: data.kpi.title | 数值路径: data.kpi.value | 变化路径: data.kpi.change\n',
+  )
+
+  console.log('2️⃣0️⃣ 指标卡 - 实时更新 (建议刷新: 3秒)')
+  console.log(`   URL: http://localhost:${PORT}/api/stat/realtime`)
+  console.log('   标题路径: title | 数值路径: value | 变化路径: change\n')
   console.log('💡 提示: 按 Ctrl+C 停止服务器')
   console.log('='.repeat(60) + '\n')
 })

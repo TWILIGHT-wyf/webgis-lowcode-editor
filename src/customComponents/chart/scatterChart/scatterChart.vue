@@ -19,7 +19,7 @@ import {
 import { useComponent } from '@/stores/component'
 import type { component } from '@/stores/component'
 import { useDataSource } from '@/datasource/useDataSource'
-import { parse2DArrayInput, extract2DArray } from '../chartUtils'
+import { parse2DArrayInput, extract2DArray } from '../../../datasource/dataUtils'
 
 // 按需引入
 use([

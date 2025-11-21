@@ -9,12 +9,19 @@ export interface DataSource {
   headers?: Record<string, string>
   body?: string
   interval?: number
-  dataPath?: string
-  xAxisPath?: string // 用于图表的 X 轴标签路径
-  labelsPath?: string // 用于饼图/环形图的标签路径
-  seriesNamePath?: string // 用于图表的系列名称路径
-  seriesNamesPath?: string // 用于堆叠图表的多个系列名称路径
-  seriesDataPath?: string // 用于堆叠图表的多个系列数据路径
+  // 通用路径
+  dataPath?: string // 通用数据路径（text, 图表数据等）
+  valuePath?: string // KPI 组件数值路径（countUp, progress, badge）
+  // 图表专用路径
+  xAxisPath?: string // 图表 X 轴标签路径
+  labelsPath?: string // 饼图/环形图标签路径
+  seriesNamePath?: string // 图表系列名称路径
+  seriesNamesPath?: string // 堆叠图表多系列名称路径
+  seriesDataPath?: string // 堆叠图表多系列数据路径
+  // KPI 专用路径
+  titlePath?: string // stat 组件标题路径
+  changePath?: string // stat 组件变化值路径
+  // 扩展字段
   [key: string]: unknown
 }
 
@@ -92,6 +99,81 @@ export const useComponent = defineStore('component', () => {
           lineHeight: 1.2,
           paddingX: 0,
           paddingY: 0,
+        }
+      case 'stat':
+        return {
+          ...base,
+          backgroundColor: '#fff',
+          borderColor: '#e0e0e0',
+          borderWidth: 1,
+          borderRadius: 8,
+          boxShadow: '0 2px 4px rgba(0, 0, 0, 0.1)',
+          padding: 20,
+          titleColor: '#333',
+          valueColor: '#3f8600',
+          changeColorPositive: '#28a745',
+          changeColorNegative: '#dc3545',
+          titleFontSize: 14,
+          valueFontSize: 24,
+          changeFontSize: 14,
+          titleFontWeight: 'normal',
+          valueFontWeight: 'bold',
+          changeFontWeight: 'normal',
+        }
+      case 'countUp':
+        return {
+          ...base,
+          backgroundColor: 'transparent',
+          borderColor: 'transparent',
+          borderWidth: 0,
+          borderRadius: 0,
+          padding: 10,
+          align: 'center',
+          valueColor: '#303133',
+          valueFontSize: 32,
+          valueFontWeight: 'bold',
+          prefixColor: '#909399',
+          prefixFontSize: 16,
+          prefixFontWeight: 'normal',
+          suffixColor: '#909399',
+          suffixFontSize: 16,
+          suffixFontWeight: 'normal',
+          fontFamily: 'inherit',
+        }
+      case 'progress':
+        return {
+          ...base,
+          padding: 0,
+          strokeWidth: 20,
+          trackColor: '#e4e7ed',
+          barColor: '#409eff',
+          successColor: '#67c23a',
+          warningColor: '#e6a23c',
+          exceptionColor: '#f56c6c',
+          borderRadius: 10,
+          textColor: '#606266',
+          textInsideColor: '#fff',
+          textFontSize: 14,
+          textFontWeight: 'normal',
+        }
+      case 'badge':
+        return {
+          ...base,
+          padding: 4,
+          backgroundColor: '#409eff',
+          successColor: '#67c23a',
+          warningColor: '#e6a23c',
+          dangerColor: '#f56c6c',
+          infoColor: '#909399',
+          textColor: '#fff',
+          fontSize: 12,
+          fontWeight: 'bold',
+          paddingX: 6,
+          paddingY: 2,
+          borderRadius: 10,
+          borderWidth: 0,
+          borderColor: 'transparent',
+          boxShadow: 'none',
         }
 
       default:
@@ -334,6 +416,46 @@ export const useComponent = defineStore('component', () => {
           lineOpacity: 0.2,
           lineCurveness: 0.5,
         }
+      case 'stat':
+        return {
+          title: '指标标题',
+          value: 0,
+          icon: 'el-icon-star-on',
+          change: 0,
+          precision: 0,
+          suffix: '',
+        }
+      case 'countUp':
+        return {
+          value: 0,
+          startValue: 0,
+          duration: 2000,
+          decimals: 0,
+          separator: ',',
+          prefix: '',
+          suffix: '',
+          showPrefix: true,
+          showSuffix: true,
+          useEasing: true,
+        }
+      case 'progress':
+        return {
+          value: 50,
+          type: 'line',
+          status: '',
+          showText: true,
+          textPosition: 'right',
+          textFormat: '{value}%',
+          showStripe: false,
+          animateStripe: false,
+        }
+      case 'badge':
+        return {
+          value: 0,
+          type: 'primary',
+          dot: false,
+          maxValue: 99,
+        }
       default:
         return {}
     }
@@ -438,6 +560,30 @@ export const useComponent = defineStore('component', () => {
           interval: 0,
           nodesPath: '',
           linksPath: '',
+        }
+      case 'stat':
+        return {
+          enabled: false,
+          url: '',
+          method: 'GET',
+          headers: {},
+          interval: 0,
+          dataPath: '',
+          titlePath: '',
+          valuePath: '',
+          changePath: '',
+        }
+      case 'countUp':
+      case 'progress':
+      case 'badge':
+        return {
+          enabled: false,
+          url: '',
+          method: 'GET',
+          headers: {},
+          interval: 0,
+          dataPath: '',
+          valuePath: '',
         }
       default:
         return undefined

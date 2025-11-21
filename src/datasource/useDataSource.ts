@@ -6,11 +6,13 @@ import type { DataSource } from '@/stores/component'
  * 数据源 Hook
  * 支持 HTTP 请求和自动刷新
  *
- * 注意：此 Hook 始终返回完整的响应数据
- * 由各个组件使用 chartUtils 中的工具函数自行提取所需数据
+ * 职责：仅负责网络请求，返回完整响应数据
+ * 数据提取：由各组件使用 dataUtils 工具函数自行提取所需字段
+ * 优势：组件可灵活提取多个字段，互不影响
  */
 export function useDataSource(dataSource: Ref<DataSource | undefined>) {
   const data = ref<unknown>(null)
+  const rawData = ref<unknown>(null) // 完整响应数据
   const loading = ref(false)
   const error = ref<string | null>(null)
   let intervalId: number | null = null
@@ -49,23 +51,11 @@ export function useDataSource(dataSource: Ref<DataSource | undefined>) {
       // 发送请求
       const response = await axios(config)
 
-      // 对于图表类型（有多个路径配置或存在 dataPath），返回完整响应数据
-      // 让组件自己根据 dataPath、xAxisPath、labelsPath 等提取数据
-      // 这样确保图表组件始终能正确提取嵌套数据
-      if (
-        ds.dataPath ||
-        ds.xAxisPath ||
-        ds.seriesNamePath ||
-        ds.labelsPath ||
-        ds.seriesNamesPath ||
-        ds.seriesDataPath
-      ) {
-        data.value = response.data
-      } else {
-        // 如果没有任何路径配置，直接返回完整响应
-        data.value = response.data
-      }
-
+      // 保存完整响应数据
+      // 不做任何数据提取，由各组件使用 dataUtils 工具函数自行提取
+      // 这样每个组件可以灵活提取所需的多个字段
+      rawData.value = response.data
+      data.value = response.data
       error.value = null
     } catch (err: unknown) {
       error.value = (err as Error).message || '请求失败'
@@ -118,7 +108,8 @@ export function useDataSource(dataSource: Ref<DataSource | undefined>) {
   })
 
   return {
-    data,
+    data, // 提取后的数据（根据 valuePath/dataPath）
+    rawData, // 完整响应数据（供图表组件使用）
     loading,
     error,
     fetchData, // 手动刷新

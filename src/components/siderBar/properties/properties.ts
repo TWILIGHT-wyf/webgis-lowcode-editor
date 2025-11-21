@@ -557,6 +557,555 @@ export function customProperties() {
             default: '',
           },
         ]
+      case 'stat':
+        return [
+          {
+            key: 'backgroundColor',
+            label: '背景颜色',
+            type: 'color',
+            default: '#fff',
+          },
+          {
+            key: 'borderColor',
+            label: '边框颜色',
+            type: 'color',
+            default: '#e0e0e0',
+          },
+          {
+            key: 'borderWidth',
+            label: '边框宽度(px)',
+            type: 'number',
+            min: 0,
+            max: 10,
+            step: 1,
+            default: 1,
+          },
+          {
+            key: 'borderRadius',
+            label: '边框圆角(px)',
+            type: 'number',
+            min: 0,
+            max: 50,
+            step: 1,
+            default: 8,
+          },
+          {
+            key: 'boxShadow',
+            label: '阴影',
+            type: 'text',
+            placeholder: '0 2px 4px rgba(0, 0, 0, 0.1)',
+            default: '0 2px 4px rgba(0, 0, 0, 0.1)',
+          },
+          {
+            key: 'padding',
+            label: '内边距(px)',
+            type: 'number',
+            min: 0,
+            max: 100,
+            step: 1,
+            default: 20,
+          },
+          {
+            key: 'titleColor',
+            label: '标题颜色',
+            type: 'color',
+            default: '#333',
+          },
+          {
+            key: 'valueColor',
+            label: '数值颜色',
+            type: 'color',
+            default: '#3f8600',
+          },
+          {
+            key: 'changeColorPositive',
+            label: '增长颜色',
+            type: 'color',
+            default: '#28a745',
+          },
+          {
+            key: 'changeColorNegative',
+            label: '下降颜色',
+            type: 'color',
+            default: '#dc3545',
+          },
+          {
+            key: 'titleFontSize',
+            label: '标题字体大小(px)',
+            type: 'number',
+            min: 8,
+            max: 100,
+            step: 1,
+            default: 14,
+          },
+          {
+            key: 'valueFontSize',
+            label: '数值字体大小(px)',
+            type: 'number',
+            min: 8,
+            max: 200,
+            step: 1,
+            default: 24,
+          },
+          {
+            key: 'changeFontSize',
+            label: '变化字体大小(px)',
+            type: 'number',
+            min: 8,
+            max: 100,
+            step: 1,
+            default: 14,
+          },
+          {
+            key: 'titleFontWeight',
+            label: '标题字重',
+            type: 'select',
+            options: [
+              {
+                label: '常规',
+                value: 'normal'
+              },
+              {
+                label: '加粗',
+                value: 'bold'
+              },
+              {
+                label: '更细',
+                value: 'lighter'
+              },
+              {
+                label: '更粗',
+                value: 'bolder'
+              },
+            ],
+            default: 'normal',
+          },
+          {
+            key: 'valueFontWeight',
+            label: '数值字重',
+            type: 'select',
+            options: [
+              {
+                label: '常规',
+                value: 'normal'
+              },
+              {
+                label: '加粗',
+                value: 'bold'
+              },
+              {
+                label: '更细',
+                value: 'lighter'
+              },
+              {
+                label: '更粗',
+                value: 'bolder'
+              },
+            ],
+            default: 'bold',
+          },
+          {
+            key: 'changeFontWeight',
+            label: '变化字重',
+            type: 'select',
+            options: [
+              {
+                label: '常规',
+                value: 'normal'
+              },
+              {
+                label: '加粗',
+                value: 'bold'
+              },
+              {
+                label: '更细',
+                value: 'lighter'
+              },
+              {
+                label: '更粗',
+                value: 'bolder'
+              },
+            ],
+            default: 'normal',
+          },
+        ]
+      case 'countUp':
+        return [
+          {
+            key: 'backgroundColor',
+            label: '背景颜色',
+            type: 'color',
+            default: 'transparent',
+          },
+          {
+            key: 'borderColor',
+            label: '边框颜色',
+            type: 'color',
+            default: 'transparent',
+          },
+          {
+            key: 'borderWidth',
+            label: '边框宽度(px)',
+            type: 'number',
+            min: 0,
+            max: 10,
+            step: 1,
+            default: 0,
+          },
+          {
+            key: 'borderRadius',
+            label: '边框圆角(px)',
+            type: 'number',
+            min: 0,
+            max: 50,
+            step: 1,
+            default: 0,
+          },
+          {
+            key: 'padding',
+            label: '内边距(px)',
+            type: 'number',
+            min: 0,
+            max: 100,
+            step: 1,
+            default: 10,
+          },
+          {
+            key: 'align',
+            label: '对齐方式',
+            type: 'select',
+            options: [
+              {
+                label: '左对齐',
+                value: 'flex-start'
+              },
+              {
+                label: '居中',
+                value: 'center'
+              },
+              {
+                label: '右对齐',
+                value: 'flex-end'
+              },
+            ],
+            default: 'center',
+          },
+          {
+            key: 'valueColor',
+            label: '数值颜色',
+            type: 'color',
+            default: '#303133',
+          },
+          {
+            key: 'valueFontSize',
+            label: '数值字体大小(px)',
+            type: 'number',
+            min: 12,
+            max: 200,
+            step: 1,
+            default: 32,
+          },
+          {
+            key: 'valueFontWeight',
+            label: '数值字重',
+            type: 'select',
+            options: [
+              {
+                label: '常规',
+                value: 'normal'
+              },
+              {
+                label: '加粗',
+                value: 'bold'
+              },
+              {
+                label: '更细',
+                value: 'lighter'
+              },
+              {
+                label: '更粗',
+                value: 'bolder'
+              },
+            ],
+            default: 'bold',
+          },
+          {
+            key: 'prefixColor',
+            label: '前缀颜色',
+            type: 'color',
+            default: '#909399',
+          },
+          {
+            key: 'prefixFontSize',
+            label: '前缀字体大小(px)',
+            type: 'number',
+            min: 8,
+            max: 100,
+            step: 1,
+            default: 16,
+          },
+          {
+            key: 'prefixFontWeight',
+            label: '前缀字重',
+            type: 'select',
+            options: [
+              {
+                label: '常规',
+                value: 'normal'
+              },
+              {
+                label: '加粗',
+                value: 'bold'
+              },
+            ],
+            default: 'normal',
+          },
+          {
+            key: 'suffixColor',
+            label: '后缀颜色',
+            type: 'color',
+            default: '#909399',
+          },
+          {
+            key: 'suffixFontSize',
+            label: '后缀字体大小(px)',
+            type: 'number',
+            min: 8,
+            max: 100,
+            step: 1,
+            default: 16,
+          },
+          {
+            key: 'suffixFontWeight',
+            label: '后缀字重',
+            type: 'select',
+            options: [
+              { label: '常规', value: 'normal' },
+              { label: '加粗', value: 'bold' },
+            ],
+            default: 'normal',
+          },
+          {
+            key: 'fontFamily',
+            label: '字体',
+            type: 'text',
+            placeholder: 'inherit',
+            default: 'inherit',
+          },
+        ]
+      case 'progress':
+        return [
+          {
+            key: 'padding',
+            label: '内边距(px)',
+            type: 'number',
+            min: 0,
+            max: 50,
+            step: 1,
+            default: 0,
+          },
+          {
+            key: 'strokeWidth',
+            label: '进度条高度/宽度(px)',
+            type: 'number',
+            min: 6,
+            max: 50,
+            step: 1,
+            default: 20,
+          },
+          {
+            key: 'trackColor',
+            label: '轨道颜色',
+            type: 'color',
+            default: '#e4e7ed',
+          },
+          {
+            key: 'barColor',
+            label: '进度条颜色',
+            type: 'color',
+            default: '#409eff',
+          },
+          {
+            key: 'successColor',
+            label: '成功状态颜色',
+            type: 'color',
+            default: '#67c23a',
+          },
+          {
+            key: 'warningColor',
+            label: '警告状态颜色',
+            type: 'color',
+            default: '#e6a23c',
+          },
+          {
+            key: 'exceptionColor',
+            label: '异常状态颜色',
+            type: 'color',
+            default: '#f56c6c',
+          },
+          {
+            key: 'borderRadius',
+            label: '圆角(px)',
+            type: 'number',
+            min: 0,
+            max: 50,
+            step: 1,
+            default: 10,
+          },
+          {
+            key: 'textColor',
+            label: '文字颜色',
+            type: 'color',
+            default: '#606266',
+          },
+          {
+            key: 'textInsideColor',
+            label: '内部文字颜色',
+            type: 'color',
+            default: '#fff',
+          },
+          {
+            key: 'textFontSize',
+            label: '文字大小(px)',
+            type: 'number',
+            min: 8,
+            max: 50,
+            step: 1,
+            default: 14,
+          },
+          {
+            key: 'textFontWeight',
+            label: '文字字重',
+            type: 'select',
+            options: [
+              {
+                label: '常规',
+                value: 'normal'
+              },
+              {
+                label: '加粗',
+                value: 'bold'
+              },
+            ],
+            default: 'normal',
+          },
+        ]
+      case 'badge':
+        return [
+          {
+            key: 'padding',
+            label: '外边距(px)',
+            type: 'number',
+            min: 0,
+            max: 20,
+            step: 1,
+            default: 4,
+          },
+          {
+            key: 'backgroundColor',
+            label: '背景颜色',
+            type: 'color',
+            default: '#409eff',
+          },
+          {
+            key: 'successColor',
+            label: '成功类型颜色',
+            type: 'color',
+            default: '#67c23a',
+          },
+          {
+            key: 'warningColor',
+            label: '警告类型颜色',
+            type: 'color',
+            default: '#e6a23c',
+          },
+          {
+            key: 'dangerColor',
+            label: '危险类型颜色',
+            type: 'color',
+            default: '#f56c6c',
+          },
+          {
+            key: 'infoColor',
+            label: '信息类型颜色',
+            type: 'color',
+            default: '#909399',
+          },
+          {
+            key: 'textColor',
+            label: '文字颜色',
+            type: 'color',
+            default: '#fff',
+          },
+          {
+            key: 'fontSize',
+            label: '字体大小(px)',
+            type: 'number',
+            min: 8,
+            max: 50,
+            step: 1,
+            default: 12,
+          },
+          {
+            key: 'fontWeight',
+            label: '字重',
+            type: 'select',
+            options: [
+              { label: '常规', value: 'normal' },
+              { label: '加粗', value: 'bold' },
+            ],
+            default: 'bold',
+          },
+          {
+            key: 'paddingX',
+            label: '水平内边距(px)',
+            type: 'number',
+            min: 0,
+            max: 30,
+            step: 1,
+            default: 6,
+          },
+          {
+            key: 'paddingY',
+            label: '垂直内边距(px)',
+            type: 'number',
+            min: 0,
+            max: 30,
+            step: 1,
+            default: 2,
+          },
+          {
+            key: 'borderRadius',
+            label: '圆角(px)',
+            type: 'number',
+            min: 0,
+            max: 50,
+            step: 1,
+            default: 10,
+          },
+          {
+            key: 'borderWidth',
+            label: '边框宽度(px)',
+            type: 'number',
+            min: 0,
+            max: 5,
+            step: 1,
+            default: 0,
+          },
+          {
+            key: 'borderColor',
+            label: '边框颜色',
+            type: 'color',
+            default: 'transparent',
+          },
+          {
+            key: 'boxShadow',
+            label: '阴影',
+            type: 'text',
+            placeholder: 'none',
+            default: 'none',
+          },
+        ]
       default:
         return []
     }
@@ -1205,6 +1754,140 @@ export function customProperties() {
             label: '连接数据路径',
             type: 'text',
             placeholder: '例: data.links',
+            default: '',
+          },
+          {
+            key: 'headers',
+            label: '请求头(JSON)',
+            type: 'text',
+            placeholder: '{"Authorization": "Bearer token"}',
+            default: '',
+          },
+        ]
+      case 'stat':
+        return [
+          {
+            key: 'enabled',
+            label: '启用数据源',
+            type: 'switch',
+            default: false,
+          },
+          {
+            key: 'url',
+            label: 'API 地址',
+            type: 'text',
+            placeholder: 'http://localhost:3001/api/stat',
+            default: '',
+          },
+          {
+            key: 'method',
+            label: '请求方法',
+            type: 'select',
+            options: [
+              {
+                label: 'GET',
+                value: 'GET',
+              },
+              {
+                label: 'POST',
+                value: 'POST',
+              },
+            ],
+            default: 'GET',
+          },
+          {
+            key: 'interval',
+            label: '自动刷新(秒)',
+            type: 'number',
+            min: 0,
+            max: 3600,
+            step: 1,
+            default: 0,
+          },
+          {
+            key: 'dataPath',
+            label: '数据根路径',
+            type: 'text',
+            placeholder: '例: data',
+            default: '',
+          },
+          {
+            key: 'titlePath',
+            label: '标题路径',
+            type: 'text',
+            placeholder: '例: data.title',
+            default: '',
+          },
+          {
+            key: 'valuePath',
+            label: '数值路径',
+            type: 'text',
+            placeholder: '例: data.value',
+            default: '',
+          },
+          {
+            key: 'changePath',
+            label: '变化路径',
+            type: 'text',
+            placeholder: '例: data.change',
+            default: '',
+          },
+          {
+            key: 'headers',
+            label: '请求头(JSON)',
+            type: 'text',
+            placeholder: '{"Authorization": "Bearer token"}',
+            default: '',
+          },
+        ]
+      case 'countUp':
+      case 'progress':
+      case 'badge':
+        return [
+          {
+            key: 'enabled',
+            label: '启用数据源',
+            type: 'switch',
+            default: false,
+          },
+          {
+            key: 'url',
+            label: 'API 地址',
+            type: 'text',
+            placeholder: 'http://localhost:3001/api/kpi',
+            default: '',
+          },
+          {
+            key: 'method',
+            label: '请求方法',
+            type: 'select',
+            options: [
+              { label: 'GET', value: 'GET' },
+              { label: 'POST', value: 'POST' },
+            ],
+            default: 'GET',
+          },
+          {
+            key: 'interval',
+            label: '自动刷新(秒)',
+            type: 'number',
+            min: 0,
+            max: 3600,
+            step: 1,
+            default: 0,
+          },
+          {
+            key: 'dataPath',
+            label: '数据根路径',
+            type: 'text',
+            placeholder: '例: data',
+            default: '',
+          },
+          {
+            key: 'valuePath',
+            label: '数值路径',
+            type: 'text',
+            placeholder: '例: data.value 或 value',
             default: '',
           },
           {
@@ -2618,6 +3301,236 @@ export function customProperties() {
             max: 1,
             step: 0.1,
             default: 0.5,
+          },
+        ]
+      case 'stat':
+        return [
+          {
+            key: 'title',
+            label: '标题',
+            type: 'text',
+            placeholder: '指标标题',
+            default: '指标标题',
+          },
+          {
+            key: 'value',
+            label: '数值',
+            type: 'number',
+            min: 0,
+            step: 1,
+            default: 0,
+          },
+          {
+            key: 'icon',
+            label: '图标类名',
+            type: 'text',
+            placeholder: 'el-icon-star-on',
+            default: 'el-icon-star-on',
+          },
+          {
+            key: 'change',
+            label: '变化百分比',
+            type: 'number',
+            step: 0.1,
+            default: 0,
+          },
+          {
+            key: 'precision',
+            label: '小数位数',
+            type: 'number',
+            min: 0,
+            max: 10,
+            step: 1,
+            default: 0,
+          },
+          {
+            key: 'suffix',
+            label: '后缀',
+            type: 'text',
+            placeholder: '% 或 元',
+            default: '',
+          },
+        ]
+      case 'countUp':
+        return [
+          {
+            key: 'value',
+            label: '目标数值',
+            type: 'number',
+            step: 0.01,
+            default: 0,
+          },
+          {
+            key: 'startValue',
+            label: '起始数值',
+            type: 'number',
+            step: 0.01,
+            default: 0,
+          },
+          {
+            key: 'duration',
+            label: '动画时长(毫秒)',
+            type: 'number',
+            min: 0,
+            max: 10000,
+            step: 100,
+            default: 2000,
+          },
+          {
+            key: 'decimals',
+            label: '小数位数',
+            type: 'number',
+            min: 0,
+            max: 10,
+            step: 1,
+            default: 0,
+          },
+          {
+            key: 'separator',
+            label: '千分位分隔符',
+            type: 'text',
+            placeholder: ',',
+            default: ',',
+          },
+          {
+            key: 'prefix',
+            label: '前缀',
+            type: 'text',
+            placeholder: '¥',
+            default: '',
+          },
+          {
+            key: 'suffix',
+            label: '后缀',
+            type: 'text',
+            placeholder: '元',
+            default: '',
+          },
+          {
+            key: 'showPrefix',
+            label: '显示前缀',
+            type: 'switch',
+            default: true,
+          },
+          {
+            key: 'showSuffix',
+            label: '显示后缀',
+            type: 'switch',
+            default: true,
+          },
+          {
+            key: 'useEasing',
+            label: '使用缓动效果',
+            type: 'switch',
+            default: true,
+          },
+        ]
+      case 'progress':
+        return [
+          {
+            key: 'value',
+            label: '进度值(0-100)',
+            type: 'number',
+            min: 0,
+            max: 100,
+            step: 1,
+            default: 50,
+          },
+          {
+            key: 'type',
+            label: '类型',
+            type: 'select',
+            options: [
+              { label: '水平', value: 'line' },
+              { label: '垂直', value: 'vertical' },
+            ],
+            default: 'line',
+          },
+          {
+            key: 'status',
+            label: '状态',
+            type: 'select',
+            options: [
+              { label: '默认', value: '' },
+              { label: '成功', value: 'success' },
+              { label: '警告', value: 'warning' },
+              { label: '异常', value: 'exception' },
+            ],
+            default: '',
+          },
+          {
+            key: 'showText',
+            label: '显示文字',
+            type: 'switch',
+            default: true,
+          },
+          {
+            key: 'textPosition',
+            label: '文字位置',
+            type: 'select',
+            options: [
+              { label: '左侧', value: 'left' },
+              { label: '右侧', value: 'right' },
+              { label: '内部', value: 'inside' },
+            ],
+            default: 'right',
+          },
+          {
+            key: 'textFormat',
+            label: '文字格式',
+            type: 'text',
+            placeholder: '{value}%',
+            default: '{value}%',
+          },
+          {
+            key: 'showStripe',
+            label: '显示条纹',
+            type: 'switch',
+            default: false,
+          },
+          {
+            key: 'animateStripe',
+            label: '条纹动画',
+            type: 'switch',
+            default: false,
+          },
+        ]
+      case 'badge':
+        return [
+          {
+            key: 'value',
+            label: '显示值',
+            type: 'text',
+            placeholder: '99',
+            default: 0,
+          },
+          {
+            key: 'type',
+            label: '类型',
+            type: 'select',
+            options: [
+              { label: '主要', value: 'primary' },
+              { label: '成功', value: 'success' },
+              { label: '警告', value: 'warning' },
+              { label: '危险', value: 'danger' },
+              { label: '信息', value: 'info' },
+            ],
+            default: 'primary',
+          },
+          {
+            key: 'dot',
+            label: '小圆点模式',
+            type: 'switch',
+            default: false,
+          },
+          {
+            key: 'maxValue',
+            label: '最大值',
+            type: 'number',
+            min: 1,
+            max: 999,
+            step: 1,
+            default: 99,
           },
         ]
       default:

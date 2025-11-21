@@ -11,10 +11,15 @@ import radarChart from './chart/radarChart/radarChart.vue'
 import gaugeChart from './chart/gaugeChart/gaugeChart.vue'
 import funnelChart from './chart/funnelChart/funnelChart.vue'
 import sankeyChart from './chart/sankeyChart/sankeyChart.vue'
+import stat from './kpi/stat/stat.vue'
+import countUp from './kpi/countUp/countUp.vue'
+import progress from './kpi/progress/progress.vue'
+import badge from './kpi/badge/badge.vue'
 
 export const componentRegistry: Record<string, Component> = {
   Text: Text,
   Group: Group,
+  //图表
   lineChart: lineChart,
   barChart: barChart,
   stackedBarChart: stackedBarChart,
@@ -25,6 +30,11 @@ export const componentRegistry: Record<string, Component> = {
   gaugeChart: gaugeChart,
   funnelChart: funnelChart,
   sankeyChart: sankeyChart,
+  //KPI
+  stat: stat,
+  countUp: countUp,
+  progress: progress,
+  badge: badge,
 }
 
 export function getComponent(type: string) {

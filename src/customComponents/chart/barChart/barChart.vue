@@ -25,7 +25,7 @@ import {
   extractNumberArray,
   extractStringArray,
   extractString,
-} from '../chartUtils'
+} from '../../../datasource/dataUtils'
 
 use([TitleComponent, TooltipComponent, GridComponent, LegendComponent, BarChart, CanvasRenderer])
 

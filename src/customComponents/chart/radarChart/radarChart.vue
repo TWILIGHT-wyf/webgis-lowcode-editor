@@ -24,7 +24,7 @@ import {
   parseStringInput,
   extractNumberArray,
   extractStringArray,
-} from '../chartUtils'
+} from '../../../datasource/dataUtils'
 
 // 按需引入
 use([TitleComponent, TooltipComponent, LegendComponent, RadarComponent, RadarChart, CanvasRenderer])

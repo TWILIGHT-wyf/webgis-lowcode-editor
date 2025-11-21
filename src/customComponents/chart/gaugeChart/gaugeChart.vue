@@ -14,7 +14,7 @@ import { TitleComponent, TooltipComponent } from 'echarts/components'
 import { useComponent } from '@/stores/component'
 import type { component } from '@/stores/component'
 import { useDataSource } from '@/datasource/useDataSource'
-import { parseNumberInput, extractNumberArray, extractString } from '../chartUtils'
+import { parseNumberInput, extractNumberArray, extractString } from '../../../datasource/dataUtils'
 
 // 按需引入
 use([TitleComponent, TooltipComponent, GaugeChart, CanvasRenderer])

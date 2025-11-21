@@ -24,7 +24,7 @@ import {
   parseStringInput,
   extractStringArray,
   getValueByPath,
-} from '../chartUtils'
+} from '../../../datasource/dataUtils'
 
 use([TitleComponent, TooltipComponent, GridComponent, LegendComponent, BarChart, CanvasRenderer])
 

@@ -14,7 +14,11 @@ import { TitleComponent, TooltipComponent } from 'echarts/components'
 import { useComponent } from '@/stores/component'
 import type { component } from '@/stores/component'
 import { useDataSource } from '@/datasource/useDataSource'
-import { parseJSONInput, extractSankeyNodes, extractSankeyLinks } from '../chartUtils'
+import {
+  parseJSONInput,
+  extractSankeyNodes,
+  extractSankeyLinks,
+} from '../../../datasource/dataUtils'
 
 // 按需引入
 use([TitleComponent, TooltipComponent, SankeyChart, CanvasRenderer])
