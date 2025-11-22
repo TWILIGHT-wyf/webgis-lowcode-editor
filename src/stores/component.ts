@@ -51,6 +51,18 @@ export interface component {
   }
   groupId?: string // 所属组合的ID（如果是组合成员）
   children?: string[] // 子组件ID列表（如果是组合容器）
+  layout?: {
+    // 布局模式
+    mode: 'absolute' | 'horizontal' | 'vertical' | 'grid'
+    // 子组件间距
+    gap?: number
+    // 网格布局列数
+    columns?: number
+    // 对齐方式
+    align?: 'start' | 'center' | 'end' | 'stretch'
+    // 子组件内边距
+    padding?: number
+  }
 }
 
 export const useComponent = defineStore('component', () => {
@@ -138,6 +150,9 @@ export const useComponent = defineStore('component', () => {
           suffixColor: '#909399',
           suffixFontSize: 16,
           suffixFontWeight: 'normal',
+          titleColor: '#909399',
+          titleFontSize: 14,
+          titleFontWeight: 'normal',
           fontFamily: 'inherit',
         }
       case 'progress':
@@ -174,6 +189,383 @@ export const useComponent = defineStore('component', () => {
           borderWidth: 0,
           borderColor: 'transparent',
           boxShadow: 'none',
+        }
+
+      case 'box':
+        return {
+          ...base,
+          backgroundColor: '#f5f7fa',
+          borderRadius: 4,
+          borderWidth: 1,
+          borderColor: '#dcdfe6',
+          borderStyle: 'solid',
+          padding: 16,
+          boxShadow: 'none',
+          textAlign: 'center',
+          fontSize: 14,
+          color: '#606266',
+          fontWeight: 'normal',
+        }
+
+      case 'table':
+        return {
+          ...base,
+          backgroundColor: '#ffffff',
+          borderRadius: 4,
+          headerBackgroundColor: '#f5f7fa',
+          headerColor: '#909399',
+          headerFontSize: 14,
+          headerHeight: 40,
+          cellColor: '#606266',
+          cellFontSize: 13,
+          rowHeight: 48,
+          borderColor: '#ebeef5',
+          hoverBackgroundColor: '#f5f7fa',
+        }
+
+      case 'list':
+        return {
+          ...base,
+          backgroundColor: '#ffffff',
+          borderRadius: 4,
+          itemBackgroundColor: '#ffffff',
+          itemPadding: 12,
+          itemPaddingX: 16,
+          borderColor: 'transparent',
+          splitColor: '#e4e7ed',
+          titleFontSize: 15,
+          titleColor: '#303133',
+          titleFontWeight: '500',
+          descriptionFontSize: 13,
+          descriptionColor: '#909399',
+          extraFontSize: 12,
+          extraColor: '#409eff',
+          iconColor: '#909399',
+        }
+
+      case 'timeline':
+        return {
+          ...base,
+          backgroundColor: '#ffffff',
+          borderRadius: 4,
+          padding: 16,
+          timelinePadding: 0,
+          cardMargin: 12,
+          cardBorderRadius: 4,
+          headerFontSize: 15,
+          headerColor: '#303133',
+          headerFontWeight: '600',
+          contentFontSize: 14,
+          contentColor: '#606266',
+          titleFontSize: 15,
+          titleColor: '#303133',
+          titleFontWeight: '600',
+          textFontSize: 14,
+          textColor: '#606266',
+          extraFontSize: 12,
+          extraColor: '#909399',
+        }
+
+      case 'cardGrid':
+        return {
+          ...base,
+          backgroundColor: '#f5f7fa',
+          borderRadius: 4,
+          padding: 16,
+          cardBorderRadius: 4,
+          cardPadding: 14,
+          imageHeight: 150,
+          imageBorderRadius: 4,
+          titleFontSize: 16,
+          titleColor: '#303133',
+          titleFontWeight: '600',
+          descriptionFontSize: 13,
+          descriptionColor: '#606266',
+          footerFontSize: 12,
+          footerColor: '#909399',
+          footerBorderColor: '#ebeef5',
+        }
+
+      case 'pivot':
+        return {
+          ...base,
+          backgroundColor: '#ffffff',
+          borderRadius: 4,
+          padding: 0,
+          headerBackgroundColor: '#f5f7fa',
+          headerColor: '#909399',
+          borderColor: '#ebeef5',
+          hoverBackgroundColor: '#f5f7fa',
+          highlightColor: '#67c23a',
+        }
+
+      case 'select':
+      case 'multiSelect':
+        return {
+          ...base,
+          backgroundColor: 'transparent',
+          borderRadius: 4,
+          padding: 8,
+          selectWidth: 100,
+          borderColor: '#dcdfe6',
+          focusBorderColor: '#409eff',
+          hoverBorderColor: '#c0c4cc',
+          tagBackgroundColor: '#f0f2f5',
+          tagTextColor: '#606266',
+        }
+
+      case 'dateRange':
+        return {
+          ...base,
+          backgroundColor: 'transparent',
+          borderRadius: 4,
+          padding: 8,
+          pickerWidth: 100,
+          borderColor: '#dcdfe6',
+          focusBorderColor: '#409eff',
+          hoverBorderColor: '#c0c4cc',
+        }
+
+      case 'searchBox':
+        return {
+          ...base,
+          backgroundColor: 'transparent',
+          padding: 16,
+          inputWidth: '100%',
+          borderColor: '#dcdfe6',
+          borderFocusColor: '#409eff',
+          borderHoverColor: '#c0c4cc',
+          textColor: '#606266',
+          placeholderColor: '#a8abb2',
+          fontSize: 14,
+        }
+
+      case 'slider':
+        return {
+          ...base,
+          backgroundColor: 'transparent',
+          padding: 16,
+          activeColor: '#409eff',
+          inactiveColor: '#e4e7ed',
+          buttonSize: 20,
+          valueFontSize: 14,
+          valueColor: '#606266',
+          valueAlign: 'center',
+        }
+
+      case 'switch':
+        return {
+          ...base,
+          backgroundColor: 'transparent',
+          padding: 16,
+          activeColor: '#409eff',
+          inactiveColor: '#dcdfe6',
+          borderColor: '#dcdfe6',
+        }
+
+      case 'checkboxGroup':
+        return {
+          ...base,
+          backgroundColor: 'transparent',
+          padding: 16,
+          direction: 'horizontal',
+          gap: 12,
+          checkedColor: '#409eff',
+          borderColor: '#dcdfe6',
+          textColor: '#606266',
+        }
+
+      case 'buttonGroup':
+        return {
+          ...base,
+          backgroundColor: 'transparent',
+          padding: 16,
+        }
+
+      // 布局组件
+      case 'row':
+        return {
+          ...base,
+          gutter: 0,
+          padding: 16,
+          backgroundColor: '#ffffff',
+          border: '1px solid #e5e7eb',
+          borderRadius: 4,
+          minHeight: 100,
+          textColor: '#333333',
+        }
+
+      case 'col':
+        return {
+          ...base,
+          span: 12,
+          padding: 16,
+          backgroundColor: '#ffffff',
+          border: '1px solid #e5e7eb',
+          borderRadius: 4,
+          minHeight: 100,
+          textColor: '#333333',
+        }
+
+      case 'flex':
+        return {
+          ...base,
+          flexDirection: 'row',
+          justifyContent: 'flex-start',
+          alignItems: 'stretch',
+          flexWrap: 'nowrap',
+          gap: 16,
+          padding: 16,
+          backgroundColor: '#ffffff',
+          border: '1px solid #e5e7eb',
+          borderRadius: 4,
+          minHeight: 100,
+          textColor: '#333333',
+        }
+
+      case 'grid':
+        return {
+          ...base,
+          gridTemplateColumns: 'repeat(3, 1fr)',
+          gridTemplateRows: 'auto',
+          gridGap: 16,
+          gridAutoFlow: 'row',
+          padding: 16,
+          backgroundColor: '#ffffff',
+          border: '1px solid #e5e7eb',
+          borderRadius: 4,
+          minHeight: 200,
+          textColor: '#333333',
+        }
+
+      case 'modal':
+        return {
+          ...base,
+          backgroundColor: '#ffffff',
+          textColor: '#333333',
+        }
+
+      case 'panel':
+        return {
+          ...base,
+          backgroundColor: '#ffffff',
+          border: '1px solid #e5e7eb',
+          borderRadius: 4,
+          boxShadow: '0 1px 3px rgba(0, 0, 0, 0.1)',
+          headerPadding: 16,
+          headerBg: '#f9fafb',
+          headerFontSize: 14,
+          headerColor: '#111827',
+          bodyPadding: 16,
+          textColor: '#333333',
+          fontSize: 14,
+          footerPadding: 16,
+          footerBg: '#f9fafb',
+          footerFontSize: 12,
+          footerColor: '#6b7280',
+        }
+
+      case 'tabs':
+        return {
+          ...base,
+          backgroundColor: '#ffffff',
+          padding: 0,
+          textColor: '#333333',
+        }
+
+      // 媒体组件
+      case 'image':
+        return {
+          ...base,
+          objectFit: 'cover',
+          backgroundColor: 'transparent',
+          borderRadius: 0,
+          border: 'none',
+        }
+
+      case 'video':
+        return {
+          ...base,
+          objectFit: 'contain',
+          backgroundColor: '#000000',
+          borderRadius: 0,
+          border: 'none',
+        }
+
+      // 内容组件
+      case 'markdown':
+        return {
+          ...base,
+          padding: 16,
+          backgroundColor: '#ffffff',
+          textColor: '#333333',
+          fontSize: 14,
+          lineHeight: 1.6,
+          borderRadius: 0,
+          border: 'none',
+          fontFamily: 'inherit',
+        }
+
+      case 'html':
+        return {
+          ...base,
+          padding: 16,
+          backgroundColor: '#ffffff',
+          textColor: '#333333',
+          fontSize: 14,
+          lineHeight: 1.6,
+          borderRadius: 0,
+          border: 'none',
+          overflow: 'auto',
+          fontFamily: 'inherit',
+        }
+
+      case 'iframe':
+        return {
+          ...base,
+          backgroundColor: '#ffffff',
+          borderRadius: 0,
+          border: '1px solid #dcdfe6',
+        }
+
+      // 高级功能组件
+      case 'scripting':
+        return {
+          ...base,
+          padding: 16,
+          backgroundColor: '#1e1e1e',
+          textColor: '#d4d4d4',
+          fontSize: 14,
+          lineHeight: 1.6,
+          borderRadius: 4,
+          border: '1px solid #3c3c3c',
+          fontFamily: 'Consolas, Monaco, "Courier New", monospace',
+        }
+
+      case 'state':
+        return {
+          ...base,
+          padding: 16,
+          backgroundColor: '#2d2d2d',
+          textColor: '#cccccc',
+          fontSize: 14,
+          lineHeight: 1.6,
+          borderRadius: 4,
+          border: '1px solid #3c3c3c',
+          fontFamily: 'Consolas, Monaco, "Courier New", monospace',
+        }
+
+      case 'trigger':
+        return {
+          ...base,
+          padding: 16,
+          backgroundColor: '#1a1a1a',
+          textColor: '#e0e0e0',
+          fontSize: 13,
+          lineHeight: 1.5,
+          borderRadius: 4,
+          border: '1px solid #3c3c3c',
+          fontFamily: 'Consolas, Monaco, "Courier New", monospace',
         }
 
       default:
@@ -427,6 +819,7 @@ export const useComponent = defineStore('component', () => {
         }
       case 'countUp':
         return {
+          title: '',
           value: 0,
           startValue: 0,
           duration: 2000,
@@ -437,6 +830,8 @@ export const useComponent = defineStore('component', () => {
           showPrefix: true,
           showSuffix: true,
           useEasing: true,
+          customPrefix: false,
+          customSuffix: false,
         }
       case 'progress':
         return {
@@ -455,7 +850,425 @@ export const useComponent = defineStore('component', () => {
           type: 'primary',
           dot: false,
           maxValue: 99,
+          hidden: false,
+          showZero: false,
+          offsetX: 0,
+          offsetY: 0,
+          showSlot: true,
+          slotText: '内容',
         }
+
+      case 'box':
+        return {
+          content: '占位盒内容',
+        }
+
+      case 'table':
+        return {
+          data: [],
+          columns: [
+            {
+              prop: 'name',
+              label: '姓名',
+              width: 120,
+              align: 'left',
+              sortable: false,
+              fixed: false,
+            },
+            {
+              prop: 'age',
+              label: '年龄',
+              width: 80,
+              align: 'center',
+              sortable: true,
+              fixed: false,
+            },
+            {
+              prop: 'address',
+              label: '地址',
+              width: 200,
+              align: 'left',
+              sortable: false,
+              fixed: false,
+            },
+          ],
+          showHeader: true,
+          stripe: false,
+          border: true,
+          size: 'default',
+          emptyText: '暂无数据',
+          height: 'auto',
+          maxHeight: undefined,
+        }
+
+      case 'list':
+        return {
+          data: [],
+          showIcon: false,
+          showTitle: true,
+          showDescription: true,
+          showExtra: false,
+          showAction: true,
+          showBorder: true,
+          showSplit: true,
+          emptyText: '暂无数据',
+          iconSize: 20,
+          scrollHeight: '100%',
+          titleField: 'title',
+          descriptionField: 'description',
+          extraField: 'extra',
+        }
+
+      case 'timeline':
+        return {
+          data: [],
+          showCard: true,
+          showTitle: true,
+          showTimestamp: true,
+          showExtra: false,
+          timestampPlacement: 'top',
+          itemSize: 'normal',
+          hollow: false,
+          cardShadow: 'hover',
+          emptyText: '暂无数据',
+          scrollHeight: '100%',
+          titleField: 'title',
+          contentField: 'content',
+          timestampField: 'timestamp',
+          typeField: 'type',
+          colorField: 'color',
+          extraField: 'extra',
+        }
+
+      case 'cardGrid':
+        return {
+          data: [],
+          showImage: false,
+          showTitle: true,
+          showDescription: true,
+          showTags: false,
+          showFooter: false,
+          cardShadow: 'hover',
+          tagSize: 'small',
+          emptyText: '暂无数据',
+          scrollHeight: '100%',
+          columns: 3,
+          gap: 16,
+          titleField: 'title',
+          descriptionField: 'description',
+          footerField: 'footer',
+          tagsField: 'tags',
+          imageField: 'image',
+        }
+
+      case 'pivot':
+        return {
+          data: [],
+          stripe: true,
+          border: true,
+          size: 'default',
+          showSummary: true,
+          emptyText: '暂无数据',
+          height: 'auto',
+          maxHeight: '',
+          rowHeaders: ['category', 'region'],
+          dataColumns: [],
+          columnLabels: {},
+          rowHeaderWidth: 120,
+          fixedRowHeaders: true,
+          rowHeaderAlign: 'left',
+          valueFormat: 'number',
+          highlightThreshold: 0,
+        }
+
+      case 'select':
+        return {
+          options: [],
+          defaultValue: '',
+          placeholder: '请选择',
+          clearable: true,
+          filterable: false,
+          disabled: false,
+          size: 'default',
+          labelField: 'label',
+          valueField: 'value',
+        }
+
+      case 'multiSelect':
+        return {
+          options: [],
+          defaultValue: [],
+          placeholder: '请选择',
+          clearable: true,
+          filterable: false,
+          disabled: false,
+          size: 'default',
+          collapseTags: true,
+          collapseTagsTooltip: true,
+          maxCollapseTags: 2,
+          multipleLimit: 0,
+          labelField: 'label',
+          valueField: 'value',
+        }
+
+      case 'dateRange':
+        return {
+          defaultValue: [],
+          rangeSeparator: '至',
+          startPlaceholder: '开始日期',
+          endPlaceholder: '结束日期',
+          format: 'YYYY-MM-DD',
+          valueFormat: 'YYYY-MM-DD',
+          disabled: false,
+          clearable: true,
+          size: 'default',
+          editable: false,
+          enableShortcuts: true,
+        }
+
+      case 'searchBox':
+        return {
+          placeholder: '请输入搜索内容',
+          clearable: true,
+          disabled: false,
+          size: 'default',
+          prefixIcon: '',
+          suffixIcon: '',
+          maxlength: undefined,
+          showWordLimit: false,
+          showSearchButton: true,
+          buttonText: '搜索',
+          buttonType: 'primary',
+          defaultValue: '',
+        }
+
+      case 'slider':
+        return {
+          min: 0,
+          max: 100,
+          step: 1,
+          disabled: false,
+          showStops: false,
+          showTooltip: true,
+          range: false,
+          vertical: false,
+          height: '200px',
+          showValue: true,
+          valueFormat: '{value}',
+          marks: undefined,
+          defaultValue: 0,
+        }
+
+      case 'switch':
+        return {
+          disabled: false,
+          loading: false,
+          size: 'default',
+          activeText: '',
+          inactiveText: '',
+          activeValue: true,
+          inactiveValue: false,
+          inlinePrompt: false,
+          activeIcon: undefined,
+          inactiveIcon: undefined,
+          defaultValue: false,
+        }
+
+      case 'checkboxGroup':
+        return {
+          options: [
+            { label: '选项1', value: '1' },
+            { label: '选项2', value: '2' },
+            { label: '选项3', value: '3' },
+          ],
+          disabled: false,
+          size: 'default',
+          min: undefined,
+          max: undefined,
+          layout: 'default',
+          showBorder: false,
+          defaultValue: '1',
+          labelField: 'label',
+          valueField: 'value',
+        }
+
+      case 'buttonGroup':
+        return {
+          buttons: [
+            { label: '按钮1', value: '1', type: 'default' },
+            { label: '按钮2', value: '2', type: 'primary' },
+            { label: '按钮3', value: '3', type: 'success' },
+          ],
+          type: 'default',
+          size: 'default',
+          disabled: false,
+          plain: false,
+          round: false,
+          circle: false,
+          labelField: 'label',
+          valueField: 'value',
+        }
+
+      // 布局组件
+      case 'row':
+        return {
+          gutter: 0,
+          justify: 'start',
+          align: 'top',
+          tag: 'div',
+          content: '',
+        }
+
+      case 'col':
+        return {
+          span: 12,
+          offset: 0,
+          push: 0,
+          pull: 0,
+          xs: undefined,
+          sm: undefined,
+          md: undefined,
+          lg: undefined,
+          xl: undefined,
+          tag: 'div',
+          content: '',
+        }
+
+      case 'flex':
+        return {
+          content: '',
+        }
+
+      case 'grid':
+        return {
+          content: '',
+        }
+
+      case 'modal':
+        return {
+          visible: false,
+          title: '对话框标题',
+          width: '50%',
+          fullscreen: false,
+          closeOnClickModal: true,
+          showClose: true,
+          showFooter: true,
+          content: '这是对话框内容',
+        }
+
+      case 'panel':
+        return {
+          title: '面板标题',
+          collapsible: false,
+          collapsed: false,
+          showHeader: true,
+          showFooter: false,
+          footerContent: '',
+          content: '这是面板内容',
+        }
+
+      case 'tabs':
+        return {
+          activeTab: '',
+          type: 'border-card',
+          tabPosition: 'top',
+          closable: false,
+          addable: false,
+          tabs: [],
+        }
+
+      // 媒体组件
+      case 'image':
+        return {
+          url: 'https://via.placeholder.com/400x300',
+          fit: 'cover',
+          lazy: true,
+          preview: true,
+          previewZIndex: 2000,
+          hideOnClickModal: true,
+          errorText: '图片加载失败',
+          placeholder: '请设置图片地址',
+        }
+
+      case 'video':
+        return {
+          url: '',
+          poster: '',
+          controls: true,
+          autoplay: false,
+          loop: false,
+          muted: false,
+          preload: 'metadata',
+          noDownload: false,
+          noPictureInPicture: false,
+          placeholder: '请设置视频地址',
+        }
+
+      // 内容组件
+      case 'markdown':
+        return {
+          content:
+            '# Markdown 标题\n\n这是一段 **Markdown** 内容。\n\n- 列表项 1\n- 列表项 2\n- 列表项 3',
+        }
+
+      case 'html':
+        return {
+          content:
+            '<div style="padding: 20px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; border-radius: 8px;"><h2 style="margin: 0 0 10px 0;">HTML 内容</h2><p style="margin: 0;">这是一段自定义 HTML 内容,支持样式和结构</p></div>',
+          sanitize: true,
+          allowedTags: 'div,h1,h2,h3,h4,h5,h6,p,span,strong,em,ul,ol,li,a,img,br',
+          allowedAttributes: 'style,class,href,src,alt,target',
+        }
+
+      case 'iframe':
+        return {
+          url: 'https://www.openstreetmap.org/export/embed.html?bbox=116.3%2C39.8%2C116.5%2C40.0',
+          title: 'iframe',
+          sandbox: 'allow-scripts allow-same-origin',
+          allow: 'fullscreen',
+          placeholder: '请设置 iframe 地址',
+        }
+
+      // 高级功能组件
+      case 'scripting':
+        return {
+          script:
+            '// JavaScript 代码\nconsole.log("Hello, World!");\nconsole.log("当前时间:", new Date().toLocaleString());',
+          autoRun: false,
+          showCode: true,
+          showControls: true,
+          showPlaceholder: true,
+          placeholder: '点击执行按钮运行脚本',
+        }
+
+      case 'state':
+        return {
+          state: JSON.stringify(
+            {
+              count: 0,
+              status: 'idle',
+              user: { name: 'Admin', role: 'admin' },
+              settings: { theme: 'dark', language: 'zh-CN' },
+            },
+            null,
+            2,
+          ),
+          viewMode: 'list', // list, json, table
+          placeholder: '暂无状态数据',
+        }
+
+      case 'trigger':
+        return {
+          enabled: true,
+          triggerType: 'manual', // manual, interval
+          interval: 5000,
+          action: 'log', // log, alert, dispatch, api
+          actionData: '触发器已执行',
+          condition: '',
+          showClearButton: true,
+          placeholder: '暂无执行记录',
+        }
+
       default:
         return {}
     }
@@ -574,6 +1387,16 @@ export const useComponent = defineStore('component', () => {
           changePath: '',
         }
       case 'countUp':
+        return {
+          enabled: false,
+          url: '',
+          method: 'GET',
+          headers: {},
+          interval: 0,
+          dataPath: '',
+          valuePath: '',
+          titlePath: '',
+        }
       case 'progress':
       case 'badge':
         return {
@@ -585,6 +1408,150 @@ export const useComponent = defineStore('component', () => {
           dataPath: '',
           valuePath: '',
         }
+
+      case 'box':
+        return {
+          enabled: false,
+          url: '',
+          method: 'GET',
+          headers: {},
+          interval: 0,
+          dataPath: '',
+          contentPath: '',
+        }
+
+      case 'table':
+      case 'list':
+      case 'timeline':
+      case 'cardGrid':
+      case 'pivot':
+        return {
+          enabled: false,
+          url: '',
+          method: 'GET',
+          headers: {},
+          interval: 0,
+          dataPath: '',
+        }
+
+      case 'select':
+      case 'multiSelect':
+      case 'checkboxGroup':
+      case 'buttonGroup':
+        return {
+          enabled: false,
+          url: '',
+          method: 'GET',
+          headers: {},
+          interval: 0,
+          dataPath: '',
+        }
+
+      case 'tabs':
+        return {
+          enabled: false,
+          url: '',
+          method: 'GET',
+          headers: {},
+          interval: 0,
+          dataPath: '',
+          labelField: 'label',
+          valueField: 'value',
+          contentField: 'content',
+        }
+
+      case 'image':
+        return {
+          enabled: false,
+          url: '',
+          method: 'GET',
+          headers: {},
+          interval: 0,
+          dataPath: '',
+          urlField: 'url',
+        }
+
+      case 'video':
+        return {
+          enabled: false,
+          url: '',
+          method: 'GET',
+          headers: {},
+          interval: 0,
+          dataPath: '',
+          urlField: 'url',
+          posterField: 'poster',
+        }
+
+      case 'markdown':
+      case 'html':
+        return {
+          enabled: false,
+          url: '',
+          method: 'GET',
+          headers: {},
+          interval: 0,
+          dataPath: '',
+          contentField: 'content',
+        }
+
+      case 'iframe':
+        return {
+          enabled: false,
+          url: '',
+          method: 'GET',
+          headers: {},
+          interval: 0,
+          dataPath: '',
+          urlField: 'url',
+        }
+
+      // 高级功能组件
+      case 'scripting':
+        return {
+          enabled: false,
+          url: '',
+          method: 'GET',
+          headers: {},
+          interval: 0,
+          dataPath: '',
+          scriptField: 'script',
+        }
+
+      case 'state':
+        return {
+          enabled: false,
+          url: '',
+          method: 'GET',
+          headers: {},
+          interval: 0,
+          dataPath: '',
+          stateField: 'state',
+        }
+
+      case 'trigger':
+        return {
+          enabled: false,
+          url: '',
+          method: 'GET',
+          headers: {},
+          interval: 0,
+          dataPath: '',
+          conditionField: 'condition',
+        }
+
+      case 'dateRange':
+      case 'searchBox':
+      case 'slider':
+      case 'switch':
+      case 'row':
+      case 'col':
+      case 'flex':
+      case 'grid':
+      case 'modal':
+      case 'panel':
+        return undefined
+
       default:
         return undefined
     }

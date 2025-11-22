@@ -467,6 +467,584 @@ app.get('/api/badge/realtime', (req, res) => {
   })
 })
 
+// 36. 数字跳动 - 带标题（新增用于测试）
+app.get('/api/countup/withtitle', (req, res) => {
+  const titles = ['总销售额', '用户数', '订单量', '访问量', '营收']
+  const title = titles[Math.floor(Math.random() * titles.length)]
+  const value = Math.floor(Math.random() * 1000000 + 100000)
+
+  res.json({
+    title: title,
+    value: value,
+    timestamp: new Date().getTime(),
+  })
+})
+
+// 37. 数字跳动 - 完整格式（新增用于测试）
+app.get('/api/countup/full', (req, res) => {
+  res.json({
+    data: {
+      metrics: {
+        title: '月度目标完成率',
+        current: 87.5,
+        prefix: '',
+        suffix: '%',
+      },
+    },
+  })
+})
+
+// 21. 表格数据
+app.get('/api/table-data', (req, res) => {
+  res.json({
+    code: 200,
+    data: [
+      {
+        id: 1,
+        name: '张三',
+        age: 28,
+        address: '北京市朝阳区',
+        department: '技术部',
+        email: 'zhangsan@example.com',
+      },
+      {
+        id: 2,
+        name: '李四',
+        age: 32,
+        address: '上海市浦东新区',
+        department: '市场部',
+        email: 'lisi@example.com',
+      },
+      {
+        id: 3,
+        name: '王五',
+        age: 25,
+        address: '广州市天河区',
+        department: '设计部',
+        email: 'wangwu@example.com',
+      },
+      {
+        id: 4,
+        name: '赵六',
+        age: 30,
+        address: '深圳市南山区',
+        department: '产品部',
+        email: 'zhaoliu@example.com',
+      },
+      {
+        id: 5,
+        name: '钱七',
+        age: 27,
+        address: '杭州市西湖区',
+        department: '运营部',
+        email: 'qianqi@example.com',
+      },
+    ],
+  })
+})
+
+// 22. 列表数据
+app.get('/api/list-items', (req, res) => {
+  res.json({
+    code: 200,
+    data: [
+      {
+        title: '新版本上线通知',
+        description: '系统将于今晚 22:00 进行版本更新，预计持续 30 分钟',
+        extra: '重要',
+        timestamp: '2024-01-15 14:30',
+      },
+      {
+        title: '团队会议提醒',
+        description: '本周五下午 3 点召开季度总结会议，请提前准备相关材料',
+        extra: '会议',
+        timestamp: '2024-01-14 10:20',
+      },
+      {
+        title: '项目进度更新',
+        description: 'WebGIS 项目第一阶段已完成 85%，预计下周进入测试阶段',
+        extra: '进展',
+        timestamp: '2024-01-13 16:45',
+      },
+      {
+        title: '安全漏洞修复',
+        description: '发现并修复了一个中等级别的安全漏洞，已部署到生产环境',
+        extra: '安全',
+        timestamp: '2024-01-12 09:15',
+      },
+      {
+        title: '新功能开发',
+        description: '数据可视化模块新增 4 个组件：占位盒、表格、列表、时间轴',
+        extra: '功能',
+        timestamp: '2024-01-11 11:00',
+      },
+    ],
+  })
+})
+
+// 23. 时间轴数据
+app.get('/api/timeline-events', (req, res) => {
+  res.json({
+    code: 200,
+    data: [
+      {
+        title: '项目启动',
+        content: 'WebGIS 可视化项目正式启动，完成需求分析和技术选型',
+        timestamp: '2024-01-01 09:00',
+        type: 'primary',
+        extra: '里程碑',
+      },
+      {
+        title: '原型设计完成',
+        content: '完成所有页面的原型设计，包括编辑器、组件面板、属性配置等核心功能',
+        timestamp: '2024-01-05 15:30',
+        type: 'success',
+        extra: '设计',
+      },
+      {
+        title: '基础框架搭建',
+        content: '完成 Vue3 + TypeScript 项目搭建，配置 Vite、ESLint、Pinia 等工具',
+        timestamp: '2024-01-08 10:00',
+        type: 'success',
+        extra: '开发',
+      },
+      {
+        title: '组件系统开发',
+        content: '开发了图表组件、KPI 组件、布局组件等 20+ 可视化组件',
+        timestamp: '2024-01-12 16:00',
+        type: 'success',
+        extra: '开发',
+      },
+      {
+        title: '数据源功能',
+        content: '实现了组件数据源配置，支持 HTTP 请求、实时轮询、数据路径提取',
+        timestamp: '2024-01-15 14:20',
+        type: 'warning',
+        extra: '功能',
+      },
+      {
+        title: '测试阶段',
+        content: '进入全面测试阶段，修复已知 bug，优化性能和用户体验',
+        timestamp: '2024-01-18 11:00',
+        type: 'info',
+        extra: '测试',
+      },
+    ],
+  })
+})
+
+// 24. 占位盒内容
+app.get('/api/box-content', (req, res) => {
+  const messages = [
+    '欢迎使用 WebGIS 可视化平台 🎉',
+    '系统运行正常 ✅',
+    '当前在线用户: 1,234 人',
+    '今日访问量: 5,678 次',
+    '数据更新时间: ' + new Date().toLocaleTimeString('zh-CN'),
+  ]
+
+  res.json({
+    content: messages[Math.floor(Math.random() * messages.length)],
+    timestamp: new Date().toISOString(),
+  })
+})
+
+// 25. 卡片网格数据
+app.get('/api/card-grid', (req, res) => {
+  res.json({
+    code: 200,
+    data: [
+      {
+        title: '产品 A',
+        description: '这是一款创新的产品，具有优秀的性能和用户体验',
+        footer: '2024-01-15',
+        tags: ['热门', '新品'],
+        image: 'https://via.placeholder.com/300x150',
+      },
+      {
+        title: '产品 B',
+        description: '经典款产品，市场占有率高，深受用户喜爱',
+        footer: '2024-01-12',
+        tags: ['经典', '畅销'],
+        image: 'https://via.placeholder.com/300x150',
+      },
+      {
+        title: '产品 C',
+        description: '高端定制产品，专为企业客户设计',
+        footer: '2024-01-10',
+        tags: ['高端', '定制'],
+        image: 'https://via.placeholder.com/300x150',
+      },
+      {
+        title: '产品 D',
+        description: '入门级产品，性价比高，适合个人用户',
+        footer: '2024-01-08',
+        tags: ['入门', '实惠'],
+        image: 'https://via.placeholder.com/300x150',
+      },
+      {
+        title: '产品 E',
+        description: '专业版产品，功能强大，适合专业用户',
+        footer: '2024-01-05',
+        tags: ['专业', '强大'],
+        image: 'https://via.placeholder.com/300x150',
+      },
+      {
+        title: '产品 F',
+        description: '轻量级产品，简单易用，快速上手',
+        footer: '2024-01-03',
+        tags: ['轻量', '易用'],
+        image: 'https://via.placeholder.com/300x150',
+      },
+    ],
+  })
+})
+
+// 26. 透视分析数据
+app.get('/api/pivot-data', (req, res) => {
+  res.json({
+    code: 200,
+    data: [
+      {
+        category: '产品A',
+        region: '华东',
+        q1: 1200,
+        q2: 1500,
+        q3: 1800,
+        q4: 2100,
+      },
+      {
+        category: '产品A',
+        region: '华南',
+        q1: 1100,
+        q2: 1300,
+        q3: 1600,
+        q4: 1900,
+      },
+      {
+        category: '产品A',
+        region: '华北',
+        q1: 1000,
+        q2: 1200,
+        q3: 1400,
+        q4: 1700,
+      },
+      {
+        category: '产品B',
+        region: '华东',
+        q1: 900,
+        q2: 1100,
+        q3: 1300,
+        q4: 1500,
+      },
+      {
+        category: '产品B',
+        region: '华南',
+        q1: 800,
+        q2: 1000,
+        q3: 1200,
+        q4: 1400,
+      },
+      {
+        category: '产品B',
+        region: '华北',
+        q1: 850,
+        q2: 1050,
+        q3: 1250,
+        q4: 1450,
+      },
+      {
+        category: '产品C',
+        region: '华东',
+        q1: 700,
+        q2: 900,
+        q3: 1100,
+        q4: 1300,
+      },
+      {
+        category: '产品C',
+        region: '华南',
+        q1: 650,
+        q2: 850,
+        q3: 1050,
+        q4: 1250,
+      },
+      {
+        category: '产品C',
+        region: '华北',
+        q1: 600,
+        q2: 800,
+        q3: 1000,
+        q4: 1200,
+      },
+    ],
+  })
+})
+
+// 27. 下拉选择选项数据
+app.get('/api/select-options', (req, res) => {
+  res.json({
+    code: 200,
+    data: [
+      { label: '北京', value: 'beijing' },
+      { label: '上海', value: 'shanghai' },
+      { label: '广州', value: 'guangzhou' },
+      { label: '深圳', value: 'shenzhen' },
+      { label: '杭州', value: 'hangzhou' },
+      { label: '成都', value: 'chengdu' },
+      { label: '武汉', value: 'wuhan' },
+      { label: '西安', value: 'xian' },
+      { label: '重庆', value: 'chongqing' },
+      { label: '南京', value: 'nanjing' },
+    ],
+  })
+})
+
+// 28. 多选选择选项数据 (分类标签)
+app.get('/api/multi-select-options', (req, res) => {
+  res.json({
+    code: 200,
+    data: [
+      { label: 'Vue.js', value: 'vue', disabled: false },
+      { label: 'React', value: 'react', disabled: false },
+      { label: 'Angular', value: 'angular', disabled: false },
+      { label: 'TypeScript', value: 'typescript', disabled: false },
+      { label: 'JavaScript', value: 'javascript', disabled: false },
+      { label: 'Element Plus', value: 'element-plus', disabled: false },
+      { label: 'Ant Design', value: 'ant-design', disabled: false },
+      { label: 'Vite', value: 'vite', disabled: false },
+      { label: 'Webpack', value: 'webpack', disabled: false },
+      { label: 'Pinia', value: 'pinia', disabled: false },
+    ],
+  })
+})
+
+// 29. 复选组选项数据
+app.get('/api/checkbox-options', (req, res) => {
+  res.json({
+    success: true,
+    data: [
+      { label: '苹果', value: 'apple', disabled: false },
+      { label: '香蕉', value: 'banana', disabled: false },
+      { label: '橙子', value: 'orange', disabled: false },
+      { label: '西瓜', value: 'watermelon', disabled: false },
+      { label: '葡萄', value: 'grape', disabled: false },
+      { label: '草莓', value: 'strawberry', disabled: false },
+      { label: '樱桃', value: 'cherry', disabled: true },
+      { label: '芒果', value: 'mango', disabled: false },
+    ],
+  })
+})
+
+// 30. 按钮组数据
+app.get('/api/button-group', (req, res) => {
+  res.json({
+    success: true,
+    data: [
+      { label: '保存', value: 'save', type: 'primary', icon: '', disabled: false },
+      { label: '编辑', value: 'edit', type: 'default', icon: '', disabled: false },
+      { label: '删除', value: 'delete', type: 'danger', icon: '', disabled: false },
+      { label: '导出', value: 'export', type: 'success', icon: '', disabled: false },
+      { label: '刷新', value: 'refresh', type: 'info', icon: '', disabled: false },
+    ],
+  })
+})
+
+// 31. Tabs 标签页数据
+app.get('/api/tabs', (req, res) => {
+  res.json({
+    success: true,
+    data: [
+      {
+        label: '用户管理',
+        value: 'users',
+        content: '这里是用户管理的内容区域，包含用户列表、新增用户、编辑用户等功能。',
+      },
+      {
+        label: '角色权限',
+        value: 'roles',
+        content: '这里是角色权限管理的内容区域，可以配置不同角色的权限范围。',
+      },
+      {
+        label: '系统设置',
+        value: 'settings',
+        content: '这里是系统设置的内容区域，包含基本设置、安全设置、通知设置等。',
+      },
+      {
+        label: '日志审计',
+        value: 'logs',
+        content: '这里是日志审计的内容区域，可以查看系统操作日志、登录日志等信息。',
+      },
+    ],
+  })
+})
+
+// 32. 图片数据
+app.get('/api/image', (req, res) => {
+  const images = [
+    'https://picsum.photos/800/600?random=1',
+    'https://picsum.photos/800/600?random=2',
+    'https://picsum.photos/800/600?random=3',
+  ]
+  const randomIndex = Math.floor(Math.random() * images.length)
+  res.json({
+    success: true,
+    data: {
+      url: images[randomIndex],
+      title: `随机图片 ${randomIndex + 1}`,
+    },
+  })
+})
+
+// 33. 视频数据
+app.get('/api/video', (req, res) => {
+  res.json({
+    success: true,
+    data: {
+      url: 'https://www.w3schools.com/html/mov_bbb.mp4',
+      poster: 'https://via.placeholder.com/800x600',
+      title: '示例视频',
+    },
+  })
+})
+
+// 34. Markdown 内容
+app.get('/api/markdown', (req, res) => {
+  res.json({
+    success: true,
+    data: {
+      content:
+        '# Markdown 示例\\n\\n## 功能特点\\n\\n- 支持标题\\n- 支持 **粗体** 和 *斜体*\\n- 支持列表\\n\\n```javascript\\nconsole.log("Hello")\\n```',
+    },
+  })
+})
+
+// 35. HTML 内容
+app.get('/api/html', (req, res) => {
+  res.json({
+    success: true,
+    data: {
+      content:
+        '<div style="padding:20px;background:#667eea;color:white;border-radius:8px;"><h2>HTML 示例</h2><p>这是动态 HTML 内容</p></div>',
+    },
+  })
+})
+
+// 36. iframe URL
+app.get('/api/iframe', (req, res) => {
+  res.json({
+    success: true,
+    data: {
+      url: 'https://www.openstreetmap.org/export/embed.html?bbox=-0.004017949104309083%2C51.47612752641776%2C0.00030577182769775396%2C51.478569861898606',
+      title: '地图示例',
+    },
+  })
+})
+
+// 37. 脚本内容
+app.get('/api/scripting', (req, res) => {
+  const scripts = [
+    `// 计算斐波那契数列
+function fibonacci(n) {
+  if (n <= 1) return n;
+  return fibonacci(n - 1) + fibonacci(n - 2);
+}
+
+for (let i = 0; i < 10; i++) {
+  console.log(\`Fibonacci(\${i}) = \${fibonacci(i)}\`);
+}`,
+    `// 生成随机数据
+const randomData = Array.from({ length: 5 }, () => Math.floor(Math.random() * 100));
+console.log('随机数据:', randomData);
+console.log('平均值:', randomData.reduce((a, b) => a + b) / randomData.length);
+console.log('最大值:', Math.max(...randomData));
+console.log('最小值:', Math.min(...randomData));`,
+    `// 日期时间操作
+const now = new Date();
+console.log('当前时间:', now.toLocaleString('zh-CN'));
+console.log('时间戳:', now.getTime());
+console.log('星期:', ['日', '一', '二', '三', '四', '五', '六'][now.getDay()]);
+console.log('本月天数:', new Date(now.getFullYear(), now.getMonth() + 1, 0).getDate());`,
+  ]
+
+  const randomScript = scripts[Math.floor(Math.random() * scripts.length)]
+
+  res.json({
+    success: true,
+    data: {
+      script: randomScript,
+    },
+  })
+})
+
+// 38. 状态数据
+app.get('/api/state', (req, res) => {
+  res.json({
+    success: true,
+    data: {
+      state: {
+        // 系统信息
+        system: {
+          name: 'WebGIS Platform',
+          version: '2.0.1',
+          uptime: Math.floor(Math.random() * 86400),
+          status: ['online', 'maintenance', 'offline'][Math.floor(Math.random() * 3)],
+        },
+        // 用户信息
+        user: {
+          id: 1001,
+          name: 'Admin',
+          role: 'administrator',
+          permissions: ['read', 'write', 'delete', 'admin'],
+          loginTime: new Date(Date.now() - Math.random() * 3600000).toISOString(),
+        },
+        // 统计数据
+        statistics: {
+          totalUsers: Math.floor(Math.random() * 10000),
+          activeUsers: Math.floor(Math.random() * 1000),
+          totalRequests: Math.floor(Math.random() * 1000000),
+          errorRate: (Math.random() * 5).toFixed(2) + '%',
+        },
+        // 配置信息
+        config: {
+          theme: ['light', 'dark'][Math.floor(Math.random() * 2)],
+          language: 'zh-CN',
+          autoSave: true,
+          notifications: true,
+        },
+        // 实时数据
+        realtime: {
+          timestamp: Date.now(),
+          temperature: (20 + Math.random() * 10).toFixed(1) + '°C',
+          humidity: (40 + Math.random() * 30).toFixed(1) + '%',
+          pressure: (1000 + Math.random() * 50).toFixed(0) + ' hPa',
+        },
+      },
+    },
+  })
+})
+
+// 39. 触发器条件
+app.get('/api/trigger', (req, res) => {
+  const actions = [
+    { action: 'log', actionData: '系统日志记录' },
+    { action: 'alert', actionData: '重要提醒：请注意系统状态' },
+    { action: 'dispatch', actionData: 'data-update' },
+    { action: 'api', actionData: 'http://localhost:3001/api/callback' },
+  ]
+
+  const randomAction = actions[Math.floor(Math.random() * actions.length)]
+
+  res.json({
+    success: true,
+    data: {
+      condition: `value > ${Math.floor(Math.random() * 100)}`,
+      enabled: Math.random() > 0.3,
+      ...randomAction,
+    },
+  })
+})
+
 // 启动服务器
 app.listen(PORT, () => {
   console.log('\n' + '='.repeat(60))
@@ -561,6 +1139,49 @@ app.listen(PORT, () => {
   console.log('2️⃣0️⃣ 指标卡 - 实时更新 (建议刷新: 3秒)')
   console.log(`   URL: http://localhost:${PORT}/api/stat/realtime`)
   console.log('   标题路径: title | 数值路径: value | 变化路径: change\n')
+
+  console.log('📋 表格、列表、时间轴数据接口：\n')
+
+  console.log('2️⃣1️⃣ 表格数据')
+  console.log(`   URL: http://localhost:${PORT}/api/table-data`)
+  console.log('   数据路径: data\n')
+
+  console.log('2️⃣2️⃣ 列表数据')
+  console.log(`   URL: http://localhost:${PORT}/api/list-items`)
+  console.log('   数据路径: data\n')
+
+  console.log('2️⃣3️⃣ 时间轴数据')
+  console.log(`   URL: http://localhost:${PORT}/api/timeline-events`)
+  console.log('   数据路径: data\n')
+
+  console.log('2️⃣4️⃣ 占位盒内容')
+  console.log(`   URL: http://localhost:${PORT}/api/box-content`)
+  console.log('   数据路径: content\n')
+
+  console.log('2️⃣5️⃣ 卡片网格数据')
+  console.log(`   URL: http://localhost:${PORT}/api/card-grid`)
+  console.log('   数据路径: data\n')
+
+  console.log('2️⃣6️⃣ 透视分析数据')
+  console.log(`   URL: http://localhost:${PORT}/api/pivot-data`)
+  console.log('   数据路径: data\n')
+
+  console.log('2️⃣7️⃣ 下拉选择选项')
+  console.log(`   URL: http://localhost:${PORT}/api/select-options`)
+  console.log('   数据路径: data\n')
+
+  console.log('2️⃣8️⃣ 多选选择选项')
+  console.log(`   URL: http://localhost:${PORT}/api/multi-select-options`)
+  console.log('   数据路径: data\n')
+
+  console.log('2️⃣9️⃣ 复选组选项')
+  console.log(`   URL: http://localhost:${PORT}/api/checkbox-options`)
+  console.log('   数据路径: data\n')
+
+  console.log('3️⃣0️⃣ 按钮组数据')
+  console.log(`   URL: http://localhost:${PORT}/api/button-group`)
+  console.log('   数据路径: data\n')
+
   console.log('💡 提示: 按 Ctrl+C 停止服务器')
   console.log('='.repeat(60) + '\n')
 })

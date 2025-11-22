@@ -1,25 +1,21 @@
 <template>
   <div class="progress-container" :style="containerStyle">
-    <div v-if="showText && textPosition === 'left'" class="progress-text" :style="textStyle">
-      {{ displayText }}
-    </div>
-    <div class="progress-wrapper" :class="{ vertical: isVertical }" :style="wrapperStyle">
-      <div class="progress-track" :style="trackStyle">
-        <div class="progress-bar" :style="barStyle">
-          <div v-if="showStripe" class="progress-stripe" :class="{ animated: animateStripe }"></div>
-        </div>
-      </div>
-    </div>
-    <div v-if="showText && textPosition === 'right'" class="progress-text" :style="textStyle">
-      {{ displayText }}
-    </div>
-    <div
-      v-if="showText && textPosition === 'inside' && !isVertical"
-      class="progress-text-inside"
-      :style="textInsideStyle"
-    >
-      {{ displayText }}
-    </div>
+    <!-- 使用 Element Plus Progress 组件 -->
+    <el-progress
+      :percentage="progressValue"
+      :type="progressType"
+      :status="status"
+      :stroke-width="strokeWidth"
+      :text-inside="textInside"
+      :show-text="showText"
+      :color="customColors"
+      :format="formatText"
+      :width="circleWidth"
+      :stroke-linecap="strokeLinecap"
+      :define-back-color="defineBackColor"
+      :striped="showStripe"
+      :striped-flow="animateStripe"
+    />
   </div>
 </template>
 
@@ -29,7 +25,7 @@ import type { CSSProperties } from 'vue'
 import { useComponent } from '@/stores/component'
 import { storeToRefs } from 'pinia'
 import { useDataSource } from '@/datasource/useDataSource'
-import { extractNumber } from '@/datasource/dataUtils'
+import { extractNumber, extractWithFallback } from '@/datasource/dataUtils'
 
 const props = defineProps<{ id: string }>()
 const { componentStore } = storeToRefs(useComponent())
@@ -54,18 +50,68 @@ const progressValue = computed<number>(() => {
 })
 
 // 组件属性
-const type = computed<string>(() => (comp.value?.props.type as string) ?? 'line')
+const progressType = computed(() => {
+  const type = (comp.value?.props.type as string) ?? 'line'
+  return type as 'line' | 'circle' | 'dashboard'
+})
+
+const status = computed<'' | 'success' | 'exception' | 'warning' | undefined>(() => {
+  const ds = comp.value?.dataSource
+  let statusValue = (comp.value?.props.status as string) ?? ''
+  if (ds?.enabled && remoteData.value && ds.statusPath && typeof ds.statusPath === 'string') {
+    statusValue = extractWithFallback(
+      remoteData.value,
+      ds.statusPath as string,
+      statusValue,
+    ) as string
+  }
+  return (statusValue || undefined) as '' | 'success' | 'exception' | 'warning' | undefined
+})
+
+const strokeWidth = computed<number>(() => (comp.value?.props.strokeWidth as number) ?? 6)
+const textInside = computed<boolean>(() => (comp.value?.props.textInside as boolean) ?? false)
 const showText = computed<boolean>(() => (comp.value?.props.showText as boolean) ?? true)
-const textPosition = computed<string>(() => (comp.value?.props.textPosition as string) ?? 'right')
-const textFormat = computed<string>(() => (comp.value?.props.textFormat as string) ?? '{value}%')
 const showStripe = computed<boolean>(() => (comp.value?.props.showStripe as boolean) ?? false)
 const animateStripe = computed<boolean>(() => (comp.value?.props.animateStripe as boolean) ?? false)
-const isVertical = computed<boolean>(() => type.value === 'vertical')
+const circleWidth = computed<number>(() => (comp.value?.props.circleWidth as number) ?? 126)
+const strokeLinecap = computed<'butt' | 'round' | 'square'>(
+  () => (comp.value?.props.strokeLinecap as 'butt' | 'round' | 'square') ?? 'round',
+)
+const defineBackColor = computed<string>(
+  () => (comp.value?.style.trackColor as string) ?? '#e5e9f2',
+)
+const textFormat = computed<string>(() => (comp.value?.props.textFormat as string) ?? '{value}%')
 
-// 显示文本
-const displayText = computed(() => {
-  return textFormat.value.replace('{value}', progressValue.value.toFixed(0))
+// 自定义颜色
+const customColors = computed(() => {
+  const s = comp.value?.style || {}
+  const barColor = (s.barColor as string) ?? '#409eff'
+  const successColor = (s.successColor as string) ?? '#67c23a'
+  const warningColor = (s.warningColor as string) ?? '#e6a23c'
+  const exceptionColor = (s.exceptionColor as string) ?? '#f56c6c'
+
+  if (status.value) {
+    if (status.value === 'success') return successColor
+    if (status.value === 'warning') return warningColor
+    if (status.value === 'exception') return exceptionColor
+  }
+
+  const useGradient = (comp.value?.props.useGradient as boolean) ?? false
+  if (useGradient) {
+    return [
+      { color: exceptionColor, percentage: 20 },
+      { color: warningColor, percentage: 50 },
+      { color: successColor, percentage: 100 },
+    ]
+  }
+
+  return barColor
 })
+
+// 格式化文本
+const formatText = (percentage: number) => {
+  return textFormat.value.replace('{value}', percentage.toFixed(0))
+}
 
 // 样式
 const containerStyle = computed<CSSProperties>(() => {
@@ -73,163 +119,30 @@ const containerStyle = computed<CSSProperties>(() => {
   return {
     opacity: ((s.opacity ?? 100) as number) / 100,
     display: s.visible === false ? 'none' : 'flex',
-    flexDirection: isVertical.value ? 'column' : 'row',
-    alignItems: isVertical.value ? 'center' : 'center',
-    gap: '10px',
-    padding: `${(s.padding as number) ?? 0}px`,
-  }
-})
-
-const wrapperStyle = computed<CSSProperties>(() => {
-  const s = comp.value?.style || {}
-  if (isVertical.value) {
-    return {
-      width: `${(s.strokeWidth as number) ?? 20}px`,
-      height: '100%',
-      flex: 1,
-    }
-  }
-  return {
-    flex: 1,
-    height: `${(s.strokeWidth as number) ?? 20}px`,
-  }
-})
-
-const trackStyle = computed<CSSProperties>(() => {
-  const s = comp.value?.style || {}
-  return {
-    backgroundColor: (s.trackColor as string) ?? '#e4e7ed',
-    borderRadius: `${(s.borderRadius as number) ?? 10}px`,
-  }
-})
-
-const barStyle = computed<CSSProperties>(() => {
-  const s = comp.value?.style || {}
-  const percentage = progressValue.value
-
-  // 根据状态设置颜色
-  let barColor = (s.barColor as string) ?? '#409eff'
-  const status = comp.value?.props.status as string
-  if (status === 'success') barColor = (s.successColor as string) ?? '#67c23a'
-  else if (status === 'warning') barColor = (s.warningColor as string) ?? '#e6a23c'
-  else if (status === 'exception') barColor = (s.exceptionColor as string) ?? '#f56c6c'
-
-  if (isVertical.value) {
-    return {
-      width: '100%',
-      height: `${percentage}%`,
-      backgroundColor: barColor,
-      borderRadius: `${(s.borderRadius as number) ?? 10}px`,
-      transition: 'height 0.3s ease',
-      position: 'relative' as const,
-      overflow: 'hidden' as const,
-    }
-  }
-
-  return {
-    width: `${percentage}%`,
+    backgroundColor: (s.backgroundColor as string) ?? 'transparent',
+    borderColor: (s.borderColor as string) ?? 'transparent',
+    borderWidth: `${(s.borderWidth as number) ?? 0}px`,
+    borderStyle: 'solid',
+    borderRadius: `${(s.borderRadius as number) ?? 0}px`,
+    padding: `${(s.padding as number) ?? 10}px`,
+    width: '100%',
     height: '100%',
-    backgroundColor: barColor,
-    borderRadius: `${(s.borderRadius as number) ?? 10}px`,
-    transition: 'width 0.3s ease',
-    position: 'relative' as const,
-    overflow: 'hidden' as const,
-  }
-})
-
-const textStyle = computed<CSSProperties>(() => {
-  const s = comp.value?.style || {}
-  return {
-    color: (s.textColor as string) ?? '#606266',
-    fontSize: `${(s.textFontSize as number) ?? 14}px`,
-    fontWeight: (s.textFontWeight as string) ?? 'normal',
-    minWidth: '50px',
-    textAlign: textPosition.value === 'left' ? 'right' : 'left',
-  }
-})
-
-const textInsideStyle = computed<CSSProperties>(() => {
-  const s = comp.value?.style || {}
-  return {
-    position: 'absolute' as const,
-    left: '50%',
-    top: '50%',
-    transform: 'translate(-50%, -50%)',
-    color: (s.textInsideColor as string) ?? '#fff',
-    fontSize: `${(s.textFontSize as number) ?? 12}px`,
-    fontWeight: (s.textFontWeight as string) ?? 'bold',
+    alignItems: 'center',
+    justifyContent: 'center',
   }
 })
 </script>
 
 <style scoped>
 .progress-container {
-  width: 100%;
-  height: 100%;
-  display: flex;
-  align-items: center;
   box-sizing: border-box;
-  position: relative;
 }
 
-.progress-wrapper {
-  position: relative;
-}
-
-.progress-wrapper.vertical {
-  display: flex;
-  flex-direction: column;
-  justify-content: flex-end;
-}
-
-.progress-track {
+:deep(.el-progress) {
   width: 100%;
-  height: 100%;
-  overflow: hidden;
-  position: relative;
 }
 
-.progress-bar {
-  position: relative;
-}
-
-.progress-stripe {
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background-image: linear-gradient(
-    45deg,
-    rgba(255, 255, 255, 0.15) 25%,
-    transparent 25%,
-    transparent 50%,
-    rgba(255, 255, 255, 0.15) 50%,
-    rgba(255, 255, 255, 0.15) 75%,
-    transparent 75%,
-    transparent
-  );
-  background-size: 20px 20px;
-}
-
-.progress-stripe.animated {
-  animation: progress-stripe-animation 1s linear infinite;
-}
-
-@keyframes progress-stripe-animation {
-  0% {
-    background-position: 0 0;
-  }
-  100% {
-    background-position: 20px 20px;
-  }
-}
-
-.progress-text {
-  white-space: nowrap;
-}
-
-.progress-text-inside {
-  pointer-events: none;
+:deep(.el-progress__text) {
+  font-size: inherit !important;
 }
 </style>

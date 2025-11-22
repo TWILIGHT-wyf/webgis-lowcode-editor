@@ -663,19 +663,19 @@ export function customProperties() {
             options: [
               {
                 label: '常规',
-                value: 'normal'
+                value: 'normal',
               },
               {
                 label: '加粗',
-                value: 'bold'
+                value: 'bold',
               },
               {
                 label: '更细',
-                value: 'lighter'
+                value: 'lighter',
               },
               {
                 label: '更粗',
-                value: 'bolder'
+                value: 'bolder',
               },
             ],
             default: 'normal',
@@ -687,19 +687,19 @@ export function customProperties() {
             options: [
               {
                 label: '常规',
-                value: 'normal'
+                value: 'normal',
               },
               {
                 label: '加粗',
-                value: 'bold'
+                value: 'bold',
               },
               {
                 label: '更细',
-                value: 'lighter'
+                value: 'lighter',
               },
               {
                 label: '更粗',
-                value: 'bolder'
+                value: 'bolder',
               },
             ],
             default: 'bold',
@@ -711,19 +711,19 @@ export function customProperties() {
             options: [
               {
                 label: '常规',
-                value: 'normal'
+                value: 'normal',
               },
               {
                 label: '加粗',
-                value: 'bold'
+                value: 'bold',
               },
               {
                 label: '更细',
-                value: 'lighter'
+                value: 'lighter',
               },
               {
                 label: '更粗',
-                value: 'bolder'
+                value: 'bolder',
               },
             ],
             default: 'normal',
@@ -777,15 +777,15 @@ export function customProperties() {
             options: [
               {
                 label: '左对齐',
-                value: 'flex-start'
+                value: 'flex-start',
               },
               {
                 label: '居中',
-                value: 'center'
+                value: 'center',
               },
               {
                 label: '右对齐',
-                value: 'flex-end'
+                value: 'flex-end',
               },
             ],
             default: 'center',
@@ -812,19 +812,19 @@ export function customProperties() {
             options: [
               {
                 label: '常规',
-                value: 'normal'
+                value: 'normal',
               },
               {
                 label: '加粗',
-                value: 'bold'
+                value: 'bold',
               },
               {
                 label: '更细',
-                value: 'lighter'
+                value: 'lighter',
               },
               {
                 label: '更粗',
-                value: 'bolder'
+                value: 'bolder',
               },
             ],
             default: 'bold',
@@ -851,11 +851,11 @@ export function customProperties() {
             options: [
               {
                 label: '常规',
-                value: 'normal'
+                value: 'normal',
               },
               {
                 label: '加粗',
-                value: 'bold'
+                value: 'bold',
               },
             ],
             default: 'normal',
@@ -891,6 +891,31 @@ export function customProperties() {
             type: 'text',
             placeholder: 'inherit',
             default: 'inherit',
+          },
+          {
+            key: 'titleColor',
+            label: '标题颜色',
+            type: 'color',
+            default: '#909399',
+          },
+          {
+            key: 'titleFontSize',
+            label: '标题字体大小(px)',
+            type: 'number',
+            min: 8,
+            max: 100,
+            step: 1,
+            default: 14,
+          },
+          {
+            key: 'titleFontWeight',
+            label: '标题字重',
+            type: 'select',
+            options: [
+              { label: '常规', value: 'normal' },
+              { label: '加粗', value: 'bold' },
+            ],
+            default: 'normal',
           },
         ]
       case 'progress':
@@ -980,11 +1005,11 @@ export function customProperties() {
             options: [
               {
                 label: '常规',
-                value: 'normal'
+                value: 'normal',
               },
               {
                 label: '加粗',
-                value: 'bold'
+                value: 'bold',
               },
             ],
             default: 'normal',
@@ -1105,7 +1130,1936 @@ export function customProperties() {
             placeholder: 'none',
             default: 'none',
           },
+          {
+            key: 'slotFontSize',
+            label: '内容字体大小(px)',
+            type: 'number',
+            min: 8,
+            max: 100,
+            step: 1,
+            default: 14,
+          },
+          {
+            key: 'slotColor',
+            label: '内容颜色',
+            type: 'color',
+            default: '#303133',
+          },
+          {
+            key: 'slotPadding',
+            label: '内容内边距(px)',
+            type: 'number',
+            min: 0,
+            max: 50,
+            step: 1,
+            default: 8,
+          },
         ]
+
+      case 'box':
+        return [
+          {
+            key: 'backgroundColor',
+            label: '背景颜色',
+            type: 'color',
+            default: '#f5f7fa',
+          },
+          {
+            key: 'borderRadius',
+            label: '圆角(px)',
+            type: 'number',
+            min: 0,
+            max: 50,
+            step: 1,
+            default: 4,
+          },
+          {
+            key: 'borderWidth',
+            label: '边框宽度(px)',
+            type: 'number',
+            min: 0,
+            max: 10,
+            step: 1,
+            default: 1,
+          },
+          {
+            key: 'borderColor',
+            label: '边框颜色',
+            type: 'color',
+            default: '#dcdfe6',
+          },
+          {
+            key: 'borderStyle',
+            label: '边框样式',
+            type: 'select',
+            options: [
+              { label: '实线', value: 'solid' },
+              { label: '虚线', value: 'dashed' },
+              { label: '点线', value: 'dotted' },
+              { label: '无', value: 'none' },
+            ],
+            default: 'solid',
+          },
+          {
+            key: 'padding',
+            label: '内边距(px)',
+            type: 'number',
+            min: 0,
+            max: 100,
+            step: 1,
+            default: 16,
+          },
+          {
+            key: 'boxShadow',
+            label: '阴影',
+            type: 'text',
+            placeholder: '0 2px 4px rgba(0,0,0,0.1)',
+            default: 'none',
+          },
+          {
+            key: 'textAlign',
+            label: '文本对齐',
+            type: 'select',
+            options: [
+              { label: '左对齐', value: 'left' },
+              { label: '居中', value: 'center' },
+              { label: '右对齐', value: 'right' },
+              { label: '两端对齐', value: 'justify' },
+            ],
+            default: 'center',
+          },
+          {
+            key: 'fontSize',
+            label: '字体大小(px)',
+            type: 'number',
+            min: 8,
+            max: 100,
+            step: 1,
+            default: 14,
+          },
+          {
+            key: 'textColor',
+            label: '文本颜色',
+            type: 'color',
+            default: '#606266',
+          },
+          {
+            key: 'fontWeight',
+            label: '字重',
+            type: 'select',
+            options: [
+              { label: '常规', value: 'normal' },
+              { label: '加粗', value: 'bold' },
+            ],
+            default: 'normal',
+          },
+          {
+            key: 'lineHeight',
+            label: '行高',
+            type: 'number',
+            min: 1,
+            max: 3,
+            step: 0.1,
+            default: 1.5,
+          },
+        ]
+
+      case 'table':
+        return [
+          {
+            key: 'backgroundColor',
+            label: '背景颜色',
+            type: 'color',
+            default: '#ffffff',
+          },
+          {
+            key: 'borderRadius',
+            label: '圆角(px)',
+            type: 'number',
+            min: 0,
+            max: 20,
+            step: 1,
+            default: 4,
+          },
+          {
+            key: 'headerBackgroundColor',
+            label: '表头背景色',
+            type: 'color',
+            default: '#f5f7fa',
+          },
+          {
+            key: 'headerColor',
+            label: '表头文字颜色',
+            type: 'color',
+            default: '#909399',
+          },
+          {
+            key: 'headerFontSize',
+            label: '表头字体大小(px)',
+            type: 'number',
+            min: 10,
+            max: 24,
+            step: 1,
+            default: 14,
+          },
+          {
+            key: 'headerHeight',
+            label: '表头高度(px)',
+            type: 'number',
+            min: 30,
+            max: 100,
+            step: 1,
+            default: 40,
+          },
+          {
+            key: 'cellColor',
+            label: '单元格文字颜色',
+            type: 'color',
+            default: '#606266',
+          },
+          {
+            key: 'cellFontSize',
+            label: '单元格字体大小(px)',
+            type: 'number',
+            min: 10,
+            max: 24,
+            step: 1,
+            default: 13,
+          },
+          {
+            key: 'rowHeight',
+            label: '行高(px)',
+            type: 'number',
+            min: 30,
+            max: 100,
+            step: 1,
+            default: 48,
+          },
+          {
+            key: 'borderColor',
+            label: '边框颜色',
+            type: 'color',
+            default: '#ebeef5',
+          },
+          {
+            key: 'hoverBackgroundColor',
+            label: '悬停背景色',
+            type: 'color',
+            default: '#f5f7fa',
+          },
+        ]
+
+      case 'list':
+        return [
+          {
+            key: 'backgroundColor',
+            label: '背景颜色',
+            type: 'color',
+            default: '#ffffff',
+          },
+          {
+            key: 'borderRadius',
+            label: '圆角(px)',
+            type: 'number',
+            min: 0,
+            max: 20,
+            step: 1,
+            default: 4,
+          },
+          {
+            key: 'itemBackgroundColor',
+            label: '列表项背景色',
+            type: 'color',
+            default: '#ffffff',
+          },
+          {
+            key: 'itemPadding',
+            label: '列表项上下内边距(px)',
+            type: 'number',
+            min: 0,
+            max: 50,
+            step: 1,
+            default: 12,
+          },
+          {
+            key: 'itemPaddingX',
+            label: '列表项左右内边距(px)',
+            type: 'number',
+            min: 0,
+            max: 50,
+            step: 1,
+            default: 16,
+          },
+          {
+            key: 'borderColor',
+            label: '左侧边框颜色',
+            type: 'color',
+            default: 'transparent',
+          },
+          {
+            key: 'splitColor',
+            label: '分割线颜色',
+            type: 'color',
+            default: '#e4e7ed',
+          },
+          {
+            key: 'titleFontSize',
+            label: '标题字体大小(px)',
+            type: 'number',
+            min: 10,
+            max: 30,
+            step: 1,
+            default: 15,
+          },
+          {
+            key: 'titleColor',
+            label: '标题颜色',
+            type: 'color',
+            default: '#303133',
+          },
+          {
+            key: 'titleFontWeight',
+            label: '标题字重',
+            type: 'select',
+            options: [
+              { label: '常规', value: 'normal' },
+              { label: '中等', value: '500' },
+              { label: '加粗', value: 'bold' },
+            ],
+            default: '500',
+          },
+          {
+            key: 'descriptionFontSize',
+            label: '描述字体大小(px)',
+            type: 'number',
+            min: 10,
+            max: 24,
+            step: 1,
+            default: 13,
+          },
+          {
+            key: 'descriptionColor',
+            label: '描述颜色',
+            type: 'color',
+            default: '#909399',
+          },
+          {
+            key: 'extraFontSize',
+            label: '扩展信息字体大小(px)',
+            type: 'number',
+            min: 10,
+            max: 20,
+            step: 1,
+            default: 12,
+          },
+          {
+            key: 'extraColor',
+            label: '扩展信息颜色',
+            type: 'color',
+            default: '#409eff',
+          },
+          {
+            key: 'iconColor',
+            label: '图标颜色',
+            type: 'color',
+            default: '#909399',
+          },
+        ]
+
+      case 'timeline':
+        return [
+          {
+            key: 'backgroundColor',
+            label: '背景颜色',
+            type: 'color',
+            default: '#ffffff',
+          },
+          {
+            key: 'borderRadius',
+            label: '圆角(px)',
+            type: 'number',
+            min: 0,
+            max: 20,
+            step: 1,
+            default: 4,
+          },
+          {
+            key: 'padding',
+            label: '容器内边距(px)',
+            type: 'number',
+            min: 0,
+            max: 50,
+            step: 1,
+            default: 16,
+          },
+          {
+            key: 'timelinePadding',
+            label: '时间轴左边距(px)',
+            type: 'number',
+            min: 0,
+            max: 50,
+            step: 1,
+            default: 0,
+          },
+          {
+            key: 'cardMargin',
+            label: '卡片间距(px)',
+            type: 'number',
+            min: 0,
+            max: 50,
+            step: 1,
+            default: 12,
+          },
+          {
+            key: 'cardBorderRadius',
+            label: '卡片圆角(px)',
+            type: 'number',
+            min: 0,
+            max: 20,
+            step: 1,
+            default: 4,
+          },
+          {
+            key: 'headerFontSize',
+            label: '卡片标题字体大小(px)',
+            type: 'number',
+            min: 10,
+            max: 30,
+            step: 1,
+            default: 15,
+          },
+          {
+            key: 'headerColor',
+            label: '卡片标题颜色',
+            type: 'color',
+            default: '#303133',
+          },
+          {
+            key: 'headerFontWeight',
+            label: '卡片标题字重',
+            type: 'select',
+            options: [
+              { label: '常规', value: 'normal' },
+              { label: '中等', value: '500' },
+              { label: '加粗', value: '600' },
+            ],
+            default: '600',
+          },
+          {
+            key: 'contentFontSize',
+            label: '卡片内容字体大小(px)',
+            type: 'number',
+            min: 10,
+            max: 24,
+            step: 1,
+            default: 14,
+          },
+          {
+            key: 'contentColor',
+            label: '卡片内容颜色',
+            type: 'color',
+            default: '#606266',
+          },
+          {
+            key: 'titleFontSize',
+            label: '简单模式标题字体大小(px)',
+            type: 'number',
+            min: 10,
+            max: 30,
+            step: 1,
+            default: 15,
+          },
+          {
+            key: 'titleColor',
+            label: '简单模式标题颜色',
+            type: 'color',
+            default: '#303133',
+          },
+          {
+            key: 'titleFontWeight',
+            label: '简单模式标题字重',
+            type: 'select',
+            options: [
+              { label: '常规', value: 'normal' },
+              { label: '中等', value: '500' },
+              { label: '加粗', value: '600' },
+            ],
+            default: '600',
+          },
+          {
+            key: 'textFontSize',
+            label: '简单模式内容字体大小(px)',
+            type: 'number',
+            min: 10,
+            max: 24,
+            step: 1,
+            default: 14,
+          },
+          {
+            key: 'textColor',
+            label: '简单模式内容颜色',
+            type: 'color',
+            default: '#606266',
+          },
+          {
+            key: 'extraFontSize',
+            label: '扩展信息字体大小(px)',
+            type: 'number',
+            min: 10,
+            max: 20,
+            step: 1,
+            default: 12,
+          },
+          {
+            key: 'extraColor',
+            label: '扩展信息颜色',
+            type: 'color',
+            default: '#909399',
+          },
+        ]
+
+      case 'cardGrid':
+        return [
+          {
+            key: 'backgroundColor',
+            label: '容器背景颜色',
+            type: 'color',
+            default: '#ffffff',
+          },
+          {
+            key: 'padding',
+            label: '容器内边距(px)',
+            type: 'number',
+            min: 0,
+            max: 50,
+            step: 1,
+            default: 16,
+          },
+          {
+            key: 'cardBackgroundColor',
+            label: '卡片背景颜色',
+            type: 'color',
+            default: '#ffffff',
+          },
+          {
+            key: 'cardBorderColor',
+            label: '卡片边框颜色',
+            type: 'color',
+            default: '#ebeef5',
+          },
+          {
+            key: 'cardShadow',
+            label: '卡片阴影',
+            type: 'select',
+            options: [
+              { label: '总是显示', value: 'always' },
+              { label: '悬停显示', value: 'hover' },
+              { label: '从不显示', value: 'never' },
+            ],
+            default: 'hover',
+          },
+          {
+            key: 'cardPadding',
+            label: '卡片内边距(px)',
+            type: 'number',
+            min: 0,
+            max: 50,
+            step: 1,
+            default: 16,
+          },
+          {
+            key: 'gap',
+            label: '卡片间距(px)',
+            type: 'number',
+            min: 0,
+            max: 50,
+            step: 1,
+            default: 16,
+          },
+          {
+            key: 'imageHeight',
+            label: '图片高度(px)',
+            type: 'number',
+            min: 50,
+            max: 500,
+            step: 10,
+            default: 150,
+          },
+          {
+            key: 'titleFontSize',
+            label: '标题字体大小(px)',
+            type: 'number',
+            min: 12,
+            max: 30,
+            step: 1,
+            default: 16,
+          },
+          {
+            key: 'titleColor',
+            label: '标题颜色',
+            type: 'color',
+            default: '#303133',
+          },
+          {
+            key: 'titleFontWeight',
+            label: '标题字重',
+            type: 'select',
+            options: [
+              { label: '常规', value: 'normal' },
+              { label: '加粗', value: 'bold' },
+            ],
+            default: 'bold',
+          },
+          {
+            key: 'descFontSize',
+            label: '描述字体大小(px)',
+            type: 'number',
+            min: 10,
+            max: 20,
+            step: 1,
+            default: 14,
+          },
+          {
+            key: 'descColor',
+            label: '描述颜色',
+            type: 'color',
+            default: '#606266',
+          },
+          {
+            key: 'footerFontSize',
+            label: '页脚字体大小(px)',
+            type: 'number',
+            min: 10,
+            max: 18,
+            step: 1,
+            default: 12,
+          },
+          {
+            key: 'footerColor',
+            label: '页脚颜色',
+            type: 'color',
+            default: '#909399',
+          },
+          {
+            key: 'tagBackgroundColor',
+            label: '标签背景颜色',
+            type: 'color',
+            default: '#ecf5ff',
+          },
+          {
+            key: 'tagTextColor',
+            label: '标签文字颜色',
+            type: 'color',
+            default: '#409eff',
+          },
+        ]
+
+      case 'pivot':
+        return [
+          {
+            key: 'backgroundColor',
+            label: '背景颜色',
+            type: 'color',
+            default: '#ffffff',
+          },
+          {
+            key: 'padding',
+            label: '内边距(px)',
+            type: 'number',
+            min: 0,
+            max: 50,
+            step: 1,
+            default: 16,
+          },
+          {
+            key: 'headerBackgroundColor',
+            label: '表头背景颜色',
+            type: 'color',
+            default: '#f5f7fa',
+          },
+          {
+            key: 'headerTextColor',
+            label: '表头文字颜色',
+            type: 'color',
+            default: '#606266',
+          },
+          {
+            key: 'borderColor',
+            label: '边框颜色',
+            type: 'color',
+            default: '#ebeef5',
+          },
+          {
+            key: 'hoverBackgroundColor',
+            label: '悬停背景颜色',
+            type: 'color',
+            default: '#f5f7fa',
+          },
+          {
+            key: 'highlightColor',
+            label: '高亮颜色',
+            type: 'color',
+            default: '#67c23a',
+          },
+          {
+            key: 'highlightThreshold',
+            label: '高亮阈值',
+            type: 'number',
+            min: 0,
+            max: 10000,
+            step: 100,
+            default: 1000,
+          },
+          {
+            key: 'fontSize',
+            label: '字体大小(px)',
+            type: 'number',
+            min: 10,
+            max: 24,
+            step: 1,
+            default: 14,
+          },
+        ]
+
+      case 'select':
+      case 'multiSelect':
+        return [
+          {
+            key: 'padding',
+            label: '内边距(px)',
+            type: 'number',
+            min: 0,
+            max: 50,
+            step: 1,
+            default: 16,
+          },
+          {
+            key: 'selectWidth',
+            label: '选择器宽度',
+            type: 'text',
+            placeholder: '100% 或 200px',
+            default: '100%',
+          },
+          {
+            key: 'borderColor',
+            label: '边框颜色',
+            type: 'color',
+            default: '#dcdfe6',
+          },
+          {
+            key: 'borderFocusColor',
+            label: '聚焦边框颜色',
+            type: 'color',
+            default: '#409eff',
+          },
+          {
+            key: 'borderHoverColor',
+            label: '悬停边框颜色',
+            type: 'color',
+            default: '#c0c4cc',
+          },
+          {
+            key: 'tagBackgroundColor',
+            label: '标签背景颜色',
+            type: 'color',
+            default: '#f4f4f5',
+          },
+          {
+            key: 'tagTextColor',
+            label: '标签文字颜色',
+            type: 'color',
+            default: '#909399',
+          },
+          {
+            key: 'fontSize',
+            label: '字体大小(px)',
+            type: 'number',
+            min: 10,
+            max: 20,
+            step: 1,
+            default: 14,
+          },
+        ]
+
+      case 'dateRange':
+        return [
+          {
+            key: 'padding',
+            label: '内边距(px)',
+            type: 'number',
+            min: 0,
+            max: 50,
+            step: 1,
+            default: 16,
+          },
+          {
+            key: 'pickerWidth',
+            label: '选择器宽度',
+            type: 'text',
+            placeholder: '100% 或 300px',
+            default: '100%',
+          },
+          {
+            key: 'borderColor',
+            label: '边框颜色',
+            type: 'color',
+            default: '#dcdfe6',
+          },
+          {
+            key: 'borderFocusColor',
+            label: '聚焦边框颜色',
+            type: 'color',
+            default: '#409eff',
+          },
+          {
+            key: 'borderHoverColor',
+            label: '悬停边框颜色',
+            type: 'color',
+            default: '#c0c4cc',
+          },
+          {
+            key: 'fontSize',
+            label: '字体大小(px)',
+            type: 'number',
+            min: 10,
+            max: 20,
+            step: 1,
+            default: 14,
+          },
+        ]
+
+      case 'searchBox':
+        return [
+          {
+            key: 'padding',
+            label: '内边距(px)',
+            type: 'number',
+            min: 0,
+            max: 50,
+            step: 1,
+            default: 16,
+          },
+          {
+            key: 'backgroundColor',
+            label: '背景颜色',
+            type: 'color',
+            default: 'transparent',
+          },
+          {
+            key: 'inputWidth',
+            label: '输入框宽度',
+            type: 'text',
+            placeholder: '100% 或 300px',
+            default: '100%',
+          },
+          {
+            key: 'borderColor',
+            label: '边框颜色',
+            type: 'color',
+            default: '#dcdfe6',
+          },
+          {
+            key: 'borderFocusColor',
+            label: '聚焦边框颜色',
+            type: 'color',
+            default: '#409eff',
+          },
+          {
+            key: 'borderHoverColor',
+            label: '悬停边框颜色',
+            type: 'color',
+            default: '#c0c4cc',
+          },
+          {
+            key: 'textColor',
+            label: '文字颜色',
+            type: 'color',
+            default: '#606266',
+          },
+          {
+            key: 'placeholderColor',
+            label: '占位符颜色',
+            type: 'color',
+            default: '#a8abb2',
+          },
+          {
+            key: 'fontSize',
+            label: '字体大小(px)',
+            type: 'number',
+            min: 10,
+            max: 24,
+            step: 1,
+            default: 14,
+          },
+        ]
+
+      case 'slider':
+        return [
+          {
+            key: 'padding',
+            label: '内边距(px)',
+            type: 'number',
+            min: 0,
+            max: 50,
+            step: 1,
+            default: 16,
+          },
+          {
+            key: 'backgroundColor',
+            label: '背景颜色',
+            type: 'color',
+            default: 'transparent',
+          },
+          {
+            key: 'activeColor',
+            label: '激活颜色',
+            type: 'color',
+            default: '#409eff',
+          },
+          {
+            key: 'inactiveColor',
+            label: '未激活颜色',
+            type: 'color',
+            default: '#e4e7ed',
+          },
+          {
+            key: 'buttonSize',
+            label: '滑块大小(px)',
+            type: 'number',
+            min: 12,
+            max: 40,
+            step: 1,
+            default: 20,
+          },
+          {
+            key: 'valueFontSize',
+            label: '数值字体大小(px)',
+            type: 'number',
+            min: 10,
+            max: 24,
+            step: 1,
+            default: 14,
+          },
+          {
+            key: 'valueColor',
+            label: '数值颜色',
+            type: 'color',
+            default: '#606266',
+          },
+          {
+            key: 'valueAlign',
+            label: '数值对齐',
+            type: 'select',
+            options: [
+              { label: '左对齐', value: 'left' },
+              { label: '居中', value: 'center' },
+              { label: '右对齐', value: 'right' },
+            ],
+            default: 'center',
+          },
+        ]
+
+      case 'switch':
+        return [
+          {
+            key: 'padding',
+            label: '内边距(px)',
+            type: 'number',
+            min: 0,
+            max: 50,
+            step: 1,
+            default: 16,
+          },
+          {
+            key: 'backgroundColor',
+            label: '背景颜色',
+            type: 'color',
+            default: 'transparent',
+          },
+          {
+            key: 'activeColor',
+            label: '开启颜色',
+            type: 'color',
+            default: '#409eff',
+          },
+          {
+            key: 'inactiveColor',
+            label: '关闭颜色',
+            type: 'color',
+            default: '#dcdfe6',
+          },
+          {
+            key: 'borderColor',
+            label: '边框颜色',
+            type: 'color',
+            default: '#dcdfe6',
+          },
+        ]
+
+      case 'checkboxGroup':
+        return [
+          {
+            key: 'padding',
+            label: '内边距(px)',
+            type: 'number',
+            min: 0,
+            max: 50,
+            step: 1,
+            default: 16,
+          },
+          {
+            key: 'backgroundColor',
+            label: '背景颜色',
+            type: 'color',
+            default: 'transparent',
+          },
+          {
+            key: 'direction',
+            label: '布局方向',
+            type: 'select',
+            options: [
+              { label: '水平', value: 'horizontal' },
+              { label: '垂直', value: 'vertical' },
+            ],
+            default: 'horizontal',
+          },
+          {
+            key: 'gap',
+            label: '间距(px)',
+            type: 'number',
+            min: 0,
+            max: 50,
+            step: 1,
+            default: 12,
+          },
+          {
+            key: 'checkedColor',
+            label: '选中颜色',
+            type: 'color',
+            default: '#409eff',
+          },
+          {
+            key: 'borderColor',
+            label: '边框颜色',
+            type: 'color',
+            default: '#dcdfe6',
+          },
+          {
+            key: 'textColor',
+            label: '文字颜色',
+            type: 'color',
+            default: '#606266',
+          },
+        ]
+
+      case 'buttonGroup':
+        return [
+          {
+            key: 'padding',
+            label: '内边距(px)',
+            type: 'number',
+            min: 0,
+            max: 50,
+            step: 1,
+            default: 16,
+          },
+          {
+            key: 'backgroundColor',
+            label: '背景颜色',
+            type: 'color',
+            default: 'transparent',
+          },
+        ]
+
+      // 布局组件样式
+      case 'row':
+        return [
+          {
+            key: 'padding',
+            label: '内边距(px)',
+            type: 'number',
+            min: 0,
+            max: 50,
+            step: 1,
+            default: 16,
+          },
+          {
+            key: 'backgroundColor',
+            label: '背景颜色',
+            type: 'color',
+            default: '#ffffff',
+          },
+          {
+            key: 'border',
+            label: '边框',
+            type: 'text',
+            default: '1px solid #e5e7eb',
+          },
+          {
+            key: 'borderRadius',
+            label: '圆角(px)',
+            type: 'number',
+            min: 0,
+            max: 50,
+            step: 1,
+            default: 4,
+          },
+          {
+            key: 'minHeight',
+            label: '最小高度(px)',
+            type: 'number',
+            min: 0,
+            max: 1000,
+            step: 10,
+            default: 100,
+          },
+          {
+            key: 'textColor',
+            label: '文本颜色',
+            type: 'color',
+            default: '#333333',
+          },
+        ]
+
+      case 'col':
+        return [
+          {
+            key: 'span',
+            label: '栅格占位',
+            type: 'number',
+            min: 1,
+            max: 24,
+            step: 1,
+            default: 12,
+          },
+          {
+            key: 'padding',
+            label: '内边距(px)',
+            type: 'number',
+            min: 0,
+            max: 50,
+            step: 1,
+            default: 16,
+          },
+          {
+            key: 'backgroundColor',
+            label: '背景颜色',
+            type: 'color',
+            default: '#ffffff',
+          },
+          {
+            key: 'border',
+            label: '边框',
+            type: 'text',
+            default: '1px solid #e5e7eb',
+          },
+          {
+            key: 'borderRadius',
+            label: '圆角(px)',
+            type: 'number',
+            min: 0,
+            max: 50,
+            step: 1,
+            default: 4,
+          },
+          {
+            key: 'minHeight',
+            label: '最小高度(px)',
+            type: 'number',
+            min: 0,
+            max: 1000,
+            step: 10,
+            default: 100,
+          },
+          {
+            key: 'textColor',
+            label: '文本颜色',
+            type: 'color',
+            default: '#333333',
+          },
+        ]
+
+      case 'flex':
+        return [
+          {
+            key: 'flexDirection',
+            label: '主轴方向',
+            type: 'select',
+            options: [
+              { label: '水平', value: 'row' },
+              { label: '垂直', value: 'column' },
+            ],
+            default: 'row',
+          },
+          {
+            key: 'justifyContent',
+            label: '主轴对齐',
+            type: 'select',
+            options: [
+              { label: '起点', value: 'flex-start' },
+              { label: '终点', value: 'flex-end' },
+              { label: '居中', value: 'center' },
+              { label: '两端', value: 'space-between' },
+              { label: '周围', value: 'space-around' },
+              { label: '均匀', value: 'space-evenly' },
+            ],
+            default: 'flex-start',
+          },
+          {
+            key: 'alignItems',
+            label: '交叉轴对齐',
+            type: 'select',
+            options: [
+              { label: '起点', value: 'flex-start' },
+              { label: '终点', value: 'flex-end' },
+              { label: '居中', value: 'center' },
+              { label: '基线', value: 'baseline' },
+              { label: '拉伸', value: 'stretch' },
+            ],
+            default: 'stretch',
+          },
+          {
+            key: 'flexWrap',
+            label: '换行',
+            type: 'select',
+            options: [
+              { label: '不换行', value: 'nowrap' },
+              { label: '换行', value: 'wrap' },
+              { label: '反向换行', value: 'wrap-reverse' },
+            ],
+            default: 'nowrap',
+          },
+          {
+            key: 'gap',
+            label: '间距(px)',
+            type: 'number',
+            min: 0,
+            max: 100,
+            step: 2,
+            default: 16,
+          },
+          {
+            key: 'padding',
+            label: '内边距(px)',
+            type: 'number',
+            min: 0,
+            max: 50,
+            step: 1,
+            default: 16,
+          },
+          {
+            key: 'backgroundColor',
+            label: '背景颜色',
+            type: 'color',
+            default: '#ffffff',
+          },
+          {
+            key: 'border',
+            label: '边框',
+            type: 'text',
+            default: '1px solid #e5e7eb',
+          },
+          {
+            key: 'borderRadius',
+            label: '圆角(px)',
+            type: 'number',
+            min: 0,
+            max: 50,
+            step: 1,
+            default: 4,
+          },
+          {
+            key: 'minHeight',
+            label: '最小高度(px)',
+            type: 'number',
+            min: 0,
+            max: 1000,
+            step: 10,
+            default: 100,
+          },
+          {
+            key: 'textColor',
+            label: '文本颜色',
+            type: 'color',
+            default: '#333333',
+          },
+        ]
+
+      case 'grid':
+        return [
+          {
+            key: 'gridTemplateColumns',
+            label: '列模板',
+            type: 'text',
+            default: 'repeat(3, 1fr)',
+            placeholder: 'repeat(3, 1fr)',
+          },
+          {
+            key: 'gridTemplateRows',
+            label: '行模板',
+            type: 'text',
+            default: 'auto',
+            placeholder: 'auto',
+          },
+          {
+            key: 'gridGap',
+            label: '间距(px)',
+            type: 'number',
+            min: 0,
+            max: 100,
+            step: 2,
+            default: 16,
+          },
+          {
+            key: 'gridAutoFlow',
+            label: '自动流动',
+            type: 'select',
+            options: [
+              { label: '行', value: 'row' },
+              { label: '列', value: 'column' },
+              { label: '密集行', value: 'row dense' },
+              { label: '密集列', value: 'column dense' },
+            ],
+            default: 'row',
+          },
+          {
+            key: 'padding',
+            label: '内边距(px)',
+            type: 'number',
+            min: 0,
+            max: 50,
+            step: 1,
+            default: 16,
+          },
+          {
+            key: 'backgroundColor',
+            label: '背景颜色',
+            type: 'color',
+            default: '#ffffff',
+          },
+          {
+            key: 'border',
+            label: '边框',
+            type: 'text',
+            default: '1px solid #e5e7eb',
+          },
+          {
+            key: 'borderRadius',
+            label: '圆角(px)',
+            type: 'number',
+            min: 0,
+            max: 50,
+            step: 1,
+            default: 4,
+          },
+          {
+            key: 'minHeight',
+            label: '最小高度(px)',
+            type: 'number',
+            min: 0,
+            max: 1000,
+            step: 10,
+            default: 200,
+          },
+          {
+            key: 'textColor',
+            label: '文本颜色',
+            type: 'color',
+            default: '#333333',
+          },
+        ]
+
+      case 'modal':
+        return [
+          {
+            key: 'backgroundColor',
+            label: '背景颜色',
+            type: 'color',
+            default: '#ffffff',
+          },
+          {
+            key: 'textColor',
+            label: '文本颜色',
+            type: 'color',
+            default: '#333333',
+          },
+        ]
+
+      case 'panel':
+        return [
+          {
+            key: 'backgroundColor',
+            label: '背景颜色',
+            type: 'color',
+            default: '#ffffff',
+          },
+          {
+            key: 'border',
+            label: '边框',
+            type: 'text',
+            default: '1px solid #e5e7eb',
+          },
+          {
+            key: 'borderRadius',
+            label: '圆角(px)',
+            type: 'number',
+            min: 0,
+            max: 50,
+            step: 1,
+            default: 4,
+          },
+          {
+            key: 'boxShadow',
+            label: '阴影',
+            type: 'text',
+            default: '0 1px 3px rgba(0, 0, 0, 0.1)',
+          },
+          {
+            key: 'headerPadding',
+            label: '头部内边距(px)',
+            type: 'number',
+            min: 0,
+            max: 50,
+            step: 1,
+            default: 16,
+          },
+          {
+            key: 'headerBg',
+            label: '头部背景',
+            type: 'color',
+            default: '#f9fafb',
+          },
+          {
+            key: 'headerFontSize',
+            label: '头部字号(px)',
+            type: 'number',
+            min: 10,
+            max: 30,
+            step: 1,
+            default: 14,
+          },
+          {
+            key: 'headerColor',
+            label: '头部颜色',
+            type: 'color',
+            default: '#111827',
+          },
+          {
+            key: 'bodyPadding',
+            label: '内容内边距(px)',
+            type: 'number',
+            min: 0,
+            max: 50,
+            step: 1,
+            default: 16,
+          },
+          {
+            key: 'textColor',
+            label: '内容颜色',
+            type: 'color',
+            default: '#333333',
+          },
+          {
+            key: 'fontSize',
+            label: '内容字号(px)',
+            type: 'number',
+            min: 10,
+            max: 30,
+            step: 1,
+            default: 14,
+          },
+          {
+            key: 'footerPadding',
+            label: '底部内边距(px)',
+            type: 'number',
+            min: 0,
+            max: 50,
+            step: 1,
+            default: 16,
+          },
+          {
+            key: 'footerBg',
+            label: '底部背景',
+            type: 'color',
+            default: '#f9fafb',
+          },
+          {
+            key: 'footerFontSize',
+            label: '底部字号(px)',
+            type: 'number',
+            min: 10,
+            max: 30,
+            step: 1,
+            default: 12,
+          },
+          {
+            key: 'footerColor',
+            label: '底部颜色',
+            type: 'color',
+            default: '#6b7280',
+          },
+        ]
+
+      case 'tabs':
+        return [
+          {
+            key: 'backgroundColor',
+            label: '背景颜色',
+            type: 'color',
+            default: '#ffffff',
+          },
+          {
+            key: 'padding',
+            label: '内边距(px)',
+            type: 'number',
+            min: 0,
+            max: 50,
+            step: 1,
+            default: 0,
+          },
+          {
+            key: 'textColor',
+            label: '文本颜色',
+            type: 'color',
+            default: '#333333',
+          },
+        ]
+
+      // 媒体组件样式
+      case 'image':
+        return [
+          {
+            key: 'objectFit',
+            label: '图片适应',
+            type: 'select',
+            options: [
+              { label: '填充', value: 'fill' },
+              { label: '包含', value: 'contain' },
+              { label: '覆盖', value: 'cover' },
+              { label: '无', value: 'none' },
+              { label: '缩小', value: 'scale-down' },
+            ],
+            default: 'cover',
+          },
+          {
+            key: 'backgroundColor',
+            label: '背景颜色',
+            type: 'color',
+            default: 'transparent',
+          },
+          {
+            key: 'borderRadius',
+            label: '圆角(px)',
+            type: 'number',
+            min: 0,
+            max: 100,
+            step: 1,
+            default: 0,
+          },
+          {
+            key: 'border',
+            label: '边框',
+            type: 'text',
+            default: 'none',
+          },
+        ]
+
+      case 'video':
+        return [
+          {
+            key: 'objectFit',
+            label: '视频适应',
+            type: 'select',
+            options: [
+              { label: '填充', value: 'fill' },
+              { label: '包含', value: 'contain' },
+              { label: '覆盖', value: 'cover' },
+              { label: '无', value: 'none' },
+            ],
+            default: 'contain',
+          },
+          {
+            key: 'backgroundColor',
+            label: '背景颜色',
+            type: 'color',
+            default: '#000000',
+          },
+          {
+            key: 'borderRadius',
+            label: '圆角(px)',
+            type: 'number',
+            min: 0,
+            max: 50,
+            step: 1,
+            default: 0,
+          },
+          {
+            key: 'border',
+            label: '边框',
+            type: 'text',
+            default: 'none',
+          },
+        ]
+
+      // 内容组件样式
+      case 'markdown':
+        return [
+          {
+            key: 'padding',
+            label: '内边距(px)',
+            type: 'number',
+            min: 0,
+            max: 50,
+            step: 1,
+            default: 16,
+          },
+          {
+            key: 'backgroundColor',
+            label: '背景颜色',
+            type: 'color',
+            default: '#ffffff',
+          },
+          {
+            key: 'textColor',
+            label: '文本颜色',
+            type: 'color',
+            default: '#333333',
+          },
+          {
+            key: 'fontSize',
+            label: '字体大小(px)',
+            type: 'number',
+            min: 10,
+            max: 30,
+            step: 1,
+            default: 14,
+          },
+          {
+            key: 'lineHeight',
+            label: '行高',
+            type: 'number',
+            min: 1,
+            max: 3,
+            step: 0.1,
+            default: 1.6,
+          },
+          {
+            key: 'borderRadius',
+            label: '圆角(px)',
+            type: 'number',
+            min: 0,
+            max: 50,
+            step: 1,
+            default: 0,
+          },
+          {
+            key: 'border',
+            label: '边框',
+            type: 'text',
+            default: 'none',
+          },
+          {
+            key: 'fontFamily',
+            label: '字体',
+            type: 'text',
+            default: 'inherit',
+          },
+        ]
+
+      case 'html':
+        return [
+          {
+            key: 'padding',
+            label: '内边距(px)',
+            type: 'number',
+            min: 0,
+            max: 50,
+            step: 1,
+            default: 16,
+          },
+          {
+            key: 'backgroundColor',
+            label: '背景颜色',
+            type: 'color',
+            default: '#ffffff',
+          },
+          {
+            key: 'textColor',
+            label: '文本颜色',
+            type: 'color',
+            default: '#333333',
+          },
+          {
+            key: 'fontSize',
+            label: '字体大小(px)',
+            type: 'number',
+            min: 10,
+            max: 30,
+            step: 1,
+            default: 14,
+          },
+          {
+            key: 'lineHeight',
+            label: '行高',
+            type: 'number',
+            min: 1,
+            max: 3,
+            step: 0.1,
+            default: 1.6,
+          },
+          {
+            key: 'borderRadius',
+            label: '圆角(px)',
+            type: 'number',
+            min: 0,
+            max: 50,
+            step: 1,
+            default: 0,
+          },
+          {
+            key: 'border',
+            label: '边框',
+            type: 'text',
+            default: 'none',
+          },
+          {
+            key: 'overflow',
+            label: '溢出处理',
+            type: 'select',
+            options: [
+              { label: '自动', value: 'auto' },
+              { label: '滚动', value: 'scroll' },
+              { label: '隐藏', value: 'hidden' },
+              { label: '可见', value: 'visible' },
+            ],
+            default: 'auto',
+          },
+          {
+            key: 'fontFamily',
+            label: '字体',
+            type: 'text',
+            default: 'inherit',
+          },
+        ]
+
+      case 'iframe':
+        return [
+          {
+            key: 'backgroundColor',
+            label: '背景颜色',
+            type: 'color',
+            default: '#ffffff',
+          },
+          {
+            key: 'borderRadius',
+            label: '圆角(px)',
+            type: 'number',
+            min: 0,
+            max: 50,
+            step: 1,
+            default: 0,
+          },
+          {
+            key: 'border',
+            label: '边框',
+            type: 'text',
+            default: '1px solid #dcdfe6',
+          },
+        ]
+
+      // 高级功能组件
+      case 'scripting':
+        return [
+          {
+            key: 'padding',
+            label: '内边距(px)',
+            type: 'number',
+            min: 0,
+            max: 100,
+            step: 1,
+            default: 16,
+          },
+          {
+            key: 'backgroundColor',
+            label: '背景颜色',
+            type: 'color',
+            default: '#1e1e1e',
+          },
+          {
+            key: 'textColor',
+            label: '文字颜色',
+            type: 'color',
+            default: '#d4d4d4',
+          },
+          {
+            key: 'fontSize',
+            label: '字体大小(px)',
+            type: 'number',
+            min: 10,
+            max: 30,
+            step: 1,
+            default: 14,
+          },
+          {
+            key: 'lineHeight',
+            label: '行高',
+            type: 'number',
+            min: 1,
+            max: 3,
+            step: 0.1,
+            default: 1.6,
+          },
+          {
+            key: 'borderRadius',
+            label: '圆角(px)',
+            type: 'number',
+            min: 0,
+            max: 20,
+            step: 1,
+            default: 4,
+          },
+          {
+            key: 'border',
+            label: '边框',
+            type: 'text',
+            default: '1px solid #3c3c3c',
+          },
+          {
+            key: 'fontFamily',
+            label: '字体',
+            type: 'text',
+            default: 'Consolas, Monaco, "Courier New", monospace',
+          },
+        ]
+
+      case 'state':
+        return [
+          {
+            key: 'padding',
+            label: '内边距(px)',
+            type: 'number',
+            min: 0,
+            max: 100,
+            step: 1,
+            default: 16,
+          },
+          {
+            key: 'backgroundColor',
+            label: '背景颜色',
+            type: 'color',
+            default: '#2d2d2d',
+          },
+          {
+            key: 'textColor',
+            label: '文字颜色',
+            type: 'color',
+            default: '#cccccc',
+          },
+          {
+            key: 'fontSize',
+            label: '字体大小(px)',
+            type: 'number',
+            min: 10,
+            max: 30,
+            step: 1,
+            default: 14,
+          },
+          {
+            key: 'lineHeight',
+            label: '行高',
+            type: 'number',
+            min: 1,
+            max: 3,
+            step: 0.1,
+            default: 1.6,
+          },
+          {
+            key: 'borderRadius',
+            label: '圆角(px)',
+            type: 'number',
+            min: 0,
+            max: 20,
+            step: 1,
+            default: 4,
+          },
+          {
+            key: 'border',
+            label: '边框',
+            type: 'text',
+            default: '1px solid #3c3c3c',
+          },
+          {
+            key: 'fontFamily',
+            label: '字体',
+            type: 'text',
+            default: 'Consolas, Monaco, "Courier New", monospace',
+          },
+        ]
+
+      case 'trigger':
+        return [
+          {
+            key: 'padding',
+            label: '内边距(px)',
+            type: 'number',
+            min: 0,
+            max: 100,
+            step: 1,
+            default: 16,
+          },
+          {
+            key: 'backgroundColor',
+            label: '背景颜色',
+            type: 'color',
+            default: '#1a1a1a',
+          },
+          {
+            key: 'textColor',
+            label: '文字颜色',
+            type: 'color',
+            default: '#e0e0e0',
+          },
+          {
+            key: 'fontSize',
+            label: '字体大小(px)',
+            type: 'number',
+            min: 10,
+            max: 30,
+            step: 1,
+            default: 13,
+          },
+          {
+            key: 'lineHeight',
+            label: '行高',
+            type: 'number',
+            min: 1,
+            max: 3,
+            step: 0.1,
+            default: 1.5,
+          },
+          {
+            key: 'borderRadius',
+            label: '圆角(px)',
+            type: 'number',
+            min: 0,
+            max: 20,
+            step: 1,
+            default: 4,
+          },
+          {
+            key: 'border',
+            label: '边框',
+            type: 'text',
+            default: '1px solid #3c3c3c',
+          },
+          {
+            key: 'fontFamily',
+            label: '字体',
+            type: 'text',
+            default: 'Consolas, Monaco, "Courier New", monospace',
+          },
+        ]
+
       default:
         return []
     }
@@ -1841,6 +3795,68 @@ export function customProperties() {
           },
         ]
       case 'countUp':
+        return [
+          {
+            key: 'enabled',
+            label: '启用数据源',
+            type: 'switch',
+            default: false,
+          },
+          {
+            key: 'url',
+            label: 'API 地址',
+            type: 'text',
+            placeholder: 'http://localhost:3001/api/countup',
+            default: '',
+          },
+          {
+            key: 'method',
+            label: '请求方法',
+            type: 'select',
+            options: [
+              { label: 'GET', value: 'GET' },
+              { label: 'POST', value: 'POST' },
+            ],
+            default: 'GET',
+          },
+          {
+            key: 'interval',
+            label: '自动刷新(秒)',
+            type: 'number',
+            min: 0,
+            max: 3600,
+            step: 1,
+            default: 0,
+          },
+          {
+            key: 'dataPath',
+            label: '数据根路径',
+            type: 'text',
+            placeholder: '例: data',
+            default: '',
+          },
+          {
+            key: 'titlePath',
+            label: '标题路径',
+            type: 'text',
+            placeholder: '例: title 或 data.title',
+            default: '',
+          },
+          {
+            key: 'valuePath',
+            label: '数值路径',
+            type: 'text',
+            placeholder: '例: value 或 data.value',
+            default: '',
+          },
+          {
+            key: 'headers',
+            label: '请求头(JSON)',
+            type: 'text',
+            placeholder: '{"Authorization": "Bearer token"}',
+            default: '',
+          },
+        ]
       case 'progress':
       case 'badge':
         return [
@@ -1898,6 +3914,860 @@ export function customProperties() {
             default: '',
           },
         ]
+
+      case 'box':
+        return [
+          {
+            key: 'enabled',
+            label: '启用数据源',
+            type: 'switch',
+            default: false,
+          },
+          {
+            key: 'url',
+            label: 'API 地址',
+            type: 'text',
+            placeholder: 'http://localhost:3001/api/box-content',
+            default: '',
+          },
+          {
+            key: 'method',
+            label: '请求方法',
+            type: 'select',
+            options: [
+              { label: 'GET', value: 'GET' },
+              { label: 'POST', value: 'POST' },
+            ],
+            default: 'GET',
+          },
+          {
+            key: 'interval',
+            label: '自动刷新(秒)',
+            type: 'number',
+            min: 0,
+            max: 3600,
+            step: 1,
+            default: 0,
+          },
+          {
+            key: 'dataPath',
+            label: '数据路径',
+            type: 'text',
+            placeholder: '例: content 或 data.message',
+            default: '',
+          },
+          {
+            key: 'contentPath',
+            label: '内容字段路径',
+            type: 'text',
+            placeholder: '留空则使用dataPath',
+            default: '',
+          },
+          {
+            key: 'headers',
+            label: '请求头(JSON)',
+            type: 'text',
+            placeholder: '{"Authorization": "Bearer token"}',
+            default: '',
+          },
+        ]
+
+      case 'table':
+        return [
+          {
+            key: 'enabled',
+            label: '启用数据源',
+            type: 'switch',
+            default: false,
+          },
+          {
+            key: 'url',
+            label: 'API 地址',
+            type: 'text',
+            placeholder: 'http://localhost:3001/api/table-data',
+            default: '',
+          },
+          {
+            key: 'method',
+            label: '请求方法',
+            type: 'select',
+            options: [
+              { label: 'GET', value: 'GET' },
+              { label: 'POST', value: 'POST' },
+            ],
+            default: 'GET',
+          },
+          {
+            key: 'interval',
+            label: '自动刷新(秒)',
+            type: 'number',
+            min: 0,
+            max: 3600,
+            step: 1,
+            default: 0,
+          },
+          {
+            key: 'dataPath',
+            label: '数据路径',
+            type: 'text',
+            placeholder: '例: data 或 result.list',
+            default: '',
+          },
+          {
+            key: 'headers',
+            label: '请求头(JSON)',
+            type: 'text',
+            placeholder: '{"Authorization": "Bearer token"}',
+            default: '',
+          },
+        ]
+
+      case 'list':
+        return [
+          {
+            key: 'enabled',
+            label: '启用数据源',
+            type: 'switch',
+            default: false,
+          },
+          {
+            key: 'url',
+            label: 'API 地址',
+            type: 'text',
+            placeholder: 'http://localhost:3001/api/list-items',
+            default: '',
+          },
+          {
+            key: 'method',
+            label: '请求方法',
+            type: 'select',
+            options: [
+              { label: 'GET', value: 'GET' },
+              { label: 'POST', value: 'POST' },
+            ],
+            default: 'GET',
+          },
+          {
+            key: 'interval',
+            label: '自动刷新(秒)',
+            type: 'number',
+            min: 0,
+            max: 3600,
+            step: 1,
+            default: 0,
+          },
+          {
+            key: 'dataPath',
+            label: '数据路径',
+            type: 'text',
+            placeholder: '例: data 或 result.items',
+            default: '',
+          },
+          {
+            key: 'headers',
+            label: '请求头(JSON)',
+            type: 'text',
+            placeholder: '{"Authorization": "Bearer token"}',
+            default: '',
+          },
+        ]
+
+      case 'timeline':
+        return [
+          {
+            key: 'enabled',
+            label: '启用数据源',
+            type: 'switch',
+            default: false,
+          },
+          {
+            key: 'url',
+            label: 'API 地址',
+            type: 'text',
+            placeholder: 'http://localhost:3001/api/timeline-events',
+            default: '',
+          },
+          {
+            key: 'method',
+            label: '请求方法',
+            type: 'select',
+            options: [
+              { label: 'GET', value: 'GET' },
+              { label: 'POST', value: 'POST' },
+            ],
+            default: 'GET',
+          },
+          {
+            key: 'interval',
+            label: '自动刷新(秒)',
+            type: 'number',
+            min: 0,
+            max: 3600,
+            step: 1,
+            default: 0,
+          },
+          {
+            key: 'dataPath',
+            label: '数据路径',
+            type: 'text',
+            placeholder: '例: data 或 result.events',
+            default: '',
+          },
+          {
+            key: 'headers',
+            label: '请求头(JSON)',
+            type: 'text',
+            placeholder: '{"Authorization": "Bearer token"}',
+            default: '',
+          },
+        ]
+
+      case 'cardGrid':
+      case 'pivot':
+        return [
+          {
+            key: 'enabled',
+            label: '启用数据源',
+            type: 'switch',
+            default: false,
+          },
+          {
+            key: 'url',
+            label: 'API 地址',
+            type: 'text',
+            placeholder:
+              type === 'cardGrid'
+                ? 'http://localhost:3001/api/card-grid'
+                : 'http://localhost:3001/api/pivot-data',
+            default: '',
+          },
+          {
+            key: 'method',
+            label: '请求方法',
+            type: 'select',
+            options: [
+              { label: 'GET', value: 'GET' },
+              { label: 'POST', value: 'POST' },
+            ],
+            default: 'GET',
+          },
+          {
+            key: 'interval',
+            label: '自动刷新(秒)',
+            type: 'number',
+            min: 0,
+            max: 3600,
+            step: 1,
+            default: 0,
+          },
+          {
+            key: 'dataPath',
+            label: '数据路径',
+            type: 'text',
+            placeholder: '例: data 或 result.list',
+            default: '',
+          },
+          {
+            key: 'headers',
+            label: '请求头(JSON)',
+            type: 'text',
+            placeholder: '{"Authorization": "Bearer token"}',
+            default: '',
+          },
+        ]
+
+      case 'select':
+      case 'multiSelect':
+        return [
+          {
+            key: 'enabled',
+            label: '启用数据源',
+            type: 'switch',
+            default: false,
+          },
+          {
+            key: 'url',
+            label: 'API 地址',
+            type: 'text',
+            placeholder:
+              type === 'select'
+                ? 'http://localhost:3001/api/select-options'
+                : 'http://localhost:3001/api/multi-select-options',
+            default: '',
+          },
+          {
+            key: 'method',
+            label: '请求方法',
+            type: 'select',
+            options: [
+              { label: 'GET', value: 'GET' },
+              { label: 'POST', value: 'POST' },
+            ],
+            default: 'GET',
+          },
+          {
+            key: 'interval',
+            label: '自动刷新(秒)',
+            type: 'number',
+            min: 0,
+            max: 3600,
+            step: 1,
+            default: 0,
+          },
+          {
+            key: 'dataPath',
+            label: '数据路径',
+            type: 'text',
+            placeholder: '例: data 或 result.options',
+            default: '',
+          },
+          {
+            key: 'headers',
+            label: '请求头(JSON)',
+            type: 'text',
+            placeholder: '{"Authorization": "Bearer token"}',
+            default: '',
+          },
+        ]
+
+      case 'checkboxGroup':
+      case 'buttonGroup':
+        return [
+          {
+            key: 'enabled',
+            label: '启用数据源',
+            type: 'switch',
+            default: false,
+          },
+          {
+            key: 'url',
+            label: 'API 地址',
+            type: 'text',
+            placeholder:
+              type === 'checkboxGroup'
+                ? 'http://localhost:3001/api/checkbox-options'
+                : 'http://localhost:3001/api/button-group',
+            default: '',
+          },
+          {
+            key: 'method',
+            label: '请求方法',
+            type: 'select',
+            options: [
+              { label: 'GET', value: 'GET' },
+              { label: 'POST', value: 'POST' },
+            ],
+            default: 'GET',
+          },
+          {
+            key: 'interval',
+            label: '自动刷新(秒)',
+            type: 'number',
+            min: 0,
+            max: 3600,
+            step: 1,
+            default: 0,
+          },
+          {
+            key: 'dataPath',
+            label: '数据路径',
+            type: 'text',
+            placeholder: '例: data 或 result.options',
+            default: '',
+          },
+          {
+            key: 'headers',
+            label: '请求头(JSON)',
+            type: 'text',
+            placeholder: '{"Authorization": "Bearer token"}',
+            default: '',
+          },
+        ]
+
+      case 'tabs':
+        return [
+          {
+            key: 'enabled',
+            label: '启用数据源',
+            type: 'switch',
+            default: false,
+          },
+          {
+            key: 'url',
+            label: 'API 地址',
+            type: 'text',
+            placeholder: 'http://localhost:3001/api/tabs',
+            default: '',
+          },
+          {
+            key: 'method',
+            label: '请求方法',
+            type: 'select',
+            options: [
+              { label: 'GET', value: 'GET' },
+              { label: 'POST', value: 'POST' },
+            ],
+            default: 'GET',
+          },
+          {
+            key: 'interval',
+            label: '自动刷新(秒)',
+            type: 'number',
+            min: 0,
+            max: 3600,
+            step: 1,
+            default: 0,
+          },
+          {
+            key: 'dataPath',
+            label: '数据路径',
+            type: 'text',
+            placeholder: '例: data 或 result.tabs',
+            default: '',
+          },
+          {
+            key: 'labelField',
+            label: '标签字段',
+            type: 'text',
+            placeholder: '默认: label',
+            default: 'label',
+          },
+          {
+            key: 'valueField',
+            label: '值字段',
+            type: 'text',
+            placeholder: '默认: value',
+            default: 'value',
+          },
+          {
+            key: 'contentField',
+            label: '内容字段',
+            type: 'text',
+            placeholder: '默认: content',
+            default: 'content',
+          },
+          {
+            key: 'headers',
+            label: '请求头(JSON)',
+            type: 'text',
+            placeholder: '{"Authorization": "Bearer token"}',
+            default: '',
+          },
+        ]
+
+      // 媒体组件数据源
+      case 'image':
+        return [
+          {
+            key: 'enabled',
+            label: '启用数据源',
+            type: 'switch',
+            default: false,
+          },
+          {
+            key: 'url',
+            label: 'API 地址',
+            type: 'text',
+            placeholder: 'http://localhost:3001/api/image',
+            default: '',
+          },
+          {
+            key: 'method',
+            label: '请求方法',
+            type: 'select',
+            options: [
+              { label: 'GET', value: 'GET' },
+              { label: 'POST', value: 'POST' },
+            ],
+            default: 'GET',
+          },
+          {
+            key: 'interval',
+            label: '自动刷新(秒)',
+            type: 'number',
+            min: 0,
+            max: 3600,
+            step: 1,
+            default: 0,
+          },
+          {
+            key: 'dataPath',
+            label: '数据路径',
+            type: 'text',
+            placeholder: '例: data 或 result',
+            default: '',
+          },
+          {
+            key: 'urlField',
+            label: 'URL字段',
+            type: 'text',
+            placeholder: '默认: url',
+            default: 'url',
+          },
+          {
+            key: 'headers',
+            label: '请求头(JSON)',
+            type: 'text',
+            placeholder: '{"Authorization": "Bearer token"}',
+            default: '',
+          },
+        ]
+
+      case 'video':
+        return [
+          {
+            key: 'enabled',
+            label: '启用数据源',
+            type: 'switch',
+            default: false,
+          },
+          {
+            key: 'url',
+            label: 'API 地址',
+            type: 'text',
+            placeholder: 'http://localhost:3001/api/video',
+            default: '',
+          },
+          {
+            key: 'method',
+            label: '请求方法',
+            type: 'select',
+            options: [
+              { label: 'GET', value: 'GET' },
+              { label: 'POST', value: 'POST' },
+            ],
+            default: 'GET',
+          },
+          {
+            key: 'interval',
+            label: '自动刷新(秒)',
+            type: 'number',
+            min: 0,
+            max: 3600,
+            step: 1,
+            default: 0,
+          },
+          {
+            key: 'dataPath',
+            label: '数据路径',
+            type: 'text',
+            placeholder: '例: data 或 result',
+            default: '',
+          },
+          {
+            key: 'urlField',
+            label: 'URL字段',
+            type: 'text',
+            placeholder: '默认: url',
+            default: 'url',
+          },
+          {
+            key: 'posterField',
+            label: '海报字段',
+            type: 'text',
+            placeholder: '默认: poster',
+            default: 'poster',
+          },
+          {
+            key: 'headers',
+            label: '请求头(JSON)',
+            type: 'text',
+            placeholder: '{"Authorization": "Bearer token"}',
+            default: '',
+          },
+        ]
+
+      // 内容组件数据源
+      case 'markdown':
+      case 'html':
+        return [
+          {
+            key: 'enabled',
+            label: '启用数据源',
+            type: 'switch',
+            default: false,
+          },
+          {
+            key: 'url',
+            label: 'API 地址',
+            type: 'text',
+            placeholder:
+              type === 'markdown'
+                ? 'http://localhost:3001/api/markdown'
+                : 'http://localhost:3001/api/html',
+            default: '',
+          },
+          {
+            key: 'method',
+            label: '请求方法',
+            type: 'select',
+            options: [
+              { label: 'GET', value: 'GET' },
+              { label: 'POST', value: 'POST' },
+            ],
+            default: 'GET',
+          },
+          {
+            key: 'interval',
+            label: '自动刷新(秒)',
+            type: 'number',
+            min: 0,
+            max: 3600,
+            step: 1,
+            default: 0,
+          },
+          {
+            key: 'dataPath',
+            label: '数据路径',
+            type: 'text',
+            placeholder: '例: data 或 result',
+            default: '',
+          },
+          {
+            key: 'contentField',
+            label: '内容字段',
+            type: 'text',
+            placeholder: '默认: content',
+            default: 'content',
+          },
+          {
+            key: 'headers',
+            label: '请求头(JSON)',
+            type: 'text',
+            placeholder: '{"Authorization": "Bearer token"}',
+            default: '',
+          },
+        ]
+
+      case 'iframe':
+        return [
+          {
+            key: 'enabled',
+            label: '启用数据源',
+            type: 'switch',
+            default: false,
+          },
+          {
+            key: 'url',
+            label: 'API 地址',
+            type: 'text',
+            placeholder: 'http://localhost:3001/api/iframe',
+            default: '',
+          },
+          {
+            key: 'method',
+            label: '请求方法',
+            type: 'select',
+            options: [
+              { label: 'GET', value: 'GET' },
+              { label: 'POST', value: 'POST' },
+            ],
+            default: 'GET',
+          },
+          {
+            key: 'interval',
+            label: '自动刷新(秒)',
+            type: 'number',
+            min: 0,
+            max: 3600,
+            step: 1,
+            default: 0,
+          },
+          {
+            key: 'dataPath',
+            label: '数据路径',
+            type: 'text',
+            placeholder: '例: data 或 result',
+            default: '',
+          },
+          {
+            key: 'urlField',
+            label: 'URL字段',
+            type: 'text',
+            placeholder: '默认: url',
+            default: 'url',
+          },
+          {
+            key: 'headers',
+            label: '请求头(JSON)',
+            type: 'text',
+            placeholder: '{"Authorization": "Bearer token"}',
+            default: '',
+          },
+        ]
+
+      // 高级功能组件数据源
+      case 'scripting':
+        return [
+          {
+            key: 'enabled',
+            label: '启用数据源',
+            type: 'switch',
+            default: false,
+          },
+          {
+            key: 'url',
+            label: 'API 地址',
+            type: 'text',
+            placeholder: 'http://localhost:3001/api/scripting',
+            default: '',
+          },
+          {
+            key: 'method',
+            label: '请求方法',
+            type: 'select',
+            options: [
+              { label: 'GET', value: 'GET' },
+              { label: 'POST', value: 'POST' },
+            ],
+            default: 'GET',
+          },
+          {
+            key: 'interval',
+            label: '自动刷新(秒)',
+            type: 'number',
+            min: 0,
+            max: 3600,
+            step: 1,
+            default: 0,
+          },
+          {
+            key: 'dataPath',
+            label: '数据路径',
+            type: 'text',
+            placeholder: '例: data 或 result',
+            default: '',
+          },
+          {
+            key: 'scriptField',
+            label: '脚本字段',
+            type: 'text',
+            placeholder: '默认: script',
+            default: 'script',
+          },
+          {
+            key: 'headers',
+            label: '请求头(JSON)',
+            type: 'text',
+            placeholder: '{"Authorization": "Bearer token"}',
+            default: '',
+          },
+        ]
+
+      case 'state':
+        return [
+          {
+            key: 'enabled',
+            label: '启用数据源',
+            type: 'switch',
+            default: false,
+          },
+          {
+            key: 'url',
+            label: 'API 地址',
+            type: 'text',
+            placeholder: 'http://localhost:3001/api/state',
+            default: '',
+          },
+          {
+            key: 'method',
+            label: '请求方法',
+            type: 'select',
+            options: [
+              { label: 'GET', value: 'GET' },
+              { label: 'POST', value: 'POST' },
+            ],
+            default: 'GET',
+          },
+          {
+            key: 'interval',
+            label: '自动刷新(秒)',
+            type: 'number',
+            min: 0,
+            max: 3600,
+            step: 1,
+            default: 0,
+          },
+          {
+            key: 'dataPath',
+            label: '数据路径',
+            type: 'text',
+            placeholder: '例: data 或 result',
+            default: '',
+          },
+          {
+            key: 'stateField',
+            label: '状态字段',
+            type: 'text',
+            placeholder: '默认: state',
+            default: 'state',
+          },
+          {
+            key: 'headers',
+            label: '请求头(JSON)',
+            type: 'text',
+            placeholder: '{"Authorization": "Bearer token"}',
+            default: '',
+          },
+        ]
+
+      case 'trigger':
+        return [
+          {
+            key: 'enabled',
+            label: '启用数据源',
+            type: 'switch',
+            default: false,
+          },
+          {
+            key: 'url',
+            label: 'API 地址',
+            type: 'text',
+            placeholder: 'http://localhost:3001/api/trigger',
+            default: '',
+          },
+          {
+            key: 'method',
+            label: '请求方法',
+            type: 'select',
+            options: [
+              { label: 'GET', value: 'GET' },
+              { label: 'POST', value: 'POST' },
+            ],
+            default: 'GET',
+          },
+          {
+            key: 'interval',
+            label: '自动刷新(秒)',
+            type: 'number',
+            min: 0,
+            max: 3600,
+            step: 1,
+            default: 0,
+          },
+          {
+            key: 'dataPath',
+            label: '数据路径',
+            type: 'text',
+            placeholder: '例: data 或 result',
+            default: '',
+          },
+          {
+            key: 'conditionField',
+            label: '条件字段',
+            type: 'text',
+            placeholder: '默认: condition',
+            default: 'condition',
+          },
+          {
+            key: 'headers',
+            label: '请求头(JSON)',
+            type: 'text',
+            placeholder: '{"Authorization": "Bearer token"}',
+            default: '',
+          },
+        ]
+
       default:
         return []
     }
@@ -3354,6 +6224,13 @@ export function customProperties() {
       case 'countUp':
         return [
           {
+            key: 'title',
+            label: '标题',
+            type: 'text',
+            placeholder: '总销售额',
+            default: '',
+          },
+          {
             key: 'value',
             label: '目标数值',
             type: 'number',
@@ -3417,6 +6294,18 @@ export function customProperties() {
             label: '显示后缀',
             type: 'switch',
             default: true,
+          },
+          {
+            key: 'customPrefix',
+            label: '自定义前缀样式',
+            type: 'switch',
+            default: false,
+          },
+          {
+            key: 'customSuffix',
+            label: '自定义后缀样式',
+            type: 'switch',
+            default: false,
           },
           {
             key: 'useEasing',
@@ -3532,7 +6421,1891 @@ export function customProperties() {
             step: 1,
             default: 99,
           },
+          {
+            key: 'hidden',
+            label: '隐藏徽章',
+            type: 'switch',
+            default: false,
+          },
+          {
+            key: 'showZero',
+            label: '显示0值',
+            type: 'switch',
+            default: false,
+          },
+          {
+            key: 'offsetX',
+            label: 'X偏移量',
+            type: 'number',
+            min: -100,
+            max: 100,
+            step: 1,
+            default: 0,
+          },
+          {
+            key: 'offsetY',
+            label: 'Y偏移量',
+            type: 'number',
+            min: -100,
+            max: 100,
+            step: 1,
+            default: 0,
+          },
+          {
+            key: 'showSlot',
+            label: '显示插槽内容',
+            type: 'switch',
+            default: true,
+          },
+          {
+            key: 'slotText',
+            label: '插槽文本',
+            type: 'text',
+            placeholder: '内容',
+            default: '内容',
+          },
         ]
+
+      case 'box':
+        return [
+          {
+            key: 'content',
+            label: '显示内容',
+            type: 'text',
+            placeholder: '占位盒内容',
+            default: '占位盒内容',
+          },
+        ]
+
+      case 'table':
+        return [
+          {
+            key: 'columns',
+            label: '列配置(JSON)',
+            type: 'text',
+            placeholder: '[{"prop":"name","label":"姓名","width":120}]',
+            default: '',
+          },
+          {
+            key: 'data',
+            label: '表格数据(JSON)',
+            type: 'text',
+            placeholder: '[{"name":"张三","age":28}]',
+            default: '',
+          },
+          {
+            key: 'showHeader',
+            label: '显示表头',
+            type: 'switch',
+            default: true,
+          },
+          {
+            key: 'stripe',
+            label: '斑马纹',
+            type: 'switch',
+            default: false,
+          },
+          {
+            key: 'border',
+            label: '显示边框',
+            type: 'switch',
+            default: true,
+          },
+          {
+            key: 'size',
+            label: '表格尺寸',
+            type: 'select',
+            options: [
+              { label: '大', value: 'large' },
+              { label: '默认', value: 'default' },
+              { label: '小', value: 'small' },
+            ],
+            default: 'default',
+          },
+          {
+            key: 'emptyText',
+            label: '空数据文本',
+            type: 'text',
+            placeholder: '暂无数据',
+            default: '暂无数据',
+          },
+          {
+            key: 'height',
+            label: '固定高度',
+            type: 'text',
+            placeholder: 'auto 或 300',
+            default: 'auto',
+          },
+          {
+            key: 'maxHeight',
+            label: '最大高度',
+            type: 'text',
+            placeholder: '留空或数字',
+            default: '',
+          },
+        ]
+
+      case 'list':
+        return [
+          {
+            key: 'data',
+            label: '列表数据(JSON)',
+            type: 'text',
+            placeholder: '[{"title":"标题","description":"描述"}]',
+            default: '',
+          },
+          {
+            key: 'showIcon',
+            label: '显示图标',
+            type: 'switch',
+            default: false,
+          },
+          {
+            key: 'showTitle',
+            label: '显示标题',
+            type: 'switch',
+            default: true,
+          },
+          {
+            key: 'showDescription',
+            label: '显示描述',
+            type: 'switch',
+            default: true,
+          },
+          {
+            key: 'showExtra',
+            label: '显示扩展信息',
+            type: 'switch',
+            default: false,
+          },
+          {
+            key: 'showAction',
+            label: '显示右侧箭头',
+            type: 'switch',
+            default: true,
+          },
+          {
+            key: 'showBorder',
+            label: '显示左侧边框',
+            type: 'switch',
+            default: true,
+          },
+          {
+            key: 'showSplit',
+            label: '显示分割线',
+            type: 'switch',
+            default: true,
+          },
+          {
+            key: 'emptyText',
+            label: '空数据文本',
+            type: 'text',
+            placeholder: '暂无数据',
+            default: '暂无数据',
+          },
+          {
+            key: 'iconSize',
+            label: '图标大小(px)',
+            type: 'number',
+            min: 12,
+            max: 50,
+            step: 1,
+            default: 20,
+          },
+          {
+            key: 'scrollHeight',
+            label: '滚动容器高度',
+            type: 'text',
+            placeholder: '100% 或 300px',
+            default: '100%',
+          },
+          {
+            key: 'titleField',
+            label: '标题字段名',
+            type: 'text',
+            placeholder: 'title',
+            default: 'title',
+          },
+          {
+            key: 'descriptionField',
+            label: '描述字段名',
+            type: 'text',
+            placeholder: 'description',
+            default: 'description',
+          },
+          {
+            key: 'extraField',
+            label: '扩展信息字段名',
+            type: 'text',
+            placeholder: 'extra',
+            default: 'extra',
+          },
+        ]
+
+      case 'timeline':
+        return [
+          {
+            key: 'data',
+            label: '时间轴数据(JSON)',
+            type: 'text',
+            placeholder: '[{"title":"标题","content":"内容","timestamp":"2024-01-01"}]',
+            default: '',
+          },
+          {
+            key: 'showCard',
+            label: '使用卡片模式',
+            type: 'switch',
+            default: true,
+          },
+          {
+            key: 'showTitle',
+            label: '显示标题',
+            type: 'switch',
+            default: true,
+          },
+          {
+            key: 'showTimestamp',
+            label: '显示时间戳',
+            type: 'switch',
+            default: true,
+          },
+          {
+            key: 'showExtra',
+            label: '显示扩展信息',
+            type: 'switch',
+            default: false,
+          },
+          {
+            key: 'timestampPlacement',
+            label: '时间戳位置',
+            type: 'select',
+            options: [
+              { label: '上方', value: 'top' },
+              { label: '下方', value: 'bottom' },
+            ],
+            default: 'top',
+          },
+          {
+            key: 'itemSize',
+            label: '节点大小',
+            type: 'select',
+            options: [
+              { label: '普通', value: 'normal' },
+              { label: '大', value: 'large' },
+            ],
+            default: 'normal',
+          },
+          {
+            key: 'hollow',
+            label: '空心节点',
+            type: 'switch',
+            default: false,
+          },
+          {
+            key: 'cardShadow',
+            label: '卡片阴影',
+            type: 'select',
+            options: [
+              { label: '始终显示', value: 'always' },
+              { label: '悬停显示', value: 'hover' },
+              { label: '不显示', value: 'never' },
+            ],
+            default: 'hover',
+          },
+          {
+            key: 'emptyText',
+            label: '空数据文本',
+            type: 'text',
+            placeholder: '暂无数据',
+            default: '暂无数据',
+          },
+          {
+            key: 'scrollHeight',
+            label: '滚动容器高度',
+            type: 'text',
+            placeholder: '100% 或 300px',
+            default: '100%',
+          },
+          {
+            key: 'titleField',
+            label: '标题字段名',
+            type: 'text',
+            placeholder: 'title',
+            default: 'title',
+          },
+          {
+            key: 'contentField',
+            label: '内容字段名',
+            type: 'text',
+            placeholder: 'content',
+            default: 'content',
+          },
+          {
+            key: 'timestampField',
+            label: '时间戳字段名',
+            type: 'text',
+            placeholder: 'timestamp',
+            default: 'timestamp',
+          },
+          {
+            key: 'typeField',
+            label: '类型字段名',
+            type: 'text',
+            placeholder: 'type',
+            default: 'type',
+          },
+          {
+            key: 'colorField',
+            label: '颜色字段名',
+            type: 'text',
+            placeholder: 'color',
+            default: 'color',
+          },
+          {
+            key: 'extraField',
+            label: '扩展信息字段名',
+            type: 'text',
+            placeholder: 'extra',
+            default: 'extra',
+          },
+        ]
+
+      case 'cardGrid':
+        return [
+          {
+            key: 'cardData',
+            label: '卡片数据(JSON)',
+            type: 'text',
+            placeholder:
+              '[{"title":"标题","description":"描述","image":"图片URL","tags":["标签1"],"footer":"页脚"}]',
+            default: '',
+          },
+          {
+            key: 'columns',
+            label: '列数',
+            type: 'number',
+            min: 1,
+            max: 6,
+            step: 1,
+            default: 3,
+          },
+          {
+            key: 'gap',
+            label: '卡片间距(px)',
+            type: 'number',
+            min: 0,
+            max: 50,
+            step: 1,
+            default: 16,
+          },
+          {
+            key: 'showImage',
+            label: '显示图片',
+            type: 'switch',
+            default: true,
+          },
+          {
+            key: 'showTitle',
+            label: '显示标题',
+            type: 'switch',
+            default: true,
+          },
+          {
+            key: 'showDescription',
+            label: '显示描述',
+            type: 'switch',
+            default: true,
+          },
+          {
+            key: 'showTags',
+            label: '显示标签',
+            type: 'switch',
+            default: true,
+          },
+          {
+            key: 'showFooter',
+            label: '显示页脚',
+            type: 'switch',
+            default: true,
+          },
+          {
+            key: 'titleField',
+            label: '标题字段名',
+            type: 'text',
+            placeholder: 'title',
+            default: 'title',
+          },
+          {
+            key: 'descriptionField',
+            label: '描述字段名',
+            type: 'text',
+            placeholder: 'description',
+            default: 'description',
+          },
+          {
+            key: 'imageField',
+            label: '图片字段名',
+            type: 'text',
+            placeholder: 'image',
+            default: 'image',
+          },
+          {
+            key: 'tagsField',
+            label: '标签字段名',
+            type: 'text',
+            placeholder: 'tags',
+            default: 'tags',
+          },
+          {
+            key: 'footerField',
+            label: '页脚字段名',
+            type: 'text',
+            placeholder: 'footer',
+            default: 'footer',
+          },
+          {
+            key: 'emptyText',
+            label: '空数据文本',
+            type: 'text',
+            placeholder: '暂无卡片数据',
+            default: '暂无卡片数据',
+          },
+        ]
+
+      case 'pivot':
+        return [
+          {
+            key: 'pivotData',
+            label: '数据(JSON)',
+            type: 'text',
+            placeholder: '[{"category":"分类1","region":"区域A","q1":100,"q2":200}]',
+            default: '',
+          },
+          {
+            key: 'rowHeaders',
+            label: '行表头(JSON)',
+            type: 'text',
+            placeholder: '[{"prop":"category","label":"分类"},{"prop":"region","label":"区域"}]',
+            default: '[{"prop":"category","label":"分类"}]',
+          },
+          {
+            key: 'dataColumns',
+            label: '数据列(JSON)',
+            type: 'text',
+            placeholder: '[{"prop":"q1","label":"Q1"},{"prop":"q2","label":"Q2"}]',
+            default: '[{"prop":"value","label":"数值"}]',
+          },
+          {
+            key: 'valueFormat',
+            label: '数值格式',
+            type: 'select',
+            options: [
+              { label: '数字', value: 'number' },
+              { label: '百分比', value: 'percent' },
+              { label: '货币', value: 'currency' },
+            ],
+            default: 'number',
+          },
+          {
+            key: 'showSummary',
+            label: '显示汇总行',
+            type: 'switch',
+            default: true,
+          },
+          {
+            key: 'stripe',
+            label: '斑马纹',
+            type: 'switch',
+            default: true,
+          },
+          {
+            key: 'border',
+            label: '显示边框',
+            type: 'switch',
+            default: true,
+          },
+          {
+            key: 'highlightThreshold',
+            label: '高亮阈值',
+            type: 'number',
+            min: 0,
+            max: 10000,
+            step: 100,
+            default: 1000,
+          },
+          {
+            key: 'emptyText',
+            label: '空数据文本',
+            type: 'text',
+            placeholder: '暂无数据',
+            default: '暂无数据',
+          },
+          {
+            key: 'height',
+            label: '表格高度',
+            type: 'text',
+            placeholder: '100% 或 400px',
+            default: '100%',
+          },
+        ]
+
+      case 'select':
+        return [
+          {
+            key: 'options',
+            label: '选项数据(JSON/逗号分隔)',
+            type: 'text',
+            placeholder: '[{"label":"选项1","value":"1"}] 或 选项1,选项2,选项3',
+            default: '',
+          },
+          {
+            key: 'defaultValue',
+            label: '默认值',
+            type: 'text',
+            placeholder: '默认选中的值',
+            default: '',
+          },
+          {
+            key: 'placeholder',
+            label: '占位文本',
+            type: 'text',
+            placeholder: '请选择',
+            default: '请选择',
+          },
+          {
+            key: 'clearable',
+            label: '可清空',
+            type: 'switch',
+            default: true,
+          },
+          {
+            key: 'filterable',
+            label: '可搜索',
+            type: 'switch',
+            default: false,
+          },
+          {
+            key: 'size',
+            label: '尺寸',
+            type: 'select',
+            options: [
+              { label: '大', value: 'large' },
+              { label: '默认', value: 'default' },
+              { label: '小', value: 'small' },
+            ],
+            default: 'default',
+          },
+          {
+            key: 'labelField',
+            label: '标签字段名',
+            type: 'text',
+            placeholder: 'label',
+            default: 'label',
+          },
+          {
+            key: 'valueField',
+            label: '值字段名',
+            type: 'text',
+            placeholder: 'value',
+            default: 'value',
+          },
+          {
+            key: 'emptyText',
+            label: '空数据文本',
+            type: 'text',
+            placeholder: '暂无选项',
+            default: '暂无选项',
+          },
+        ]
+
+      case 'multiSelect':
+        return [
+          {
+            key: 'options',
+            label: '选项数据(JSON/逗号分隔)',
+            type: 'text',
+            placeholder: '[{"label":"选项1","value":"1"}] 或 选项1,选项2,选项3',
+            default: '',
+          },
+          {
+            key: 'defaultValue',
+            label: '默认值(逗号分隔)',
+            type: 'text',
+            placeholder: '1,2,3',
+            default: '',
+          },
+          {
+            key: 'placeholder',
+            label: '占位文本',
+            type: 'text',
+            placeholder: '请选择',
+            default: '请选择',
+          },
+          {
+            key: 'clearable',
+            label: '可清空',
+            type: 'switch',
+            default: true,
+          },
+          {
+            key: 'filterable',
+            label: '可搜索',
+            type: 'switch',
+            default: false,
+          },
+          {
+            key: 'collapseTags',
+            label: '折叠标签',
+            type: 'switch',
+            default: true,
+          },
+          {
+            key: 'collapseTagsTooltip',
+            label: '显示标签提示',
+            type: 'switch',
+            default: true,
+          },
+          {
+            key: 'maxCollapseTags',
+            label: '最大显示标签数',
+            type: 'number',
+            min: 1,
+            max: 10,
+            step: 1,
+            default: 2,
+          },
+          {
+            key: 'multipleLimit',
+            label: '最大选择数(0为不限制)',
+            type: 'number',
+            min: 0,
+            max: 100,
+            step: 1,
+            default: 0,
+          },
+          {
+            key: 'size',
+            label: '尺寸',
+            type: 'select',
+            options: [
+              { label: '大', value: 'large' },
+              { label: '默认', value: 'default' },
+              { label: '小', value: 'small' },
+            ],
+            default: 'default',
+          },
+          {
+            key: 'labelField',
+            label: '标签字段名',
+            type: 'text',
+            placeholder: 'label',
+            default: 'label',
+          },
+          {
+            key: 'valueField',
+            label: '值字段名',
+            type: 'text',
+            placeholder: 'value',
+            default: 'value',
+          },
+          {
+            key: 'emptyText',
+            label: '空数据文本',
+            type: 'text',
+            placeholder: '暂无选项',
+            default: '暂无选项',
+          },
+        ]
+
+      case 'dateRange':
+        return [
+          {
+            key: 'defaultValue',
+            label: '默认日期范围(JSON)',
+            type: 'text',
+            placeholder: '["2024-01-01","2024-12-31"]',
+            default: '',
+          },
+          {
+            key: 'startPlaceholder',
+            label: '开始日期占位文本',
+            type: 'text',
+            placeholder: '开始日期',
+            default: '开始日期',
+          },
+          {
+            key: 'endPlaceholder',
+            label: '结束日期占位文本',
+            type: 'text',
+            placeholder: '结束日期',
+            default: '结束日期',
+          },
+          {
+            key: 'rangeSeparator',
+            label: '分隔符',
+            type: 'text',
+            placeholder: '至',
+            default: '至',
+          },
+          {
+            key: 'format',
+            label: '显示格式',
+            type: 'text',
+            placeholder: 'YYYY-MM-DD',
+            default: 'YYYY-MM-DD',
+          },
+          {
+            key: 'valueFormat',
+            label: '绑定值格式',
+            type: 'text',
+            placeholder: 'YYYY-MM-DD',
+            default: 'YYYY-MM-DD',
+          },
+          {
+            key: 'clearable',
+            label: '可清空',
+            type: 'switch',
+            default: true,
+          },
+          {
+            key: 'editable',
+            label: '可手动输入',
+            type: 'switch',
+            default: true,
+          },
+          {
+            key: 'enableShortcuts',
+            label: '启用快捷选项',
+            type: 'switch',
+            default: true,
+          },
+          {
+            key: 'size',
+            label: '尺寸',
+            type: 'select',
+            options: [
+              { label: '大', value: 'large' },
+              { label: '默认', value: 'default' },
+              { label: '小', value: 'small' },
+            ],
+            default: 'default',
+          },
+        ]
+
+      case 'searchBox':
+        return [
+          {
+            key: 'placeholder',
+            label: '占位文本',
+            type: 'text',
+            placeholder: '请输入搜索内容',
+            default: '请输入搜索内容',
+          },
+          {
+            key: 'defaultValue',
+            label: '默认值',
+            type: 'text',
+            placeholder: '',
+            default: '',
+          },
+          {
+            key: 'clearable',
+            label: '可清空',
+            type: 'switch',
+            default: true,
+          },
+          {
+            key: 'disabled',
+            label: '禁用',
+            type: 'switch',
+            default: false,
+          },
+          {
+            key: 'size',
+            label: '尺寸',
+            type: 'select',
+            options: [
+              { label: '大', value: 'large' },
+              { label: '默认', value: 'default' },
+              { label: '小', value: 'small' },
+            ],
+            default: 'default',
+          },
+          {
+            key: 'prefixIcon',
+            label: '前缀图标',
+            type: 'text',
+            placeholder: 'Search',
+            default: '',
+          },
+          {
+            key: 'suffixIcon',
+            label: '后缀图标',
+            type: 'text',
+            placeholder: '',
+            default: '',
+          },
+          {
+            key: 'maxlength',
+            label: '最大长度',
+            type: 'number',
+            min: 0,
+            max: 1000,
+            step: 1,
+            default: undefined,
+          },
+          {
+            key: 'showWordLimit',
+            label: '显示字数统计',
+            type: 'switch',
+            default: false,
+          },
+          {
+            key: 'showSearchButton',
+            label: '显示搜索按钮',
+            type: 'switch',
+            default: true,
+          },
+          {
+            key: 'buttonText',
+            label: '按钮文字',
+            type: 'text',
+            placeholder: '搜索',
+            default: '搜索',
+          },
+          {
+            key: 'buttonType',
+            label: '按钮类型',
+            type: 'select',
+            options: [
+              { label: '主要', value: 'primary' },
+              { label: '成功', value: 'success' },
+              { label: '警告', value: 'warning' },
+              { label: '危险', value: 'danger' },
+              { label: '信息', value: 'info' },
+            ],
+            default: 'primary',
+          },
+        ]
+
+      case 'slider':
+        return [
+          {
+            key: 'min',
+            label: '最小值',
+            type: 'number',
+            min: -1000,
+            max: 1000,
+            step: 1,
+            default: 0,
+          },
+          {
+            key: 'max',
+            label: '最大值',
+            type: 'number',
+            min: 0,
+            max: 10000,
+            step: 1,
+            default: 100,
+          },
+          {
+            key: 'step',
+            label: '步长',
+            type: 'number',
+            min: 1,
+            max: 100,
+            step: 1,
+            default: 1,
+          },
+          {
+            key: 'defaultValue',
+            label: '默认值',
+            type: 'number',
+            min: 0,
+            max: 100,
+            step: 1,
+            default: 0,
+          },
+          {
+            key: 'disabled',
+            label: '禁用',
+            type: 'switch',
+            default: false,
+          },
+          {
+            key: 'showStops',
+            label: '显示间断点',
+            type: 'switch',
+            default: false,
+          },
+          {
+            key: 'showTooltip',
+            label: '显示提示',
+            type: 'switch',
+            default: true,
+          },
+          {
+            key: 'range',
+            label: '范围选择',
+            type: 'switch',
+            default: false,
+          },
+          {
+            key: 'vertical',
+            label: '垂直模式',
+            type: 'switch',
+            default: false,
+          },
+          {
+            key: 'height',
+            label: '垂直高度',
+            type: 'text',
+            placeholder: '200px',
+            default: '200px',
+          },
+          {
+            key: 'showValue',
+            label: '显示数值',
+            type: 'switch',
+            default: true,
+          },
+          {
+            key: 'valueFormat',
+            label: '数值格式',
+            type: 'text',
+            placeholder: '{value}',
+            default: '{value}',
+          },
+          {
+            key: 'marks',
+            label: '标记点(JSON)',
+            type: 'text',
+            placeholder: '{"0": "起点", "100": "终点"}',
+            default: undefined,
+          },
+        ]
+
+      case 'switch':
+        return [
+          {
+            key: 'defaultValue',
+            label: '默认值',
+            type: 'switch',
+            default: false,
+          },
+          {
+            key: 'disabled',
+            label: '禁用',
+            type: 'switch',
+            default: false,
+          },
+          {
+            key: 'loading',
+            label: '加载中',
+            type: 'switch',
+            default: false,
+          },
+          {
+            key: 'size',
+            label: '尺寸',
+            type: 'select',
+            options: [
+              { label: '大', value: 'large' },
+              { label: '默认', value: 'default' },
+              { label: '小', value: 'small' },
+            ],
+            default: 'default',
+          },
+          {
+            key: 'activeText',
+            label: '开启文字',
+            type: 'text',
+            placeholder: '开',
+            default: '',
+          },
+          {
+            key: 'inactiveText',
+            label: '关闭文字',
+            type: 'text',
+            placeholder: '关',
+            default: '',
+          },
+          {
+            key: 'inlinePrompt',
+            label: '文字显示在内部',
+            type: 'switch',
+            default: false,
+          },
+          {
+            key: 'activeValue',
+            label: '开启时的值',
+            type: 'text',
+            placeholder: 'true',
+            default: true,
+          },
+          {
+            key: 'inactiveValue',
+            label: '关闭时的值',
+            type: 'text',
+            placeholder: 'false',
+            default: false,
+          },
+        ]
+
+      case 'checkboxGroup':
+        return [
+          {
+            key: 'options',
+            label: '选项数据(JSON/逗号分隔)',
+            type: 'text',
+            placeholder: '[{"label":"选项1","value":"1"}] 或 选项1,选项2',
+            default: '',
+          },
+          {
+            key: 'defaultValue',
+            label: '默认值(逗号分隔)',
+            type: 'text',
+            placeholder: '1,2,3',
+            default: '',
+          },
+          {
+            key: 'disabled',
+            label: '禁用',
+            type: 'switch',
+            default: false,
+          },
+          {
+            key: 'size',
+            label: '尺寸',
+            type: 'select',
+            options: [
+              { label: '大', value: 'large' },
+              { label: '默认', value: 'default' },
+              { label: '小', value: 'small' },
+            ],
+            default: 'default',
+          },
+          {
+            key: 'min',
+            label: '最少选择数',
+            type: 'number',
+            min: 0,
+            max: 20,
+            step: 1,
+            default: undefined,
+          },
+          {
+            key: 'max',
+            label: '最多选择数',
+            type: 'number',
+            min: 0,
+            max: 20,
+            step: 1,
+            default: undefined,
+          },
+          {
+            key: 'layout',
+            label: '布局样式',
+            type: 'select',
+            options: [
+              { label: '默认', value: 'default' },
+              { label: '按钮', value: 'button' },
+            ],
+            default: 'default',
+          },
+          {
+            key: 'showBorder',
+            label: '显示边框',
+            type: 'switch',
+            default: false,
+          },
+          {
+            key: 'labelField',
+            label: '标签字段名',
+            type: 'text',
+            placeholder: 'label',
+            default: 'label',
+          },
+          {
+            key: 'valueField',
+            label: '值字段名',
+            type: 'text',
+            placeholder: 'value',
+            default: 'value',
+          },
+        ]
+
+      case 'buttonGroup':
+        return [
+          {
+            key: 'buttons',
+            label: '按钮数据(JSON/逗号分隔)',
+            type: 'text',
+            placeholder: '[{"label":"按钮1","value":"1","type":"primary"}] 或 按钮1,按钮2',
+            default: '',
+          },
+          {
+            key: 'type',
+            label: '默认类型',
+            type: 'select',
+            options: [
+              { label: '默认', value: 'default' },
+              { label: '主要', value: 'primary' },
+              { label: '成功', value: 'success' },
+              { label: '警告', value: 'warning' },
+              { label: '危险', value: 'danger' },
+              { label: '信息', value: 'info' },
+            ],
+            default: 'default',
+          },
+          {
+            key: 'size',
+            label: '尺寸',
+            type: 'select',
+            options: [
+              { label: '大', value: 'large' },
+              { label: '默认', value: 'default' },
+              { label: '小', value: 'small' },
+            ],
+            default: 'default',
+          },
+          {
+            key: 'disabled',
+            label: '禁用',
+            type: 'switch',
+            default: false,
+          },
+          {
+            key: 'plain',
+            label: '朴素按钮',
+            type: 'switch',
+            default: false,
+          },
+          {
+            key: 'round',
+            label: '圆角按钮',
+            type: 'switch',
+            default: false,
+          },
+          {
+            key: 'circle',
+            label: '圆形按钮',
+            type: 'switch',
+            default: false,
+          },
+          {
+            key: 'labelField',
+            label: '标签字段名',
+            type: 'text',
+            placeholder: 'label',
+            default: 'label',
+          },
+          {
+            key: 'valueField',
+            label: '值字段名',
+            type: 'text',
+            placeholder: 'value',
+            default: 'value',
+          },
+        ]
+
+      // 布局组件配置
+      case 'row':
+        return [
+          {
+            key: 'gutter',
+            label: '栅格间隔',
+            type: 'number',
+            min: 0,
+            max: 50,
+            step: 1,
+            default: 0,
+          },
+          {
+            key: 'justify',
+            label: '水平排列',
+            type: 'select',
+            options: [
+              { label: '左对齐', value: 'start' },
+              { label: '居中', value: 'center' },
+              { label: '右对齐', value: 'end' },
+              { label: '两端对齐', value: 'space-between' },
+              { label: '环绕对齐', value: 'space-around' },
+              { label: '均匀对齐', value: 'space-evenly' },
+            ],
+            default: 'start',
+          },
+          {
+            key: 'align',
+            label: '垂直对齐',
+            type: 'select',
+            options: [
+              { label: '顶部', value: 'top' },
+              { label: '居中', value: 'middle' },
+              { label: '底部', value: 'bottom' },
+            ],
+            default: 'top',
+          },
+          {
+            key: 'tag',
+            label: 'HTML标签',
+            type: 'text',
+            placeholder: 'div',
+            default: 'div',
+          },
+          {
+            key: 'content',
+            label: '占位内容',
+            type: 'text',
+            placeholder: '请输入内容',
+            default: '',
+          },
+        ]
+
+      case 'col':
+        return [
+          {
+            key: 'span',
+            label: '栅格占位',
+            type: 'number',
+            min: 1,
+            max: 24,
+            step: 1,
+            default: 12,
+          },
+          {
+            key: 'offset',
+            label: '左偏移',
+            type: 'number',
+            min: 0,
+            max: 24,
+            step: 1,
+            default: 0,
+          },
+          {
+            key: 'push',
+            label: '向右推',
+            type: 'number',
+            min: 0,
+            max: 24,
+            step: 1,
+            default: 0,
+          },
+          {
+            key: 'pull',
+            label: '向左拉',
+            type: 'number',
+            min: 0,
+            max: 24,
+            step: 1,
+            default: 0,
+          },
+          {
+            key: 'xs',
+            label: '<768px',
+            type: 'number',
+            min: 1,
+            max: 24,
+            step: 1,
+            default: undefined,
+          },
+          {
+            key: 'sm',
+            label: '≥768px',
+            type: 'number',
+            min: 1,
+            max: 24,
+            step: 1,
+            default: undefined,
+          },
+          {
+            key: 'md',
+            label: '≥992px',
+            type: 'number',
+            min: 1,
+            max: 24,
+            step: 1,
+            default: undefined,
+          },
+          {
+            key: 'lg',
+            label: '≥1200px',
+            type: 'number',
+            min: 1,
+            max: 24,
+            step: 1,
+            default: undefined,
+          },
+          {
+            key: 'xl',
+            label: '≥1920px',
+            type: 'number',
+            min: 1,
+            max: 24,
+            step: 1,
+            default: undefined,
+          },
+          {
+            key: 'tag',
+            label: 'HTML标签',
+            type: 'text',
+            placeholder: 'div',
+            default: 'div',
+          },
+          {
+            key: 'content',
+            label: '占位内容',
+            type: 'text',
+            placeholder: '请输入内容',
+            default: '',
+          },
+        ]
+
+      case 'flex':
+        return [
+          {
+            key: 'content',
+            label: '占位内容',
+            type: 'text',
+            placeholder: '请输入内容',
+            default: '',
+          },
+        ]
+
+      case 'grid':
+        return [
+          {
+            key: 'content',
+            label: '占位内容',
+            type: 'text',
+            placeholder: '请输入内容',
+            default: '',
+          },
+        ]
+
+      case 'modal':
+        return [
+          {
+            key: 'visible',
+            label: '显示对话框',
+            type: 'switch',
+            default: false,
+          },
+          {
+            key: 'title',
+            label: '标题',
+            type: 'text',
+            placeholder: '对话框标题',
+            default: '对话框标题',
+          },
+          {
+            key: 'width',
+            label: '宽度',
+            type: 'text',
+            placeholder: '50%',
+            default: '50%',
+          },
+          {
+            key: 'fullscreen',
+            label: '全屏',
+            type: 'switch',
+            default: false,
+          },
+          {
+            key: 'closeOnClickModal',
+            label: '点击遮罩关闭',
+            type: 'switch',
+            default: true,
+          },
+          {
+            key: 'showClose',
+            label: '显示关闭按钮',
+            type: 'switch',
+            default: true,
+          },
+          {
+            key: 'showFooter',
+            label: '显示底部',
+            type: 'switch',
+            default: true,
+          },
+          {
+            key: 'content',
+            label: '内容',
+            type: 'text',
+            placeholder: '这是对话框内容',
+            default: '这是对话框内容',
+          },
+        ]
+
+      case 'panel':
+        return [
+          {
+            key: 'title',
+            label: '标题',
+            type: 'text',
+            placeholder: '面板标题',
+            default: '面板标题',
+          },
+          {
+            key: 'collapsible',
+            label: '可折叠',
+            type: 'switch',
+            default: false,
+          },
+          {
+            key: 'collapsed',
+            label: '默认折叠',
+            type: 'switch',
+            default: false,
+          },
+          {
+            key: 'showHeader',
+            label: '显示头部',
+            type: 'switch',
+            default: true,
+          },
+          {
+            key: 'showFooter',
+            label: '显示底部',
+            type: 'switch',
+            default: false,
+          },
+          {
+            key: 'footerContent',
+            label: '底部内容',
+            type: 'text',
+            placeholder: '',
+            default: '',
+          },
+          {
+            key: 'content',
+            label: '内容',
+            type: 'text',
+            placeholder: '这是面板内容',
+            default: '这是面板内容',
+          },
+        ]
+
+      case 'tabs':
+        return [
+          {
+            key: 'activeTab',
+            label: '当前激活标签',
+            type: 'text',
+            placeholder: 'tab1',
+            default: '',
+          },
+          {
+            key: 'type',
+            label: '标签页类型',
+            type: 'select',
+            options: [
+              { label: '卡片化', value: 'card' },
+              { label: '边框卡片', value: 'border-card' },
+              { label: '默认', value: '' },
+            ],
+            default: 'border-card',
+          },
+          {
+            key: 'tabPosition',
+            label: '标签位置',
+            type: 'select',
+            options: [
+              { label: '顶部', value: 'top' },
+              { label: '右侧', value: 'right' },
+              { label: '底部', value: 'bottom' },
+              { label: '左侧', value: 'left' },
+            ],
+            default: 'top',
+          },
+          {
+            key: 'closable',
+            label: '可关闭',
+            type: 'switch',
+            default: false,
+          },
+          {
+            key: 'addable',
+            label: '可增加',
+            type: 'switch',
+            default: false,
+          },
+          {
+            key: 'tabs',
+            label: '标签页数据(JSON)',
+            type: 'text',
+            placeholder: '[{"label":"Tab 1","name":"tab1","content":"Content 1"}]',
+            default: '',
+          },
+        ]
+
+      case 'image':
+        return [
+          {
+            key: 'url',
+            label: '图片地址',
+            type: 'text',
+            placeholder: 'https://example.com/image.jpg',
+            default: '',
+          },
+          {
+            key: 'fit',
+            label: '图片填充模式',
+            type: 'select',
+            options: [
+              { label: '填充', value: 'fill' },
+              { label: '包含', value: 'contain' },
+              { label: '覆盖', value: 'cover' },
+              { label: '无缩放', value: 'none' },
+              { label: '按比例缩小', value: 'scale-down' },
+            ],
+            default: 'cover',
+          },
+          {
+            key: 'lazy',
+            label: '懒加载',
+            type: 'switch',
+            default: true,
+          },
+          {
+            key: 'preview',
+            label: '启用预览',
+            type: 'switch',
+            default: false,
+          },
+          {
+            key: 'previewZIndex',
+            label: '预览层级',
+            type: 'number',
+            min: 0,
+            max: 10000,
+            step: 1,
+            default: 2000,
+          },
+          {
+            key: 'hideOnClickModal',
+            label: '点击遮罩关闭预览',
+            type: 'switch',
+            default: false,
+          },
+          {
+            key: 'errorText',
+            label: '加载失败提示',
+            type: 'text',
+            placeholder: '图片加载失败',
+            default: '图片加载失败',
+          },
+          {
+            key: 'placeholder',
+            label: '占位文本',
+            type: 'text',
+            placeholder: '加载中...',
+            default: '加载中...',
+          },
+        ]
+
+      case 'video':
+        return [
+          {
+            key: 'url',
+            label: '视频地址',
+            type: 'text',
+            placeholder: 'https://example.com/video.mp4',
+            default: '',
+          },
+          {
+            key: 'poster',
+            label: '封面图',
+            type: 'text',
+            placeholder: 'https://example.com/poster.jpg',
+            default: '',
+          },
+          {
+            key: 'controls',
+            label: '显示控制栏',
+            type: 'switch',
+            default: true,
+          },
+          {
+            key: 'autoplay',
+            label: '自动播放',
+            type: 'switch',
+            default: false,
+          },
+          {
+            key: 'loop',
+            label: '循环播放',
+            type: 'switch',
+            default: false,
+          },
+          {
+            key: 'muted',
+            label: '静音',
+            type: 'switch',
+            default: false,
+          },
+          {
+            key: 'preload',
+            label: '预加载',
+            type: 'select',
+            options: [
+              { label: '元数据', value: 'metadata' },
+              { label: '自动', value: 'auto' },
+              { label: '不预加载', value: 'none' },
+            ],
+            default: 'metadata',
+          },
+          {
+            key: 'noDownload',
+            label: '禁止下载',
+            type: 'switch',
+            default: false,
+          },
+          {
+            key: 'noPictureInPicture',
+            label: '禁用画中画',
+            type: 'switch',
+            default: false,
+          },
+          {
+            key: 'placeholder',
+            label: '无视频提示',
+            type: 'text',
+            placeholder: '暂无视频',
+            default: '暂无视频',
+          },
+        ]
+
+      case 'markdown':
+        return [
+          {
+            key: 'content',
+            label: 'Markdown内容',
+            type: 'text',
+            placeholder: '# 标题\n\n请输入Markdown文本...',
+            default: '# Markdown 内容\n\n请输入 Markdown 文本...',
+          },
+        ]
+
+      case 'html':
+        return [
+          {
+            key: 'content',
+            label: 'HTML内容',
+            type: 'text',
+            placeholder: '<div>HTML内容</div>',
+            default: '<div>HTML内容</div>',
+          },
+          {
+            key: 'sanitize',
+            label: '启用XSS防护',
+            type: 'switch',
+            default: true,
+          },
+          {
+            key: 'allowedTags',
+            label: '允许的HTML标签',
+            type: 'text',
+            placeholder: 'div,span,p,h1,h2,h3,img,a',
+            default:
+              'div,span,p,h1,h2,h3,h4,h5,h6,ul,ol,li,strong,em,br,img,a,table,thead,tbody,tr,th,td,code,pre,blockquote',
+          },
+          {
+            key: 'allowedAttributes',
+            label: '允许的HTML属性',
+            type: 'text',
+            placeholder: 'class,style,href,src,alt',
+            default: 'class,style,href,src,alt,target,title,id',
+          },
+        ]
+
+      case 'iframe':
+        return [
+          {
+            key: 'url',
+            label: '页面地址',
+            type: 'text',
+            placeholder: 'https://example.com',
+            default: '',
+          },
+          {
+            key: 'title',
+            label: '标题',
+            type: 'text',
+            placeholder: '外部页面',
+            default: '外部页面',
+          },
+          {
+            key: 'sandbox',
+            label: '安全限制',
+            type: 'text',
+            placeholder: 'allow-scripts allow-same-origin',
+            default: 'allow-scripts allow-same-origin allow-forms allow-popups',
+          },
+          {
+            key: 'allow',
+            label: '权限策略',
+            type: 'text',
+            placeholder: 'fullscreen; camera; microphone',
+            default: 'fullscreen',
+          },
+          {
+            key: 'placeholder',
+            label: '占位提示',
+            type: 'text',
+            placeholder: '请输入外部页面地址',
+            default: '请输入外部页面地址',
+          },
+        ]
+
+      // 高级功能组件
+      case 'scripting':
+        return [
+          {
+            key: 'script',
+            label: 'JavaScript代码',
+            type: 'text',
+            placeholder: 'console.log("Hello World");',
+            default: '// JavaScript 代码\nconsole.log("Hello, World!");',
+          },
+          {
+            key: 'autoRun',
+            label: '自动执行',
+            type: 'switch',
+            default: false,
+          },
+          {
+            key: 'showCode',
+            label: '显示代码',
+            type: 'switch',
+            default: true,
+          },
+          {
+            key: 'showControls',
+            label: '显示控制按钮',
+            type: 'switch',
+            default: true,
+          },
+          {
+            key: 'showPlaceholder',
+            label: '显示占位提示',
+            type: 'switch',
+            default: true,
+          },
+          {
+            key: 'placeholder',
+            label: '占位提示',
+            type: 'text',
+            placeholder: '点击执行按钮运行脚本',
+            default: '点击执行按钮运行脚本',
+          },
+        ]
+
+      case 'state':
+        return [
+          {
+            key: 'state',
+            label: '状态数据(JSON)',
+            type: 'text',
+            placeholder: '{"key": "value"}',
+            default: JSON.stringify(
+              {
+                count: 0,
+                status: 'idle',
+              },
+              null,
+              2,
+            ),
+          },
+          {
+            key: 'viewMode',
+            label: '视图模式',
+            type: 'select',
+            options: [
+              { label: '列表视图', value: 'list' },
+              { label: 'JSON视图', value: 'json' },
+              { label: '表格视图', value: 'table' },
+            ],
+            default: 'list',
+          },
+          {
+            key: 'placeholder',
+            label: '占位提示',
+            type: 'text',
+            placeholder: '暂无状态数据',
+            default: '暂无状态数据',
+          },
+        ]
+
+      case 'trigger':
+        return [
+          {
+            key: 'enabled',
+            label: '启用触发器',
+            type: 'switch',
+            default: true,
+          },
+          {
+            key: 'triggerType',
+            label: '触发类型',
+            type: 'select',
+            options: [
+              { label: '手动触发', value: 'manual' },
+              { label: '定时触发', value: 'interval' },
+            ],
+            default: 'manual',
+          },
+          {
+            key: 'interval',
+            label: '触发间隔(毫秒)',
+            type: 'number',
+            min: 1000,
+            max: 3600000,
+            step: 1000,
+            default: 5000,
+          },
+          {
+            key: 'action',
+            label: '动作类型',
+            type: 'select',
+            options: [
+              { label: '日志记录', value: 'log' },
+              { label: '弹窗提示', value: 'alert' },
+              { label: '派发事件', value: 'dispatch' },
+              { label: '调用API', value: 'api' },
+            ],
+            default: 'log',
+          },
+          {
+            key: 'actionData',
+            label: '动作数据',
+            type: 'text',
+            placeholder: '触发器执行的数据',
+            default: '触发器已执行',
+          },
+          {
+            key: 'condition',
+            label: '触发条件',
+            type: 'text',
+            placeholder: '例: value > 100',
+            default: '',
+          },
+          {
+            key: 'showClearButton',
+            label: '显示清除按钮',
+            type: 'switch',
+            default: true,
+          },
+          {
+            key: 'placeholder',
+            label: '占位提示',
+            type: 'text',
+            placeholder: '暂无执行记录',
+            default: '暂无执行记录',
+          },
+        ]
+
       default:
         return []
     }

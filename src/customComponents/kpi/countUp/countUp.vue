@@ -1,8 +1,24 @@
 <template>
   <div class="countup-container" :style="containerStyle">
-    <div v-if="showPrefix && prefix" class="countup-prefix" :style="prefixStyle">{{ prefix }}</div>
-    <div class="countup-value" :style="valueStyle">{{ displayValue }}</div>
-    <div v-if="showSuffix && suffix" class="countup-suffix" :style="suffixStyle">{{ suffix }}</div>
+    <!-- 使用 Element Plus Statistic 组件 -->
+    <el-statistic
+      :value="animatedValue"
+      :precision="decimals"
+      :prefix="showPrefix ? prefix : ''"
+      :suffix="showSuffix ? suffix : ''"
+      :value-style="valueStyle"
+      :title="title"
+      :title-style="titleStyle"
+    >
+      <!-- 自定义前缀插槽 -->
+      <template v-if="showPrefix && prefix && customPrefix" #prefix>
+        <span :style="prefixStyle">{{ prefix }}</span>
+      </template>
+      <!-- 自定义后缀插槽 -->
+      <template v-if="showSuffix && suffix && customSuffix" #suffix>
+        <span :style="suffixStyle">{{ suffix }}</span>
+      </template>
+    </el-statistic>
   </div>
 </template>
 
@@ -12,7 +28,7 @@ import type { CSSProperties } from 'vue'
 import { useComponent } from '@/stores/component'
 import { storeToRefs } from 'pinia'
 import { useDataSource } from '@/datasource/useDataSource'
-import { extractNumber } from '@/datasource/dataUtils'
+import { extractNumber, extractWithFallback } from '@/datasource/dataUtils'
 
 const props = defineProps<{ id: string }>()
 const { componentStore } = storeToRefs(useComponent())
@@ -38,6 +54,14 @@ const targetValue = computed<number>(() => {
 })
 
 // 组件属性
+const title = computed<string>(() => {
+  const ds = comp.value?.dataSource
+  const localTitle = (comp.value?.props.title as string) ?? ''
+  if (ds?.enabled && remoteData.value && ds.titlePath) {
+    return extractWithFallback(remoteData.value, ds.titlePath, localTitle) as string
+  }
+  return localTitle
+})
 const startValue = computed<number>(() => (comp.value?.props.startValue as number) ?? 0)
 const duration = computed<number>(() => (comp.value?.props.duration as number) ?? 2000)
 const decimals = computed<number>(() => (comp.value?.props.decimals as number) ?? 0)
@@ -47,6 +71,8 @@ const suffix = computed<string>(() => (comp.value?.props.suffix as string) ?? ''
 const showPrefix = computed<boolean>(() => (comp.value?.props.showPrefix as boolean) ?? true)
 const showSuffix = computed<boolean>(() => (comp.value?.props.showSuffix as boolean) ?? true)
 const useEasing = computed<boolean>(() => (comp.value?.props.useEasing as boolean) ?? true)
+const customPrefix = computed<boolean>(() => (comp.value?.props.customPrefix as boolean) ?? false)
+const customSuffix = computed<boolean>(() => (comp.value?.props.customSuffix as boolean) ?? false)
 
 // 缓动函数
 function easeOutExpo(t: number, b: number, c: number, d: number): number {
@@ -151,12 +177,28 @@ const suffixStyle = computed<CSSProperties>(() => {
     marginLeft: '8px',
   }
 })
+
+const titleStyle = computed<CSSProperties>(() => {
+  const s = comp.value?.style || {}
+  return {
+    color: (s.titleColor as string) ?? '#909399',
+    fontSize: `${(s.titleFontSize as number) ?? 14}px`,
+    fontWeight: (s.titleFontWeight as string) ?? 'normal',
+  }
+})
 </script>
 
 <style scoped>
 .countup-container {
   width: 100%;
   height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+:deep(.el-statistic) {
+  text-align: center;
   display: flex;
   align-items: center;
   justify-content: center;

@@ -9,9 +9,9 @@
   >
     <div class="world" :style="worldStyle">
       <div class="stage" :style="stageStyle">
-        <!-- 缩放平移容器 -->
+        <!-- 缩放平移容器 - 只渲染顶层组件(无父组件的组件) -->
         <Shape
-          v-for="com in componentStore"
+          v-for="com in topLevelComponents"
           :key="com.id"
           v-bind="com"
           :id="com.id"
@@ -64,6 +64,11 @@ const { width, height, scale } = storeToRefs(sizeStore)
 const compStore = useComponent()
 const { componentStore, isDragging } = storeToRefs(compStore)
 const { addComponent, selectedId, clearSelection } = compStore
+
+// 只渲染顶层组件(无父组件的组件)
+const topLevelComponents = computed(() => {
+  return componentStore.value.filter((c) => !c.groupId)
+})
 
 // 点击画布空白处清空选择
 const handleCanvasClick = (e: MouseEvent) => {
