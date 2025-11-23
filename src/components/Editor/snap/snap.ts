@@ -172,8 +172,13 @@ export function useSnap() {
     let xLine: number | undefined
     let yLine: number | undefined
 
+    // 获取当前组件的子组件ID列表(如果是容器)
+    const currentComp = componentStore.value.find(c => c.id === meComp.value.id)
+    const childrenIds = currentComp?.children || []
+
     boxCache.value.forEach((box, id) => {
-      if (!id || id === meComp.value.id) return
+      // 排除自己和自己的子组件
+      if (!id || id === meComp.value.id || childrenIds.includes(id)) return
 
       const { xLines: guideXs, yLines: guideYs } = getGuideLines(box)
 

@@ -2,67 +2,6 @@
   <div class="relations-panel">
     <el-scrollbar class="relations-scrollbar">
       <el-collapse v-model="activeNames">
-        <!-- 关系图谱 -->
-        <el-collapse-item name="graph" title="关系图谱">
-          <div class="relation-section">
-            <div class="section-header">
-              <span class="label">组件关系可视化</span>
-              <el-button-group>
-                <el-button
-                  :type="graphType === 'all' ? 'primary' : ''"
-                  size="small"
-                  @click="graphType = 'all'"
-                >
-                  全部
-                </el-button>
-                <el-button
-                  :type="graphType === 'hierarchy' ? 'primary' : ''"
-                  size="small"
-                  @click="graphType = 'hierarchy'"
-                >
-                  层级
-                </el-button>
-                <el-button
-                  :type="graphType === 'events' ? 'primary' : ''"
-                  size="small"
-                  @click="graphType = 'events'"
-                >
-                  事件
-                </el-button>
-                <el-button
-                  :type="graphType === 'data' ? 'primary' : ''"
-                  size="small"
-                  @click="graphType = 'data'"
-                >
-                  数据
-                </el-button>
-              </el-button-group>
-            </div>
-            <div ref="graphContainer" class="graph-container"></div>
-            <div class="graph-legend">
-              <div class="legend-item">
-                <span class="legend-dot" style="background: #5470c6"></span>
-                <span>普通组件</span>
-              </div>
-              <div class="legend-item">
-                <span class="legend-dot" style="background: #91cc75"></span>
-                <span>容器组件</span>
-              </div>
-              <div class="legend-item">
-                <span class="legend-line" style="background: #409eff"></span>
-                <span>父子关系</span>
-              </div>
-              <div class="legend-item">
-                <span class="legend-line" style="background: #67c23a"></span>
-                <span>事件交互</span>
-              </div>
-              <div class="legend-item">
-                <span class="legend-line" style="background: #e6a23c"></span>
-                <span>数据联动</span>
-              </div>
-            </div>
-          </div>
-        </el-collapse-item>
 
         <!-- 组件树结构 -->
         <el-collapse-item name="tree" title="组件树">
@@ -205,11 +144,12 @@
               v-for="child in childrenComponents"
               :key="child.id"
               class="child-position-card"
-              @click="selectComponentById(child.id)"
+              @dblclick="selectComponentById(child.id)"
             >
               <div class="child-header">
                 <span class="child-type">{{ child.type }}</span>
                 <span class="child-id">{{ child.id.slice(0, 8) }}</span>
+                <el-tag size="small" type="info" style="margin-left: 8px">双击选中</el-tag>
               </div>
               <el-form label-position="top" size="small">
                 <el-row :gutter="8">
@@ -260,88 +200,6 @@
                 </el-row>
               </el-form>
             </div>
-          </div>
-        </el-collapse-item>
-
-        <!-- 事件交互 -->
-        <el-collapse-item name="events" title="事件交互">
-          <div class="relation-section">
-            <div class="section-header">
-              <span class="label">点击事件</span>
-              <el-button type="text" size="small" @click="addClickAction" icon="el-icon-plus">
-                添加
-              </el-button>
-            </div>
-            <div v-if="clickActions.length > 0" class="actions-list">
-              <div v-for="(action, index) in clickActions" :key="index" class="action-card">
-                <el-select v-model="action.type" placeholder="动作类型" size="small">
-                  <el-option label="显示/隐藏" value="toggle-visibility" />
-                  <el-option label="跳转到组件" value="scroll-to" />
-                  <el-option label="触发数据更新" value="refresh-data" />
-                  <el-option label="执行动画" value="play-animation" />
-                </el-select>
-                <el-select
-                  v-if="action.type && action.type !== 'refresh-data'"
-                  v-model="action.targetId"
-                  placeholder="目标组件"
-                  size="small"
-                  filterable
-                >
-                  <el-option
-                    v-for="comp in otherComponents"
-                    :key="comp.id"
-                    :label="`${comp.type} (${comp.id.slice(0, 8)})`"
-                    :value="comp.id"
-                  />
-                </el-select>
-                <el-button
-                  type="text"
-                  size="small"
-                  @click="removeClickAction(index)"
-                  icon="el-icon-delete"
-                />
-              </div>
-            </div>
-            <el-empty v-else description="暂无事件交互" :image-size="60" />
-          </div>
-
-          <div class="relation-section">
-            <div class="section-header">
-              <span class="label">悬停事件</span>
-              <el-button type="text" size="small" @click="addHoverAction" icon="el-icon-plus">
-                添加
-              </el-button>
-            </div>
-            <div v-if="hoverActions.length > 0" class="actions-list">
-              <div v-for="(action, index) in hoverActions" :key="index" class="action-card">
-                <el-select v-model="action.type" placeholder="动作类型" size="small">
-                  <el-option label="显示提示" value="show-tooltip" />
-                  <el-option label="高亮组件" value="highlight" />
-                  <el-option label="显示详情" value="show-detail" />
-                </el-select>
-                <el-select
-                  v-if="action.type && action.type !== 'show-tooltip'"
-                  v-model="action.targetId"
-                  placeholder="目标组件"
-                  size="small"
-                  filterable
-                >
-                  <el-option
-                    v-for="comp in otherComponents"
-                    :key="comp.id"
-                    :label="`${comp.type} (${comp.id.slice(0, 8)})`"
-                    :value="comp.id"
-                  />
-                </el-select>
-                <el-button
-                  type="text"
-                  size="small"
-                  @click="removeHoverAction(index)"
-                  icon="el-icon-delete"
-                />
-              </div>
-            </div>
-            <el-empty v-else description="暂无悬停交互" :image-size="60" />
           </div>
         </el-collapse-item>
 
@@ -440,12 +298,7 @@ import { Document, FolderOpened } from '@element-plus/icons-vue'
 import type { ElTree } from 'element-plus'
 import * as echarts from 'echarts'
 import type { EChartsOption } from 'echarts'
-import {
-  useComponentHierarchy,
-  useComponentEvents,
-  useDataBindings,
-  useDialogState,
-} from './relations'
+import { useComponentHierarchy, useDataBindings, useDialogState } from './relations'
 
 // 激活的面板
 const activeNames = ref(['graph'])
@@ -462,16 +315,6 @@ const {
   selectComponentById,
   components,
 } = useComponentHierarchy()
-
-// 事件交互
-const {
-  clickActions,
-  hoverActions,
-  addClickAction,
-  removeClickAction,
-  addHoverAction,
-  removeHoverAction,
-} = useComponentEvents()
 
 // 数据联动
 const { dataBindings, addDataBinding, removeDataBinding } = useDataBindings()
@@ -498,13 +341,41 @@ const treeProps = {
 
 // 构建树形数据
 const treeData = computed<TreeNode[]>(() => {
+  // 计算同类型组件的序号
+  const typeCountMap = new Map<string, number>()
+  const typeIndexMap = new Map<string, number>()
+
+  // 统计每种类型的数量
+  components.value.forEach((c) => {
+    const count = typeCountMap.get(c.type) || 0
+    typeCountMap.set(c.type, count + 1)
+  })
+
   const buildTree = (compId: string): TreeNode => {
     const comp = components.value.find((c) => c.id === compId)
     if (!comp) return { id: compId, label: 'Unknown', type: 'Unknown' }
 
+    // 优先使用自定义名称
+    let label = ''
+    if (comp.name) {
+      label = comp.name
+    } else {
+      // 获取当前类型的序号
+      const currentIndex = (typeIndexMap.get(comp.type) || 0) + 1
+      typeIndexMap.set(comp.type, currentIndex)
+
+      // 如果同类型组件多于1个，显示序号
+      const count = typeCountMap.get(comp.type) || 0
+      if (count > 1) {
+        label = `${comp.type} #${currentIndex}`
+      } else {
+        label = comp.type
+      }
+    }
+
     const node: TreeNode = {
       id: comp.id,
-      label: `${comp.type} (${comp.id.slice(0, 8)})`,
+      label: label,
       type: comp.type,
       groupId: comp.groupId,
     }
@@ -608,7 +479,7 @@ function allowDrop(draggingNode: TreeNodeInstance, dropNode: TreeNodeInstance, t
   return false
 }
 
-function allowDrag(_draggingNode: TreeNodeInstance) {
+function allowDrag() {
   // 所有组件都允许拖拽
   return true
 }
@@ -773,6 +644,7 @@ function updateChart() {
         data: nodes,
         links: links,
         roam: true,
+        draggable: true, // 允许节点拖拽
         label: {
           show: true,
           position: 'right',
@@ -798,6 +670,7 @@ function updateChart() {
         force: {
           repulsion: 150,
           edgeLength: [100, 200],
+          layoutAnimation: true, // 拖拽时动画效果
         },
       },
     ],
@@ -874,38 +747,10 @@ function buildGraphData() {
     })
   }
 
-  if (graphType.value === 'all' || graphType.value === 'events') {
-    // 事件交互关系
-    clickActions.value.forEach((action) => {
-      if (action.targetId && selectComponent.value) {
-        links.push({
-          source: selectComponent.value.id,
-          target: action.targetId,
-          relationName: `点击事件: ${action.type}`,
-          lineStyle: {
-            color: '#67c23a',
-            width: 2,
-            type: 'dashed',
-          },
-        })
-      }
-    })
-
-    hoverActions.value.forEach((action) => {
-      if (action.targetId && selectComponent.value) {
-        links.push({
-          source: selectComponent.value.id,
-          target: action.targetId,
-          relationName: `悬停事件: ${action.type}`,
-          lineStyle: {
-            color: '#67c23a',
-            width: 1.5,
-            type: 'dotted',
-          },
-        })
-      }
-    })
-  }
+  // TODO: 事件交互关系需要从组件数据结构中读取
+  // if (graphType.value === 'all' || graphType.value === 'events') {
+  //   // 事件交互关系将在事件数据集成到组件后实现
+  // }
 
   if (graphType.value === 'all' || graphType.value === 'data') {
     // 数据联动关系
@@ -930,7 +775,7 @@ function buildGraphData() {
 
 // 监听数据变化,更新图表
 watch(
-  [() => components.value.length, graphType, clickActions, hoverActions, dataBindings],
+  [() => components.value.length, graphType, dataBindings],
   () => {
     nextTick(() => {
       if (chartInstance) {
@@ -941,11 +786,45 @@ watch(
   { deep: true },
 )
 
-// 监听面板展开,初始化图表
+// 监听面板展开,只在首次展开且未初始化时初始化图表
 watch(activeNames, (newVal) => {
-  if (newVal.includes('graph')) {
+  if (newVal.includes('graph') && !chartInstance) {
     nextTick(() => {
       initChart()
+    })
+  }
+})
+
+// 监听 components 变化,实时更新关系图
+watch(
+  () => components.value,
+  () => {
+    if (chartInstance && activeNames.value.includes('graph')) {
+      const { nodes, links } = buildGraphData()
+      chartInstance.setOption({
+        series: [
+          {
+            data: nodes,
+            links: links,
+          },
+        ],
+      })
+    }
+  },
+  { deep: true },
+)
+
+// 监听图表类型切换,更新图表
+watch(graphType, () => {
+  if (chartInstance) {
+    const { nodes, links } = buildGraphData()
+    chartInstance.setOption({
+      series: [
+        {
+          data: nodes,
+          links: links,
+        },
+      ],
     })
   }
 })

@@ -27,6 +27,7 @@ export interface DataSource {
 
 export interface component {
   id: string
+  name?: string // 自定义组件名称，用于区分同类型组件
   type: string
   position: { x: number; y: number }
   size: { width: number; height: number }

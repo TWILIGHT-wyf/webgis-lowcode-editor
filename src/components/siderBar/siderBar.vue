@@ -16,6 +16,7 @@
       <Propertie v-if="activeIndex === '1'" class="fill" />
       <Animation v-if="activeIndex === '2'" class="fill" />
       <Relations v-if="activeIndex === '3'" class="fill" />
+      <Events v-if="activeIndex === '4'" class="fill" />
     </div>
   </div>
 </template>
@@ -25,6 +26,7 @@ import { ref } from 'vue'
 import Propertie from './properties/properties.vue'
 import Animation from './animation/animation.vue'
 import Relations from './relations/relations.vue'
+import Events from './events/events.vue'
 
 const activeIndex = ref('1')
 

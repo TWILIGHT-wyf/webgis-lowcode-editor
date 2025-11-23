@@ -50,7 +50,7 @@ export function useShape(id: string) {
     preventBubble: true,
     dragThreshold: 5,
     rootRefForAbs: canvasWrapRef as any, // eslint-disable-line @typescript-eslint/no-explicit-any
-    dragCallback: (x, y, ctrlPressed) => {
+    dragCallback: (x, y, ctrlPressed, altPressed) => {
       ;(setSelected as (id: string) => void)(id)
       const comp = currentComponent.value
       if (!comp) return
@@ -104,9 +104,84 @@ export function useShape(id: string) {
         }
       }
     },
-    onDragEnd: () => {
+    onDragEnd: (altPressed) => {
       isDragging.value = false
       childrenStartPos = {}
+
+      // 只有按住Alt键才检测父子关系
+      if (!altPressed) return
+
+      // 检测是否拖入了容器组件
+      const comp = currentComponent.value
+      if (!comp) return
+
+      // 容器类型列表
+      const containerTypes = ['panel', 'row', 'col', 'flex', 'grid', 'modal', 'tabs', 'Group']
+
+      // 查找所有容器组件
+      const containers = compStore.componentStore.filter(
+        (c) => containerTypes.includes(c.type) && c.id !== comp.id && c.id !== comp.groupId,
+      )
+
+      // 计算当前组件的中心点
+      const compCenterX = comp.position.x + comp.size.width / 2
+      const compCenterY = comp.position.y + comp.size.height / 2
+
+      // 检测中心点是否在容器内，按zindex从大到小排序
+      const hitContainers = containers
+        .filter((c) => {
+          return (
+            compCenterX >= c.position.x &&
+            compCenterX <= c.position.x + c.size.width &&
+            compCenterY >= c.position.y &&
+            compCenterY <= c.position.y + c.size.height
+          )
+        })
+        .sort((a, b) => b.zindex - a.zindex)
+
+      if (hitContainers.length > 0) {
+        const targetContainer = hitContainers[0]
+
+        // 如果当前组件已经有父组件，且是同一个，则不做处理
+        if (comp.groupId === targetContainer.id) return
+
+        // 移除旧的父子关系
+        if (comp.groupId) {
+          const oldParent = compStore.componentStore.find((c) => c.id === comp.groupId)
+          if (oldParent && oldParent.children) {
+            oldParent.children = oldParent.children.filter((cid) => cid !== comp.id)
+          }
+        }
+
+        // 将绝对坐标转换为相对于父组件的相对坐标
+        const relativeX = comp.position.x - targetContainer.position.x
+        const relativeY = comp.position.y - targetContainer.position.y
+        comp.position.x = relativeX
+        comp.position.y = relativeY
+
+        // 建立新的父子关系
+        if (!targetContainer.children) {
+          targetContainer.children = []
+        }
+        if (!targetContainer.children.includes(comp.id)) {
+          targetContainer.children.push(comp.id)
+        }
+        comp.groupId = targetContainer.id
+
+        // 初始化父组件的布局配置
+        if (!targetContainer.layout) {
+          targetContainer.layout = {
+            mode: 'absolute',
+            gap: 8,
+            columns: 2,
+            align: 'start',
+            padding: 0,
+          }
+        }
+
+        // 提交更改
+        compStore.commitDebounced()
+      }
     },
   })
 
@@ -172,6 +247,8 @@ export function useShape(id: string) {
     { position: { x: number; y: number }; size: { width: number; height: number } }
   > = {}
 
+  let isCtrlPressed = false
+
   const onHandleMouseDown = (e: MouseEvent, handle: HandleMeta) => {
     e.preventDefault()
     // 锁定的组件不能缩放
@@ -182,6 +259,7 @@ export function useShape(id: string) {
     startSize = { ...size.value }
     startPos = { ...position.value }
     currentHandle = handle.id
+    isCtrlPressed = e.ctrlKey
 
     // 保存子组件的初始状态
     const comp = currentComponent.value
@@ -238,17 +316,45 @@ export function useShape(id: string) {
 
     // —— 缩放吸附 ——
     const SNAP_TOL = 10
+    const GRID_SIZE = 20
     const myId = meComp.value.id
     const guideXs: number[] = []
     const guideYs: number[] = []
-    boxCache.value.forEach((b, id) => {
-      if (!id || id === myId) return
-      guideXs.push(b.minx, b.cx, b.maxx, ...b.corners.map((p) => p.x))
-      guideYs.push(b.miny, b.cy, b.maxy, ...b.corners.map((p) => p.y))
-    })
+    
+    // 按住Ctrl时优先吸附网格
+    if (isCtrlPressed) {
+      // 对网格吸附
+      const gridX = Math.round(newX / GRID_SIZE) * GRID_SIZE
+      const gridY = Math.round(newY / GRID_SIZE) * GRID_SIZE
+      const gridRight = Math.round((newX + newWidth) / GRID_SIZE) * GRID_SIZE
+      const gridBottom = Math.round((newY + newHeight) / GRID_SIZE) * GRID_SIZE
+      
+      if (currentHandle.includes('w') && Math.abs(newX - gridX) < SNAP_TOL) {
+        const rightFixed = startPos.x + startSize.width
+        newX = gridX
+        newWidth = Math.max(10, rightFixed - newX)
+      }
+      if (currentHandle.includes('e') && Math.abs(newX + newWidth - gridRight) < SNAP_TOL) {
+        newWidth = Math.max(10, gridRight - newX)
+      }
+      if (currentHandle.includes('n') && Math.abs(newY - gridY) < SNAP_TOL) {
+        const bottomFixed = startPos.y + startSize.height
+        newY = gridY
+        newHeight = Math.max(10, bottomFixed - newY)
+      }
+      if (currentHandle.includes('s') && Math.abs(newY + newHeight - gridBottom) < SNAP_TOL) {
+        newHeight = Math.max(10, gridBottom - newY)
+      }
+    } else {
+      // 吸附到其他组件
+      boxCache.value.forEach((b, id) => {
+        if (!id || id === myId) return
+        guideXs.push(b.minx, b.cx, b.maxx, ...b.corners.map((p) => p.x))
+        guideYs.push(b.miny, b.cy, b.maxy, ...b.corners.map((p) => p.y))
+      })
 
-    // 水平吸附（处理 e/w 手柄）
-    if (currentHandle.includes('e') || currentHandle.includes('w')) {
+      // 水平吸附（处理 e/w 手柄）
+      if (currentHandle.includes('e') || currentHandle.includes('w')) {
       if (currentHandle.includes('e')) {
         const target = newX + newWidth
         let best = { dist: SNAP_TOL + 1, gx: target }
@@ -279,8 +385,8 @@ export function useShape(id: string) {
       }
     }
 
-    // 垂直吸附（处理 n/s 手柄）
-    if (currentHandle.includes('s') || currentHandle.includes('n')) {
+      // 垂直吸附（处理 n/s 手柄）
+      if (currentHandle.includes('s') || currentHandle.includes('n')) {
       if (currentHandle.includes('s')) {
         const target = newY + newHeight
         let best = { dist: SNAP_TOL + 1, gy: target }
@@ -308,6 +414,7 @@ export function useShape(id: string) {
             newY = bottomFixed - 10
           }
         }
+      }
       }
     }
 

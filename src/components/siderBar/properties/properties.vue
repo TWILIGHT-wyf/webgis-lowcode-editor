@@ -65,20 +65,29 @@
           </el-form-item>
         </el-form>
 
-        <el-space direction="vertical" :size="8" style="width: 100%">
-          <el-alert type="info" :closable="false">
-            <template #title> <strong>Ctrl + 拖动</strong>：吸附到网格 </template>
-          </el-alert>
-          <el-alert type="info" :closable="false">
-            <template #title> <strong>Alt + 点击</strong>：选中锁定的组件 </template>
-          </el-alert>
-          <el-alert type="success" :closable="false">
-            <template #title> <strong>Ctrl + C / V</strong>：复制/粘贴组件 </template>
-          </el-alert>
-          <el-alert type="success" :closable="false">
-            <template #title> <strong>Delete</strong>：删除选中组件 </template>
-          </el-alert>
-        </el-space>
+        <div class="shortcuts-section">
+          <h4 class="shortcuts-title">快捷键指南</h4>
+          <el-space direction="vertical" :size="8" style="width: 100%">
+            <el-alert type="info" :closable="false">
+              <template #title> <strong>拖动</strong>：自动吸附邻近组件 </template>
+            </el-alert>
+            <el-alert type="info" :closable="false">
+              <template #title> <strong>Ctrl + 拖动/缩放</strong>：吸附到背景网格 </template>
+            </el-alert>
+            <el-alert type="warning" :closable="false">
+              <template #title> <strong>Alt + 拖动</strong>：将组件拖入容器建立父子关系 </template>
+            </el-alert>
+            <el-alert type="info" :closable="false">
+              <template #title> <strong>Alt + 点击</strong>：选中锁定的组件 </template>
+            </el-alert>
+            <el-alert type="success" :closable="false">
+              <template #title> <strong>Ctrl + C / V</strong>：复制/粘贴组件 </template>
+            </el-alert>
+            <el-alert type="success" :closable="false">
+              <template #title> <strong>Delete</strong>：删除选中组件 </template>
+            </el-alert>
+          </el-space>
+        </div>
       </div>
 
       <!-- 选中组件时显示属性表单 -->
@@ -100,6 +109,20 @@
           <!-- 基础信息 -->
           <el-collapse-item title="基础" name="basic">
             <el-form label-position="top" size="small">
+              <el-form-item label="组件名称">
+                <el-input
+                  v-model="selectComponent.name"
+                  placeholder="输入自定义名称"
+                  clearable
+                  @change="storeComponent.commitDebounced()"
+                  @blur="storeComponent.commitDebounced()"
+                />
+                <template #extra>
+                  <span style="font-size: 12px; color: #909399">
+                    用于在组件树中区分同类型组件
+                  </span>
+                </template>
+              </el-form-item>
               <el-form-item label="组件ID">
                 <el-input v-model="selectComponent.id" disabled />
               </el-form-item>
@@ -746,6 +769,23 @@ watch(
 
 .properties-form {
   padding: 16px;
+}
+
+.canvas-config {
+  padding: 16px;
+}
+
+.shortcuts-section {
+  margin-top: 20px;
+  padding-top: 20px;
+  border-top: 1px solid #e4e7ed;
+}
+
+.shortcuts-title {
+  margin: 0 0 12px 0;
+  font-size: 14px;
+  font-weight: 600;
+  color: #303133;
 }
 
 .properties-form :deep(.el-collapse) {

@@ -11,12 +11,12 @@ export function useCanvasInteraction(
     // 开启在容器上监听 drop，并通过回调抛出落点
     enableDrop?: boolean
     onDrop?: (data: unknown, position: { x: number; y: number }) => void
-    dragCallback?: (x: number, y: number, ctrlPressed: boolean) => void
+    dragCallback?: (x: number, y: number, ctrlPressed: boolean, altPressed: boolean) => void
     preventBubble?: boolean
     dragThreshold?: number
     rootRefForAbs?: Ref<HTMLDivElement | null>
     onDragStart?: () => void
-    onDragEnd?: () => void
+    onDragEnd?: (altPressed: boolean) => void
   } = {},
 ) {
   const panX = ref(0)
@@ -66,11 +66,13 @@ export function useCanvasInteraction(
   let startDragMouseY = 0
   let anchorX = 0
   let anchorY = 0
+  let dragAltPressed = false
   const onDragStart = (e: MouseEvent) => {
     if (e.button !== 0 || !options.enableDrag) return
     isDragging.value = false
     startDragMouseX = e.clientX
     startDragMouseY = e.clientY
+    dragAltPressed = e.altKey
 
     // 计算锚点：鼠标(stage) 与 元素左上角(stage) 的偏移
     const rootEl = options.rootRefForAbs?.value ?? wrapRef.value
@@ -117,7 +119,9 @@ export function useCanvasInteraction(
       const mouseStageY = (e.clientY - rect.top - panY.value) / (scaleRef.value || 1)
       const x = mouseStageX - anchorX
       const y = mouseStageY - anchorY
-      if (options.dragCallback) options.dragCallback(x, y, e.ctrlKey)
+      // 更新altKey状态
+      dragAltPressed = e.altKey
+      if (options.dragCallback) options.dragCallback(x, y, e.ctrlKey, e.altKey)
     }) as any, // eslint-disable-line @typescript-eslint/no-explicit-any
     16,
   )
@@ -126,9 +130,10 @@ export function useCanvasInteraction(
     window.removeEventListener('mousemove', onDragMove)
     window.removeEventListener('mouseup', onDragEnd)
     isDragging.value = false
-    if (options.onDragEnd) options.onDragEnd()
+    if (options.onDragEnd) options.onDragEnd(dragAltPressed)
     anchorX = 0
     anchorY = 0
+    dragAltPressed = false
   }
 
   // 处理容器上的 Drop
