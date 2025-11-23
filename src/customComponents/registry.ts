@@ -44,6 +44,16 @@ import iframe from './content/iframe/iframe.vue'
 import scripting from './advanced/scripting/scripting.vue'
 import state from './advanced/state/state.vue'
 import trigger from './advanced/trigger/trigger.vue'
+import base from './map/base/base.vue'
+import tile from './map/tile/tile.vue'
+import vector from './map/vector/vector.vue'
+import geojson from './map/geojson/geojson.vue'
+import marker from './map/marker/marker.vue'
+import cluster from './map/cluster/cluster.vue'
+import heat from './map/heat/heat.vue'
+import legend from './map/legend/legend.vue'
+import scale from './map/scale/scale.vue'
+import layers from './map/layers/layers.vue'
 
 export const componentRegistry: Record<string, Component> = {
   Text: Text,
@@ -99,6 +109,17 @@ export const componentRegistry: Record<string, Component> = {
   scripting: scripting,
   state: state,
   trigger: trigger,
+  //地图组件
+  base: base,
+  tile: tile,
+  vector: vector,
+  geojson: geojson,
+  marker: marker,
+  cluster: cluster,
+  heat: heat,
+  legend: legend,
+  scale: scale,
+  layers: layers,
 }
 
 export function getComponent(type: string) {

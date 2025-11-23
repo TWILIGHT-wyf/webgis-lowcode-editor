@@ -3060,6 +3060,113 @@ export function customProperties() {
           },
         ]
 
+      // 地图组件样式
+      case 'base':
+      case 'tile':
+      case 'vector':
+      case 'geojson':
+      case 'marker':
+      case 'cluster':
+      case 'heat':
+        return [
+          {
+            key: 'borderRadius',
+            label: '圆角(px)',
+            type: 'number',
+            min: 0,
+            max: 20,
+            step: 1,
+            default: 0,
+          },
+          {
+            key: 'border',
+            label: '边框',
+            type: 'text',
+            default: 'none',
+          },
+        ]
+
+      case 'legend':
+      case 'layers':
+        return [
+          {
+            key: 'backgroundColor',
+            label: '背景颜色',
+            type: 'color',
+            default: '#ffffff',
+          },
+          {
+            key: 'textColor',
+            label: '文字颜色',
+            type: 'color',
+            default: '#303133',
+          },
+          {
+            key: 'borderColor',
+            label: '边框颜色',
+            type: 'color',
+            default: '#dcdfe6',
+          },
+          {
+            key: 'fontSize',
+            label: '字体大小(px)',
+            type: 'number',
+            min: 10,
+            max: 20,
+            step: 1,
+            default: 14,
+          },
+          {
+            key: 'padding',
+            label: '内边距(px)',
+            type: 'number',
+            min: 0,
+            max: 30,
+            step: 1,
+            default: 12,
+          },
+          {
+            key: 'borderRadius',
+            label: '圆角(px)',
+            type: 'number',
+            min: 0,
+            max: 10,
+            step: 1,
+            default: 4,
+          },
+        ]
+
+      case 'scale':
+        return [
+          {
+            key: 'backgroundColor',
+            label: '背景颜色',
+            type: 'color',
+            default: 'rgba(255, 255, 255, 0.8)',
+          },
+          {
+            key: 'lineColor',
+            label: '线条颜色',
+            type: 'color',
+            default: '#303133',
+          },
+          {
+            key: 'textColor',
+            label: '文字颜色',
+            type: 'color',
+            default: '#303133',
+          },
+          {
+            key: 'fontSize',
+            label: '字体大小(px)',
+            type: 'number',
+            min: 8,
+            max: 16,
+            step: 1,
+            default: 11,
+          },
+        ]
+
       default:
         return []
     }
@@ -4765,6 +4872,458 @@ export function customProperties() {
             type: 'text',
             placeholder: '{"Authorization": "Bearer token"}',
             default: '',
+          },
+        ]
+
+      // 地图组件数据源 - base 底图
+      case 'base':
+        return [
+          {
+            key: 'enabled',
+            label: '启用数据源',
+            type: 'switch',
+            default: false,
+          },
+          {
+            key: 'url',
+            label: 'API 地址',
+            type: 'text',
+            placeholder: 'http://localhost:3001/api/map/base',
+            default: '',
+          },
+          {
+            key: 'method',
+            label: '请求方法',
+            type: 'select',
+            options: [
+              { label: 'GET', value: 'GET' },
+              { label: 'POST', value: 'POST' },
+            ],
+            default: 'GET',
+          },
+          {
+            key: 'centerLatField',
+            label: '中心纬度字段',
+            type: 'text',
+            placeholder: 'centerLat 或 data.centerLat',
+            default: 'centerLat',
+          },
+          {
+            key: 'centerLngField',
+            label: '中心经度字段',
+            type: 'text',
+            placeholder: 'centerLng 或 data.centerLng',
+            default: 'centerLng',
+          },
+          {
+            key: 'zoomField',
+            label: '缩放级别字段',
+            type: 'text',
+            placeholder: 'zoom 或 data.zoom',
+            default: 'zoom',
+          },
+          {
+            key: 'tileUrlField',
+            label: '瓦片URL字段',
+            type: 'text',
+            placeholder: 'tileUrl 或 data.tileUrl',
+            default: 'tileUrl',
+          },
+          {
+            key: 'interval',
+            label: '自动刷新(秒)',
+            type: 'number',
+            min: 0,
+            max: 3600,
+            step: 1,
+            default: 0,
+          },
+        ]
+
+      // 地图组件数据源 - tile 瓦片图层
+      case 'tile':
+        return [
+          {
+            key: 'enabled',
+            label: '启用数据源',
+            type: 'switch',
+            default: false,
+          },
+          {
+            key: 'url',
+            label: 'API 地址',
+            type: 'text',
+            placeholder: 'http://localhost:3001/api/map/tile',
+            default: '',
+          },
+          {
+            key: 'method',
+            label: '请求方法',
+            type: 'select',
+            options: [
+              { label: 'GET', value: 'GET' },
+              { label: 'POST', value: 'POST' },
+            ],
+            default: 'GET',
+          },
+          {
+            key: 'tileUrlField',
+            label: '瓦片URL字段',
+            type: 'text',
+            placeholder: 'tileUrl 或 data.tileUrl',
+            default: 'tileUrl',
+          },
+          {
+            key: 'opacityField',
+            label: '透明度字段',
+            type: 'text',
+            placeholder: 'opacity 或 data.opacity',
+            default: 'opacity',
+          },
+          {
+            key: 'centerLatField',
+            label: '中心纬度字段',
+            type: 'text',
+            placeholder: 'centerLat 或 data.centerLat',
+            default: 'centerLat',
+          },
+          {
+            key: 'centerLngField',
+            label: '中心经度字段',
+            type: 'text',
+            placeholder: 'centerLng 或 data.centerLng',
+            default: 'centerLng',
+          },
+          {
+            key: 'interval',
+            label: '自动刷新(秒)',
+            type: 'number',
+            min: 0,
+            max: 3600,
+            step: 1,
+            default: 0,
+          },
+        ]
+
+      // 地图组件数据源 - vector 矢量图层
+      case 'vector':
+        return [
+          {
+            key: 'enabled',
+            label: '启用数据源',
+            type: 'switch',
+            default: false,
+          },
+          {
+            key: 'url',
+            label: 'API 地址',
+            type: 'text',
+            placeholder: 'http://localhost:3001/api/map/vector',
+            default: '',
+          },
+          {
+            key: 'method',
+            label: '请求方法',
+            type: 'select',
+            options: [
+              { label: 'GET', value: 'GET' },
+              { label: 'POST', value: 'POST' },
+            ],
+            default: 'GET',
+          },
+          {
+            key: 'vectorDataField',
+            label: '矢量数据字段',
+            type: 'text',
+            placeholder: 'vectorData 或 data.vectorData',
+            default: 'vectorData',
+          },
+          {
+            key: 'interval',
+            label: '自动刷新(秒)',
+            type: 'number',
+            min: 0,
+            max: 3600,
+            step: 1,
+            default: 0,
+          },
+        ]
+
+      // 地图组件数据源 - geojson
+      case 'geojson':
+        return [
+          {
+            key: 'enabled',
+            label: '启用数据源',
+            type: 'switch',
+            default: false,
+          },
+          {
+            key: 'url',
+            label: 'API 地址',
+            type: 'text',
+            placeholder: 'http://localhost:3001/api/map/geojson',
+            default: '',
+          },
+          {
+            key: 'method',
+            label: '请求方法',
+            type: 'select',
+            options: [
+              { label: 'GET', value: 'GET' },
+              { label: 'POST', value: 'POST' },
+            ],
+            default: 'GET',
+          },
+          {
+            key: 'geojsonDataField',
+            label: 'GeoJSON数据字段',
+            type: 'text',
+            placeholder: 'geojsonData 或 data.geojsonData',
+            default: 'geojsonData',
+          },
+          {
+            key: 'interval',
+            label: '自动刷新(秒)',
+            type: 'number',
+            min: 0,
+            max: 3600,
+            step: 1,
+            default: 0,
+          },
+        ]
+
+      // 地图组件数据源 - marker 标记点
+      case 'marker':
+        return [
+          {
+            key: 'enabled',
+            label: '启用数据源',
+            type: 'switch',
+            default: false,
+          },
+          {
+            key: 'url',
+            label: 'API 地址',
+            type: 'text',
+            placeholder: 'http://localhost:3001/api/map/markers',
+            default: '',
+          },
+          {
+            key: 'method',
+            label: '请求方法',
+            type: 'select',
+            options: [
+              { label: 'GET', value: 'GET' },
+              { label: 'POST', value: 'POST' },
+            ],
+            default: 'GET',
+          },
+          {
+            key: 'markersField',
+            label: '标记点数组字段',
+            type: 'text',
+            placeholder: 'markers 或 data.markers',
+            default: 'markers',
+          },
+          {
+            key: 'interval',
+            label: '自动刷新(秒)',
+            type: 'number',
+            min: 0,
+            max: 3600,
+            step: 1,
+            default: 0,
+          },
+        ]
+
+      // 地图组件数据源 - cluster 聚合点
+      case 'cluster':
+        return [
+          {
+            key: 'enabled',
+            label: '启用数据源',
+            type: 'switch',
+            default: false,
+          },
+          {
+            key: 'url',
+            label: 'API 地址',
+            type: 'text',
+            placeholder: 'http://localhost:3001/api/map/cluster',
+            default: '',
+          },
+          {
+            key: 'method',
+            label: '请求方法',
+            type: 'select',
+            options: [
+              { label: 'GET', value: 'GET' },
+              { label: 'POST', value: 'POST' },
+            ],
+            default: 'GET',
+          },
+          {
+            key: 'markersField',
+            label: '聚合点数组字段',
+            type: 'text',
+            placeholder: 'markers 或 data.markers',
+            default: 'markers',
+          },
+          {
+            key: 'interval',
+            label: '自动刷新(秒)',
+            type: 'number',
+            min: 0,
+            max: 3600,
+            step: 1,
+            default: 0,
+          },
+        ]
+
+      // 地图组件数据源 - heat 热力图
+      case 'heat':
+        return [
+          {
+            key: 'enabled',
+            label: '启用数据源',
+            type: 'switch',
+            default: false,
+          },
+          {
+            key: 'url',
+            label: 'API 地址',
+            type: 'text',
+            placeholder: 'http://localhost:3001/api/map/heat',
+            default: '',
+          },
+          {
+            key: 'method',
+            label: '请求方法',
+            type: 'select',
+            options: [
+              { label: 'GET', value: 'GET' },
+              { label: 'POST', value: 'POST' },
+            ],
+            default: 'GET',
+          },
+          {
+            key: 'heatDataField',
+            label: '热力数据字段',
+            type: 'text',
+            placeholder: 'heatData 或 data.heatData',
+            default: 'heatData',
+          },
+          {
+            key: 'interval',
+            label: '自动刷新(秒)',
+            type: 'number',
+            min: 0,
+            max: 3600,
+            step: 1,
+            default: 0,
+          },
+        ]
+
+      // 地图组件数据源 - legend 图例
+      case 'legend':
+        return [
+          {
+            key: 'enabled',
+            label: '启用数据源',
+            type: 'switch',
+            default: false,
+          },
+          {
+            key: 'url',
+            label: 'API 地址',
+            type: 'text',
+            placeholder: 'http://localhost:3001/api/map/legend',
+            default: '',
+          },
+          {
+            key: 'method',
+            label: '请求方法',
+            type: 'select',
+            options: [
+              { label: 'GET', value: 'GET' },
+              { label: 'POST', value: 'POST' },
+            ],
+            default: 'GET',
+          },
+          {
+            key: 'itemsField',
+            label: '图例项数组字段',
+            type: 'text',
+            placeholder: 'items 或 data.items',
+            default: 'items',
+          },
+          {
+            key: 'titleField',
+            label: '标题字段',
+            type: 'text',
+            placeholder: 'title 或 data.title',
+            default: 'title',
+          },
+          {
+            key: 'interval',
+            label: '自动刷新(秒)',
+            type: 'number',
+            min: 0,
+            max: 3600,
+            step: 1,
+            default: 0,
+          },
+        ]
+
+      // 地图组件数据源 - layers 图层控制
+      case 'layers':
+        return [
+          {
+            key: 'enabled',
+            label: '启用数据源',
+            type: 'switch',
+            default: false,
+          },
+          {
+            key: 'url',
+            label: 'API 地址',
+            type: 'text',
+            placeholder: 'http://localhost:3001/api/map/layers',
+            default: '',
+          },
+          {
+            key: 'method',
+            label: '请求方法',
+            type: 'select',
+            options: [
+              { label: 'GET', value: 'GET' },
+              { label: 'POST', value: 'POST' },
+            ],
+            default: 'GET',
+          },
+          {
+            key: 'layersField',
+            label: '图层数组字段',
+            type: 'text',
+            placeholder: 'layers 或 data.layers',
+            default: 'layers',
+          },
+          {
+            key: 'titleField',
+            label: '标题字段',
+            type: 'text',
+            placeholder: 'title 或 data.title',
+            default: 'title',
+          },
+          {
+            key: 'interval',
+            label: '自动刷新(秒)',
+            type: 'number',
+            min: 0,
+            max: 3600,
+            step: 1,
+            default: 0,
           },
         ]
 
@@ -8303,6 +8862,390 @@ export function customProperties() {
             type: 'text',
             placeholder: '暂无执行记录',
             default: '暂无执行记录',
+          },
+        ]
+
+      // 地图组件 - 完整配置项以支持高度自定义
+      case 'base':
+        return [
+          {
+            key: 'centerLat',
+            label: '中心纬度',
+            type: 'number',
+            min: -90,
+            max: 90,
+            step: 0.0001,
+            default: 39.9,
+          },
+          {
+            key: 'centerLng',
+            label: '中心经度',
+            type: 'number',
+            min: -180,
+            max: 180,
+            step: 0.0001,
+            default: 116.4,
+          },
+          { key: 'zoom', label: '缩放级别', type: 'number', min: 1, max: 18, step: 1, default: 13 },
+          {
+            key: 'minZoom',
+            label: '最小缩放',
+            type: 'number',
+            min: 1,
+            max: 18,
+            step: 1,
+            default: 1,
+          },
+          {
+            key: 'maxZoom',
+            label: '最大缩放',
+            type: 'number',
+            min: 1,
+            max: 18,
+            step: 1,
+            default: 18,
+          },
+          {
+            key: 'tileUrl',
+            label: '瓦片URL',
+            type: 'text',
+            placeholder: 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
+            default: '',
+          },
+          {
+            key: 'attribution',
+            label: '版权信息',
+            type: 'text',
+            default: '&copy; OpenStreetMap contributors',
+          },
+          { key: 'zoomControl', label: '缩放控件', type: 'switch', default: true },
+          { key: 'dragging', label: '允许拖拽', type: 'switch', default: true },
+          { key: 'scrollWheelZoom', label: '滚轮缩放', type: 'switch', default: true },
+          { key: 'doubleClickZoom', label: '双击缩放', type: 'switch', default: true },
+          {
+            key: 'placeholder',
+            label: '占位提示',
+            type: 'text',
+            default: '配置地图中心点以显示底图',
+          },
+        ]
+
+      case 'tile':
+        return [
+          {
+            key: 'centerLat',
+            label: '中心纬度',
+            type: 'number',
+            min: -90,
+            max: 90,
+            step: 0.0001,
+            default: 39.9,
+          },
+          {
+            key: 'centerLng',
+            label: '中心经度',
+            type: 'number',
+            min: -180,
+            max: 180,
+            step: 0.0001,
+            default: 116.4,
+          },
+          { key: 'zoom', label: '缩放级别', type: 'number', min: 1, max: 18, step: 1, default: 10 },
+          {
+            key: 'tileUrl',
+            label: '瓦片URL',
+            type: 'text',
+            placeholder: 'https://.../{z}/{x}/{y}.png',
+            default: '',
+          },
+          { key: 'attribution', label: '版权信息', type: 'text', default: '' },
+          {
+            key: 'opacity',
+            label: '透明度',
+            type: 'number',
+            min: 0,
+            max: 1,
+            step: 0.1,
+            default: 1,
+          },
+          {
+            key: 'zIndex',
+            label: '图层层级',
+            type: 'number',
+            min: 1,
+            max: 1000,
+            step: 1,
+            default: 1,
+          },
+          {
+            key: 'minZoom',
+            label: '最小缩放',
+            type: 'number',
+            min: 1,
+            max: 18,
+            step: 1,
+            default: 1,
+          },
+          {
+            key: 'maxZoom',
+            label: '最大缩放',
+            type: 'number',
+            min: 1,
+            max: 18,
+            step: 1,
+            default: 18,
+          },
+          { key: 'placeholder', label: '占位提示', type: 'text', default: '配置瓦片URL以显示图层' },
+        ]
+
+      case 'marker':
+        return [
+          {
+            key: 'centerLat',
+            label: '中心纬度',
+            type: 'number',
+            min: -90,
+            max: 90,
+            step: 0.0001,
+            default: 39.9,
+          },
+          {
+            key: 'centerLng',
+            label: '中心经度',
+            type: 'number',
+            min: -180,
+            max: 180,
+            step: 0.0001,
+            default: 116.4,
+          },
+          { key: 'zoom', label: '缩放级别', type: 'number', min: 1, max: 18, step: 1, default: 10 },
+          { key: 'showLabel', label: '显示标签', type: 'switch', default: false },
+          { key: 'draggableMarkers', label: '可拖拽标记', type: 'switch', default: false },
+          { key: 'placeholder', label: '占位提示', type: 'text', default: '配置标记点数据以显示' },
+        ]
+
+      case 'cluster':
+        return [
+          {
+            key: 'centerLat',
+            label: '中心纬度',
+            type: 'number',
+            min: -90,
+            max: 90,
+            step: 0.0001,
+            default: 39.9,
+          },
+          {
+            key: 'centerLng',
+            label: '中心经度',
+            type: 'number',
+            min: -180,
+            max: 180,
+            step: 0.0001,
+            default: 116.4,
+          },
+          { key: 'zoom', label: '缩放级别', type: 'number', min: 1, max: 18, step: 1, default: 5 },
+          {
+            key: 'maxClusterRadius',
+            label: '聚合半径',
+            type: 'number',
+            min: 20,
+            max: 200,
+            step: 10,
+            default: 80,
+          },
+          { key: 'spiderfyOnMaxZoom', label: '最大缩放时展开', type: 'switch', default: true },
+          { key: 'showCoverageOnHover', label: '悬停显示覆盖', type: 'switch', default: true },
+          { key: 'zoomToBoundsOnClick', label: '点击缩放到边界', type: 'switch', default: true },
+          {
+            key: 'placeholder',
+            label: '占位提示',
+            type: 'text',
+            default: '配置标记点数据以显示聚合',
+          },
+        ]
+
+      case 'heat':
+        return [
+          {
+            key: 'centerLat',
+            label: '中心纬度',
+            type: 'number',
+            min: -90,
+            max: 90,
+            step: 0.0001,
+            default: 39.9,
+          },
+          {
+            key: 'centerLng',
+            label: '中心经度',
+            type: 'number',
+            min: -180,
+            max: 180,
+            step: 0.0001,
+            default: 116.4,
+          },
+          { key: 'zoom', label: '缩放级别', type: 'number', min: 1, max: 18, step: 1, default: 10 },
+          {
+            key: 'radius',
+            label: '热点半径',
+            type: 'number',
+            min: 10,
+            max: 50,
+            step: 1,
+            default: 25,
+          },
+          { key: 'blur', label: '模糊度', type: 'number', min: 5, max: 30, step: 1, default: 15 },
+          {
+            key: 'maxZoom',
+            label: '最大缩放',
+            type: 'number',
+            min: 1,
+            max: 18,
+            step: 1,
+            default: 17,
+          },
+          {
+            key: 'max',
+            label: '最大强度',
+            type: 'number',
+            min: 0.1,
+            max: 2,
+            step: 0.1,
+            default: 1,
+          },
+          {
+            key: 'minOpacity',
+            label: '最小透明度',
+            type: 'number',
+            min: 0,
+            max: 1,
+            step: 0.1,
+            default: 0.4,
+          },
+          {
+            key: 'placeholder',
+            label: '占位提示',
+            type: 'text',
+            default: '配置热力数据以显示热力图',
+          },
+        ]
+
+      case 'legend':
+        return [
+          { key: 'title', label: '图例标题', type: 'text', default: '图例' },
+          {
+            key: 'symbolShape',
+            label: '符号形状',
+            type: 'select',
+            options: [
+              { label: '方形', value: 'square' },
+              { label: '圆形', value: 'circle' },
+            ],
+            default: 'square',
+          },
+          {
+            key: 'symbolWidth',
+            label: '符号宽度',
+            type: 'number',
+            min: 10,
+            max: 40,
+            step: 1,
+            default: 20,
+          },
+          {
+            key: 'symbolHeight',
+            label: '符号高度',
+            type: 'number',
+            min: 10,
+            max: 40,
+            step: 1,
+            default: 20,
+          },
+          { key: 'placeholder', label: '占位提示', type: 'text', default: '配置图例项以显示' },
+        ]
+
+      case 'scale':
+        return [
+          {
+            key: 'maxWidth',
+            label: '最大宽度',
+            type: 'number',
+            min: 50,
+            max: 200,
+            step: 10,
+            default: 100,
+          },
+          { key: 'metric', label: '公制单位', type: 'switch', default: true },
+          { key: 'imperial', label: '英制单位', type: 'switch', default: false },
+          { key: 'segments', label: '段数', type: 'number', min: 2, max: 8, step: 1, default: 4 },
+          { key: 'zoom', label: '缩放级别', type: 'number', min: 1, max: 18, step: 1, default: 10 },
+        ]
+
+      case 'layers':
+        return [
+          { key: 'title', label: '控件标题', type: 'text', default: '图层控制' },
+          { key: 'showOpacity', label: '显示透明度控制', type: 'switch', default: true },
+          { key: 'placeholder', label: '占位提示', type: 'text', default: '配置图层列表以显示' },
+        ]
+
+      case 'vector':
+        return [
+          {
+            key: 'centerLat',
+            label: '中心纬度',
+            type: 'number',
+            min: -90,
+            max: 90,
+            step: 0.0001,
+            default: 39.9,
+          },
+          {
+            key: 'centerLng',
+            label: '中心经度',
+            type: 'number',
+            min: -180,
+            max: 180,
+            step: 0.0001,
+            default: 116.4,
+          },
+          { key: 'zoom', label: '缩放级别', type: 'number', min: 1, max: 18, step: 1, default: 10 },
+          { key: 'showPopup', label: '显示弹窗', type: 'switch', default: true },
+          {
+            key: 'placeholder',
+            label: '占位提示',
+            type: 'text',
+            default: '配置矢量数据以显示图层',
+          },
+        ]
+
+      case 'geojson':
+        return [
+          {
+            key: 'centerLat',
+            label: '中心纬度',
+            type: 'number',
+            min: -90,
+            max: 90,
+            step: 0.0001,
+            default: 39.9,
+          },
+          {
+            key: 'centerLng',
+            label: '中心经度',
+            type: 'number',
+            min: -180,
+            max: 180,
+            step: 0.0001,
+            default: 116.4,
+          },
+          { key: 'zoom', label: '缩放级别', type: 'number', min: 1, max: 18, step: 1, default: 10 },
+          { key: 'showPopup', label: '显示弹窗', type: 'switch', default: true },
+          {
+            key: 'placeholder',
+            label: '占位提示',
+            type: 'text',
+            default: '配置GeoJSON数据以显示图层',
           },
         ]
 

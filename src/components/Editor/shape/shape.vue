@@ -12,10 +12,10 @@
         <slot />
       </div>
       <!-- 边框 -->
-      <div v-if="isSelected" class="shape-border" :style="borderStyle" />
+      <div v-if="isSelected && !isLocked" class="shape-border" :style="borderStyle" />
 
       <!-- 八个缩放节点（随动画一起） -->
-      <template v-if="isSelected">
+      <template v-if="isSelected && !isLocked">
         <div
           v-for="handle in handles"
           :key="handle.id"
@@ -42,6 +42,7 @@ const props = defineProps<{ id: string }>()
 const {
   wrapperRef,
   isSelected,
+  isLocked,
   wrapperStyle,
   borderStyle,
   handles,
@@ -62,6 +63,11 @@ function emitOpenContextMenu(e: MouseEvent) {
 }
 
 function handleClick(e: MouseEvent) {
+  const comp = compStore.componentStore.find((c) => c.id === props.id)
+  // 锁定的组件需要按住 Alt 才能选中
+  if (comp?.style?.locked && !e.altKey) {
+    return
+  }
   compStore.toggleSelect(props.id, e.ctrlKey)
 }
 </script>

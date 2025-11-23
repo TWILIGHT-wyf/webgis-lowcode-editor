@@ -1,9 +1,84 @@
 <template>
   <div class="properties-panel">
     <el-scrollbar class="properties-scrollbar">
-      <!-- 未选中任何组件时的提示 -->
-      <div v-if="!selectComponent" class="empty-state">
-        <el-empty description="未选中任何组件" />
+      <!-- 未选中任何组件时显示画布配置 -->
+      <div v-if="!selectComponent" class="canvas-config">
+        <el-form label-position="top" size="small">
+          <el-form-item label="画布宽度">
+            <el-input-number
+              :model-value="canvasWidth"
+              @update:model-value="setCanvasSize($event, canvasHeight)"
+              :min="100"
+              :max="10000"
+              :step="10"
+              style="width: 100%"
+            />
+          </el-form-item>
+          <el-form-item label="画布高度">
+            <el-input-number
+              :model-value="canvasHeight"
+              @update:model-value="setCanvasSize(canvasWidth, $event)"
+              :min="100"
+              :max="10000"
+              :step="10"
+              style="width: 100%"
+            />
+          </el-form-item>
+          <el-form-item label="背景颜色">
+            <el-color-picker v-model="canvasConfig.backgroundColor" show-alpha />
+          </el-form-item>
+          <el-form-item label="显示网格">
+            <el-switch v-model="canvasConfig.showGrid" active-text="显示" inactive-text="隐藏" />
+          </el-form-item>
+          <template v-if="canvasConfig.showGrid">
+            <el-form-item label="网格大小(px)">
+              <el-input-number
+                v-model="canvasConfig.gridSize"
+                :min="5"
+                :max="100"
+                :step="5"
+                style="width: 100%"
+              />
+            </el-form-item>
+            <el-form-item label="主网格大小(px)">
+              <el-input-number
+                v-model="canvasConfig.gridMajorSize"
+                :min="20"
+                :max="500"
+                :step="10"
+                style="width: 100%"
+              />
+            </el-form-item>
+            <el-form-item label="网格颜色">
+              <el-color-picker v-model="canvasConfig.gridColor" />
+            </el-form-item>
+            <el-form-item label="主网格颜色">
+              <el-color-picker v-model="canvasConfig.gridMajorColor" />
+            </el-form-item>
+          </template>
+          <el-form-item label="背景图片URL">
+            <el-input
+              v-model="canvasConfig.backgroundImage"
+              placeholder="https://example.com/bg.jpg"
+              clearable
+            />
+          </el-form-item>
+        </el-form>
+
+        <el-space direction="vertical" :size="8" style="width: 100%">
+          <el-alert type="info" :closable="false">
+            <template #title> <strong>Ctrl + 拖动</strong>：吸附到网格 </template>
+          </el-alert>
+          <el-alert type="info" :closable="false">
+            <template #title> <strong>Alt + 点击</strong>：选中锁定的组件 </template>
+          </el-alert>
+          <el-alert type="success" :closable="false">
+            <template #title> <strong>Ctrl + C / V</strong>：复制/粘贴组件 </template>
+          </el-alert>
+          <el-alert type="success" :closable="false">
+            <template #title> <strong>Delete</strong>：删除选中组件 </template>
+          </el-alert>
+        </el-space>
       </div>
 
       <!-- 选中组件时显示属性表单 -->
@@ -242,6 +317,8 @@
                       v-else
                       v-model="selectComponent.dataSource[field.key]"
                       :placeholder="field.placeholder"
+                      @change="storeComponent.commitDebounced()"
+                      @blur="storeComponent.commitDebounced()"
                     />
                   </template>
                   <el-input-number
@@ -251,11 +328,14 @@
                     :max="field.max"
                     :step="field.step ?? 1"
                     style="width: 100%"
+                    @change="storeComponent.commitDebounced()"
+                    @blur="storeComponent.commitDebounced()"
                   />
                   <el-select
                     v-else-if="field.type === 'select' && selectComponent.dataSource"
                     v-model="selectComponent.dataSource[field.key]"
                     style="width: 100%"
+                    @change="storeComponent.commitDebounced()"
                   >
                     <el-option
                       v-for="opt in field.options"
@@ -267,6 +347,7 @@
                   <el-switch
                     v-else-if="field.type === 'switch' && selectComponent.dataSource"
                     v-model="selectComponent.dataSource[field.key]"
+                    @change="storeComponent.commitDebounced()"
                   />
                 </el-form-item>
               </template>
@@ -378,13 +459,19 @@
 import { ref, computed, watch } from 'vue'
 import { Top, Bottom, CaretTop, CaretBottom } from '@element-plus/icons-vue'
 import { useComponent } from '@/stores/component'
+import { useSizeStore } from '@/stores/size'
 import { storeToRefs } from 'pinia'
 import { customProperties } from './properties'
 import { useDataSource } from '@/datasource/useDataSource'
 // 状态管理
 const storeComponent = useComponent()
 const { selectComponent, selectedIds } = storeToRefs(storeComponent)
+const sizeStore = useSizeStore()
+const { width: canvasWidth, height: canvasHeight, canvasConfig } = storeToRefs(sizeStore)
+const { setSize: setCanvasSize } = sizeStore
+
 const activeCollapse = ref(['basic'])
+const canvasActiveCollapse = ref(['canvas'])
 const { styleSchema, dataSourceSchema, componentSchema } = customProperties()
 const isRow = computed(() => {
   const t = selectComponent.value?.type

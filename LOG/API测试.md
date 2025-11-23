@@ -732,75 +732,70 @@ node mockServer.mjs
 
 ## 快速URL列表
 
-### 🔧 基础数据接口
+### 🔧 基础数据接口（方法 / URL / 数据路径 / 说明）
 
-```
-http://localhost:3001/api/text
-http://localhost:3001/api/nested
-http://localhost:3001/api/list
-http://localhost:3001/api/time
-http://localhost:3001/api/random
-http://localhost:3001/api/counter
-http://localhost:3001/api/temperature
-http://localhost:3001/api/weather
-http://localhost:3001/api/echo
-http://localhost:3001/api/slow
-http://localhost:3001/api/error
-```
+- `GET http://localhost:3001/api/text` — 数据路径: `text` — 返回简单文本，用于 Text 组件。
+- `GET http://localhost:3001/api/nested` — 数据路径: `data.message` — 嵌套返回，测试点路径解析（如 `data.xxx`）。
+- `GET http://localhost:3001/api/list` — 数据路径: `items` — 返回数组列表，用于列表组件或表格数据源。
+- `GET http://localhost:3001/api/time` — 数据路径: `time` / `date` / `timestamp` — 实时时间信息，适合定时刷新展示。
+- `GET http://localhost:3001/api/random` — 数据路径: `value` — 随机数示例，测试动态变化展示。
+- `GET http://localhost:3001/api/counter` — 数据路径: `count` — 计数器，每次请求自增。
+- `GET http://localhost:3001/api/temperature` — 数据路径: `data.value` / `data.unit` — 传感器样例，带单位字段。
+- `GET http://localhost:3001/api/weather` — 数据路径: 全响应（`city` / `temperature` / `condition`） — 模拟天气信息。
+- `POST http://localhost:3001/api/echo` — 数据路径: 返回字段 `received` — 回显请求体，用于 POST 测试。
+- `GET http://localhost:3001/api/slow` — 数据路径: `message` — 延迟 2 秒返回，用于加载态测试。
+- `GET http://localhost:3001/api/error` — 数据路径: `error` — 模拟服务器错误响应。
 
-### 📊 图表数据接口
+### 📊 图表数据接口（方法 / URL / 数据路径 / 说明）
 
-```
-http://localhost:3001/api/chart/simple
-http://localhost:3001/api/chart/nested
-http://localhost:3001/api/chart/realtime
-http://localhost:3001/api/chart/temperature
-http://localhost:3001/api/chart/server
-http://localhost:3001/api/chart/users
-http://localhost:3001/api/chart/stock
-http://localhost:3001/api/chart/stacked
-http://localhost:3001/api/chart/pie
-http://localhost:3001/api/chart/doughnut
-http://localhost:3001/api/chart/scatter
-```
+- `GET http://localhost:3001/api/chart/simple` — 数据路径: `chartData` / `labels` — 简单数组格式的数值与标签。
+- `GET http://localhost:3001/api/chart/nested` — 数据路径: `data.chart.values` / `data.chart.categories` — 嵌套格式的图表数据。
+- `GET http://localhost:3001/api/chart/realtime` — 数据路径: `result.series` / `result.xAxis` — 实时变化的序列数据，适合定时刷新。
+- `GET http://localhost:3001/api/chart/temperature` — 数据路径: `readings.temperatures` / `readings.timestamps` — 温度监控用例（12 小时）。
+- `GET http://localhost:3001/api/chart/server` — 数据路径: `metrics.cpu` / `metrics.time` — 服务器监控（CPU、内存、时间轴）。
+- `GET http://localhost:3001/api/chart/users` — 数据路径: `analytics.activeUsers` / `analytics.weeks` — 用户活跃度。
+- `GET http://localhost:3001/api/chart/stock` — 数据路径: `quote.prices` / `quote.times` — 股票价格时序数据。
+- `GET http://localhost:3001/api/chart/stacked` — 数据路径: `data.categories` / `data.seriesData` — 堆叠柱状图多系列数据。
+- `GET http://localhost:3001/api/chart/pie` — 数据路径: `data.values` / `data.labels` — 饼图数据（值 + 标签）。
+- `GET http://localhost:3001/api/chart/doughnut` — 数据路径: `data.values` / `data.labels` — 环形图（动态）。
+- `GET http://localhost:3001/api/chart/scatter` — 数据路径: `data.points` — 散点图点集合（二维数组）。
 
-### 📈 KPI 组件接口
+### 📈 KPI 组件接口（方法 / URL / 数据路径 / 说明）
 
-```
-http://localhost:3001/api/stat
-http://localhost:3001/api/stat/nested
-http://localhost:3001/api/stat/realtime
-http://localhost:3001/api/countup
-http://localhost:3001/api/countup/nested
-http://localhost:3001/api/countup/realtime
-http://localhost:3001/api/countup/withtitle
-http://localhost:3001/api/countup/full
-http://localhost:3001/api/progress
-http://localhost:3001/api/progress/nested
-http://localhost:3001/api/progress/realtime
-http://localhost:3001/api/badge
-http://localhost:3001/api/badge/nested
-http://localhost:3001/api/badge/realtime
-```
+- `GET http://localhost:3001/api/stat` — 数据路径: `title` / `value` / `change` — 指标卡简单格式。
+- `GET http://localhost:3001/api/stat/nested` — 数据路径: `data.kpi.title` / `data.kpi.value` — 嵌套 KPI 示例。
+- `GET http://localhost:3001/api/stat/realtime` — 数据路径: `title` / `value` / `timestamp` — 实时 KPI 示例。
+- `GET http://localhost:3001/api/countup` — 数据路径: `value` — 数字跳动基础接口。
+- `GET http://localhost:3001/api/countup/nested` — 数据路径: `data.statistics.totalUsers` — 嵌套数字跳动格式。
+- `GET http://localhost:3001/api/countup/realtime` — 数据路径: `value` / `timestamp` — 实时更新数字跳动。
+- `GET http://localhost:3001/api/countup/withtitle` — 数据路径: `title` / `value` — 带标题的数字跳动（推荐测试用例）。
+- `GET http://localhost:3001/api/countup/full` — 数据路径: `data.metrics.current` / `data.metrics.title` — 完整格式示例。
+- `GET http://localhost:3001/api/progress` — 数据路径: `value` — 进度条简单格式。
+- `GET http://localhost:3001/api/progress/nested` — 数据路径: `data.task.percentage` — 嵌套进度条示例。
+- `GET http://localhost:3001/api/progress/realtime` — 数据路径: `value` / `status` — 实时进度状态。
+- `GET http://localhost:3001/api/badge` — 数据路径: `value` — 徽章简单格式。
+- `GET http://localhost:3001/api/badge/nested` — 数据路径: `data.notifications.unread` — 嵌套徽章格式。
+- `GET http://localhost:3001/api/badge/realtime` — 数据路径: `value` / `type` — 实时徽章示例。
 
-### 🚀 常用测试URL
+### 🗺️ 地图相关接口（方法 / URL / 数据路径 / 说明）
 
-**数字跳动组件测试**：
+- `GET http://localhost:3001/api/map/base` — 数据路径: `data`（包含 `centerLat` / `centerLng` / `zoom` / `tileUrl`） — 地图底图配置样例（用于初始化地图中心与底图 URL）。
+- `GET http://localhost:3001/api/map/tile` — 数据路径: `data`（包含 `tileUrl` / `opacity` / `centerLat` / `centerLng`） — 瓦片图层配置（例如卫星、地形底图）。
+- `GET http://localhost:3001/api/map/vector` — 数据路径: `data.vectorData` — 矢量要素数组（包含 `type`/`coordinates`/`properties`/`style`），用于渲染点线面要素。
+- `GET http://localhost:3001/api/map/geojson` — 数据路径: `data.geojsonData` — 返回标准 GeoJSON（FeatureCollection），可直接传给 GeoJSON 图层渲染。
+- `GET http://localhost:3001/api/map/markers` — 数据路径: `data.markers` — 标记点列表（每项含经纬度、标题等），用于普通标注渲染。
+- `GET http://localhost:3001/api/map/cluster` — 数据路径: `data.markers` — 大量点位列表，用于聚合（marker cluster）测试。
+- `GET http://localhost:3001/api/map/heat` — 数据路径: `data.heatData` — 热力点数组（形如 `[lat, lng, intensity]` 或 `[lng, lat, intensity]`，以前端实现为准），用于热力图渲染。
+- `GET http://localhost:3001/api/map/legend` — 数据路径: `data`（包含 `title` / `items`（label/color）） — 图例数据，用于图例组件展示。
+- `GET http://localhost:3001/api/map/layers` — 数据路径: `data`（图层控制列表，包含 `id`/`title`/`visible`/`opacity`/`type` 等） — 用于图层控制面板（开关、透明度）。
 
-- `http://localhost:3001/api/countup/withtitle` (推荐)
+### 🚀 常用测试建议
 
-**进度条组件测试**：
-
-- `http://localhost:3001/api/progress/realtime` (推荐)
-
-**徽章组件测试**：
-
-- `http://localhost:3001/api/badge/realtime` (推荐)
-
-**图表组件测试**：
-
-- `http://localhost:3001/api/chart/simple` (简单格式)
-- `http://localhost:3001/api/chart/realtime` (实时数据)
+- 推荐：`GET http://localhost:3001/api/countup/withtitle` — 数字跳动（带标题）测试。
+- 推荐：`GET http://localhost:3001/api/progress/realtime` — 进度条实时测试。
+- 推荐：`GET http://localhost:3001/api/badge/realtime` — 徽章实时测试。
+- 推荐：`GET http://localhost:3001/api/chart/simple` — 图表简单数据测试。
+- 推荐：`GET http://localhost:3001/api/chart/realtime` — 图表实时序列数据测试。
 
 ## 使用说明
 

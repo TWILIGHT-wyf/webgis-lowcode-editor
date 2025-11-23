@@ -22,6 +22,7 @@ export function useShape(id: string) {
   const size = computed(() => currentComponent.value?.size || { width: 100, height: 100 })
   const rotation = computed(() => currentComponent.value?.rotation ?? 0)
   const zIndex = computed(() => currentComponent.value?.zindex ?? 0)
+  const isLocked = computed(() => currentComponent.value?.style?.locked ?? false)
 
   // 全局缩放
   const sizeStore = useSizeStore()
@@ -37,7 +38,7 @@ export function useShape(id: string) {
     10,
   ) as (pos: { x: number; y: number }) => void
 
-  const { snapToNeighbors, boxCache, meComp } = useSnap()
+  const { snapToNeighbors, snapToGrid, boxCache, meComp } = useSnap()
 
   // 拖拽开始时的原始位置和子组件位置快照
   let dragStartPos = { x: 0, y: 0 }
@@ -49,24 +50,33 @@ export function useShape(id: string) {
     preventBubble: true,
     dragThreshold: 5,
     rootRefForAbs: canvasWrapRef as any, // eslint-disable-line @typescript-eslint/no-explicit-any
-    dragCallback: (x, y) => {
+    dragCallback: (x, y, ctrlPressed) => {
       ;(setSelected as (id: string) => void)(id)
       const comp = currentComponent.value
       if (!comp) return
 
-      // 先计算吸附后的理想位置，再更新
-      const snap = snapToNeighbors(10, { x, y })
-      if (snap) {
-        debouncedUpdatePosition(snap.position)
+      // 锁定的组件不能拖动
+      if (isLocked.value) return
+
+      // 按住 Ctrl 时对齐网格，否则吸附邻居
+      let finalPosition = { x, y }
+      if (ctrlPressed) {
+        const gridSnap = snapToGrid({ x, y }, 20)
+        finalPosition = gridSnap.position
       } else {
-        debouncedUpdatePosition({ x, y })
+        const snap = snapToNeighbors(10, { x, y })
+        if (snap) {
+          finalPosition = snap.position
+        }
       }
+
+      debouncedUpdatePosition(finalPosition)
 
       // 只有拖拽组合本身时，才同步移动所有子组件
       // 拖拽子组件时，子组件独立移动
       if (comp.type === 'Group' && comp.children) {
-        const actualDx = (snap?.position.x ?? x) - dragStartPos.x
-        const actualDy = (snap?.position.y ?? y) - dragStartPos.y
+        const actualDx = finalPosition.x - dragStartPos.x
+        const actualDy = finalPosition.y - dragStartPos.y
         comp.children.forEach((childId) => {
           const child = compStore.componentStore.find((c) => c.id === childId)
           const startPos = childrenStartPos[childId]
@@ -164,6 +174,8 @@ export function useShape(id: string) {
 
   const onHandleMouseDown = (e: MouseEvent, handle: HandleMeta) => {
     e.preventDefault()
+    // 锁定的组件不能缩放
+    if (isLocked.value) return
     ;(setSelected as (id: string) => void)(id)
     startMouseX = e.clientX
     startMouseY = e.clientY
@@ -340,6 +352,8 @@ export function useShape(id: string) {
     centerY = 0
   const onRotateMouseDown = (e: MouseEvent) => {
     e.preventDefault()
+    // 锁定的组件不能旋转
+    if (isLocked.value) return
     ;(setSelected as (id: string) => void)(id)
     const wrapperEl = (e.currentTarget as HTMLElement).parentElement as HTMLElement
     const rect = wrapperEl.getBoundingClientRect()
@@ -385,6 +399,7 @@ export function useShape(id: string) {
   return {
     wrapperRef,
     isSelected,
+    isLocked,
     wrapperStyle,
     borderStyle,
     handles,

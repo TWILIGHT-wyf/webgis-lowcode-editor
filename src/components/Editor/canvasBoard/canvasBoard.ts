@@ -11,7 +11,7 @@ export function useCanvasInteraction(
     // 开启在容器上监听 drop，并通过回调抛出落点
     enableDrop?: boolean
     onDrop?: (data: unknown, position: { x: number; y: number }) => void
-    dragCallback?: (x: number, y: number) => void
+    dragCallback?: (x: number, y: number, ctrlPressed: boolean) => void
     preventBubble?: boolean
     dragThreshold?: number
     rootRefForAbs?: Ref<HTMLDivElement | null>
@@ -117,7 +117,7 @@ export function useCanvasInteraction(
       const mouseStageY = (e.clientY - rect.top - panY.value) / (scaleRef.value || 1)
       const x = mouseStageX - anchorX
       const y = mouseStageY - anchorY
-      if (options.dragCallback) options.dragCallback(x, y)
+      if (options.dragCallback) options.dragCallback(x, y, e.ctrlKey)
     }) as any, // eslint-disable-line @typescript-eslint/no-explicit-any
     16,
   )

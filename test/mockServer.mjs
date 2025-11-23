@@ -1045,6 +1045,222 @@ app.get('/api/trigger', (req, res) => {
   })
 })
 
+// 40. 地图底图配置
+app.get('/api/map/base', (req, res) => {
+  const cities = [
+    { name: '北京', centerLat: 39.9042, centerLng: 116.4074, zoom: 12 },
+    { name: '上海', centerLat: 31.2304, centerLng: 121.4737, zoom: 12 },
+    { name: '广州', centerLat: 23.1291, centerLng: 113.2644, zoom: 12 },
+    { name: '深圳', centerLat: 22.5431, centerLng: 114.0579, zoom: 12 },
+  ]
+  const city = cities[Math.floor(Math.random() * cities.length)]
+
+  res.json({
+    success: true,
+    data: {
+      ...city,
+      tileUrl: 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
+    },
+  })
+})
+
+// 41. 瓦片图层数据
+app.get('/api/map/tile', (req, res) => {
+  const tileLayers = [
+    {
+      name: 'Satellite',
+      tileUrl:
+        'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',
+      opacity: 1,
+    },
+    {
+      name: 'Terrain',
+      tileUrl: 'https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png',
+      opacity: 0.8,
+    },
+  ]
+  const layer = tileLayers[Math.floor(Math.random() * tileLayers.length)]
+
+  res.json({
+    success: true,
+    data: {
+      ...layer,
+      centerLat: 39.9,
+      centerLng: 116.4,
+    },
+  })
+})
+
+// 42. 矢量图层数据
+app.get('/api/map/vector', (req, res) => {
+  res.json({
+    success: true,
+    data: {
+      vectorData: [
+        {
+          type: 'point',
+          coordinates: [116.4, 39.9],
+          properties: { name: '点位1' },
+          style: { color: '#ff0000', radius: 10 },
+        },
+        {
+          type: 'line',
+          coordinates: [
+            [116.3, 39.8],
+            [116.5, 40.0],
+          ],
+          properties: { name: '线段1' },
+          style: { color: '#00ff00', weight: 3 },
+        },
+        {
+          type: 'polygon',
+          coordinates: [
+            [
+              [116.35, 39.85],
+              [116.45, 39.85],
+              [116.45, 39.95],
+              [116.35, 39.95],
+              [116.35, 39.85],
+            ],
+          ],
+          properties: { name: '多边形1' },
+          style: { color: '#0000ff', fillOpacity: 0.3 },
+        },
+      ],
+    },
+  })
+})
+
+// 43. GeoJSON数据
+app.get('/api/map/geojson', (req, res) => {
+  res.json({
+    success: true,
+    data: {
+      geojsonData: {
+        type: 'FeatureCollection',
+        features: [
+          {
+            type: 'Feature',
+            geometry: {
+              type: 'Point',
+              coordinates: [116.4074, 39.9042],
+            },
+            properties: {
+              name: '天安门',
+              type: '地标',
+            },
+          },
+          {
+            type: 'Feature',
+            geometry: {
+              type: 'LineString',
+              coordinates: [
+                [116.3, 39.9],
+                [116.5, 40.0],
+              ],
+            },
+            properties: {
+              name: '道路',
+              type: '交通',
+            },
+          },
+        ],
+      },
+    },
+  })
+})
+
+// 44. 标记点数据
+app.get('/api/map/markers', (req, res) => {
+  const markers = []
+  for (let i = 0; i < 10; i++) {
+    markers.push({
+      lat: 39.9 + (Math.random() - 0.5) * 0.2,
+      lng: 116.4 + (Math.random() - 0.5) * 0.2,
+      label: `标记 ${i + 1}`,
+      color: `#${Math.floor(Math.random() * 16777215).toString(16)}`,
+      popup: {
+        title: `点位 ${i + 1}`,
+        value: Math.floor(Math.random() * 100),
+      },
+    })
+  }
+
+  res.json({
+    success: true,
+    data: { markers },
+  })
+})
+
+// 45. 聚合点数据
+app.get('/api/map/cluster', (req, res) => {
+  const markers = []
+  for (let i = 0; i < 100; i++) {
+    markers.push({
+      lat: 39.9 + (Math.random() - 0.5) * 2,
+      lng: 116.4 + (Math.random() - 0.5) * 2,
+      label: `点 ${i + 1}`,
+      popup: `聚合点 ${i + 1}`,
+    })
+  }
+
+  res.json({
+    success: true,
+    data: { markers },
+  })
+})
+
+// 46. 热力图数据
+app.get('/api/map/heat', (req, res) => {
+  const heatData = []
+  for (let i = 0; i < 200; i++) {
+    heatData.push({
+      lat: 39.9 + (Math.random() - 0.5) * 0.5,
+      lng: 116.4 + (Math.random() - 0.5) * 0.5,
+      intensity: Math.random(),
+    })
+  }
+
+  res.json({
+    success: true,
+    data: { heatData },
+  })
+})
+
+// 47. 图例数据
+app.get('/api/map/legend', (req, res) => {
+  res.json({
+    success: true,
+    data: {
+      title: '数据分类',
+      items: [
+        { label: '类别 A', color: '#ff0000' },
+        { label: '类别 B', color: '#00ff00' },
+        { label: '类别 C', color: '#0000ff' },
+        { label: '类别 D', color: '#ffff00' },
+        { label: '类别 E', color: '#ff00ff' },
+      ],
+    },
+  })
+})
+
+// 48. 图层控制数据
+app.get('/api/map/layers', (req, res) => {
+  res.json({
+    success: true,
+    data: {
+      title: '图层列表',
+      layers: [
+        { label: '底图', type: 'base', visible: true, id: 'base-1' },
+        { label: '道路网络', type: 'vector', visible: true, id: 'road-1' },
+        { label: '建筑物', type: 'vector', visible: false, id: 'building-1' },
+        { label: 'POI标记', type: 'marker', visible: true, id: 'poi-1' },
+        { label: '热力分布', type: 'heat', visible: false, id: 'heat-1' },
+      ],
+    },
+  })
+})
+
 // 启动服务器
 app.listen(PORT, () => {
   console.log('\n' + '='.repeat(60))

@@ -568,6 +568,51 @@ export const useComponent = defineStore('component', () => {
           fontFamily: 'Consolas, Monaco, "Courier New", monospace',
         }
 
+      // 地图组件
+      case 'base':
+      case 'tile':
+      case 'vector':
+      case 'geojson':
+      case 'marker':
+      case 'cluster':
+      case 'heat':
+        return {
+          ...base,
+          borderRadius: 0,
+          border: 'none',
+        }
+
+      case 'legend':
+        return {
+          ...base,
+          backgroundColor: '#ffffff',
+          textColor: '#303133',
+          borderColor: '#dcdfe6',
+          fontSize: 14,
+          padding: 12,
+          borderRadius: 4,
+        }
+
+      case 'scale':
+        return {
+          ...base,
+          backgroundColor: 'rgba(255, 255, 255, 0.8)',
+          lineColor: '#303133',
+          textColor: '#303133',
+          fontSize: 11,
+        }
+
+      case 'layers':
+        return {
+          ...base,
+          backgroundColor: '#ffffff',
+          textColor: '#303133',
+          borderColor: '#dcdfe6',
+          fontSize: 14,
+          padding: 12,
+          borderRadius: 4,
+        }
+
       default:
         return base
     }
@@ -1269,6 +1314,165 @@ export const useComponent = defineStore('component', () => {
           placeholder: '暂无执行记录',
         }
 
+      // 地图组件
+      case 'base':
+        return {
+          centerLat: 39.9,
+          centerLng: 116.4,
+          zoom: 13,
+          minZoom: 1,
+          maxZoom: 18,
+          tileUrl: 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
+          attribution: '&copy; OpenStreetMap contributors',
+          zoomControl: true,
+          dragging: true,
+          scrollWheelZoom: true,
+          doubleClickZoom: true,
+          placeholder: '配置地图中心点以显示底图',
+        }
+
+      case 'tile':
+        return {
+          centerLat: 39.9,
+          centerLng: 116.4,
+          zoom: 10,
+          tileUrl: '',
+          attribution: '',
+          opacity: 1,
+          zIndex: 1,
+          minZoom: 1,
+          maxZoom: 18,
+          subdomains: 'abc',
+          placeholder: '配置瓦片URL以显示图层',
+        }
+
+      case 'vector':
+        return {
+          centerLat: 39.9,
+          centerLng: 116.4,
+          zoom: 10,
+          vectorData: [],
+          defaultStyle: {
+            color: '#3388ff',
+            weight: 2,
+            opacity: 0.8,
+            fillColor: '#3388ff',
+            fillOpacity: 0.4,
+          },
+          showPopup: true,
+          placeholder: '配置矢量数据以显示图层',
+        }
+
+      case 'geojson':
+        return {
+          centerLat: 39.9,
+          centerLng: 116.4,
+          zoom: 10,
+          geojsonData: null,
+          style: {
+            color: '#3388ff',
+            weight: 2,
+            opacity: 0.8,
+            fillColor: '#3388ff',
+            fillOpacity: 0.4,
+          },
+          showPopup: true,
+          popupFields: [],
+          placeholder: '配置GeoJSON数据以显示图层',
+        }
+
+      case 'marker':
+        return {
+          centerLat: 39.9,
+          centerLng: 116.4,
+          zoom: 10,
+          markers: [],
+          iconUrl: '',
+          iconSize: [25, 41],
+          iconAnchor: [12, 41],
+          popupAnchor: [1, -34],
+          showLabel: false,
+          draggableMarkers: false,
+          placeholder: '配置标记点数据以显示',
+        }
+
+      case 'cluster':
+        return {
+          centerLat: 39.9,
+          centerLng: 116.4,
+          zoom: 5,
+          markers: [],
+          maxClusterRadius: 80,
+          disableClusteringAtZoom: undefined,
+          spiderfyOnMaxZoom: true,
+          showCoverageOnHover: true,
+          zoomToBoundsOnClick: true,
+          placeholder: '配置标记点数据以显示聚合',
+        }
+
+      case 'heat':
+        return {
+          centerLat: 39.9,
+          centerLng: 116.4,
+          zoom: 10,
+          heatData: [],
+          radius: 25,
+          blur: 15,
+          maxZoom: 17,
+          max: 1.0,
+          minOpacity: 0.4,
+          gradient: {
+            0.0: 'blue',
+            0.5: 'lime',
+            1.0: 'red',
+          },
+          placeholder: '配置热力数据以显示热力图',
+        }
+
+      case 'legend':
+        return {
+          title: '图例',
+          items: [],
+          position: 'top-right',
+          backgroundColor: '#ffffff',
+          textColor: '#303133',
+          borderColor: '#dcdfe6',
+          symbolShape: 'square',
+          symbolWidth: 20,
+          symbolHeight: 20,
+          fontSize: 14,
+          padding: 12,
+          placeholder: '配置图例项以显示',
+        }
+
+      case 'scale':
+        return {
+          maxWidth: 100,
+          metric: true,
+          imperial: false,
+          position: 'bottom-left',
+          backgroundColor: 'rgba(255, 255, 255, 0.8)',
+          lineColor: '#303133',
+          textColor: '#303133',
+          fontSize: 11,
+          segments: 4,
+          zoom: 10,
+        }
+
+      case 'layers':
+        return {
+          title: '图层控制',
+          layers: [],
+          position: 'top-right',
+          backgroundColor: '#ffffff',
+          textColor: '#303133',
+          borderColor: '#dcdfe6',
+          fontSize: 14,
+          padding: 12,
+          showOpacity: true,
+          placeholder: '配置图层列表以显示',
+        }
+
       default:
         return {}
     }
@@ -1540,6 +1744,97 @@ export const useComponent = defineStore('component', () => {
           conditionField: 'condition',
         }
 
+      // 地图组件
+      case 'base':
+        return {
+          enabled: false,
+          url: '',
+          method: 'GET',
+          headers: {},
+          interval: 0,
+          centerLatField: 'centerLat',
+          centerLngField: 'centerLng',
+          zoomField: 'zoom',
+          tileUrlField: 'tileUrl',
+        }
+
+      case 'tile':
+        return {
+          enabled: false,
+          url: '',
+          method: 'GET',
+          headers: {},
+          interval: 0,
+          tileUrlField: 'tileUrl',
+          opacityField: 'opacity',
+          centerLatField: 'centerLat',
+          centerLngField: 'centerLng',
+        }
+
+      case 'vector':
+        return {
+          enabled: false,
+          url: '',
+          method: 'GET',
+          headers: {},
+          interval: 0,
+          vectorDataField: 'vectorData',
+        }
+
+      case 'geojson':
+        return {
+          enabled: false,
+          url: '',
+          method: 'GET',
+          headers: {},
+          interval: 0,
+          geojsonDataField: 'geojsonData',
+        }
+
+      case 'marker':
+      case 'cluster':
+        return {
+          enabled: false,
+          url: '',
+          method: 'GET',
+          headers: {},
+          interval: 0,
+          markersField: 'markers',
+        }
+
+      case 'heat':
+        return {
+          enabled: false,
+          url: '',
+          method: 'GET',
+          headers: {},
+          interval: 0,
+          heatDataField: 'heatData',
+        }
+
+      case 'legend':
+        return {
+          enabled: false,
+          url: '',
+          method: 'GET',
+          headers: {},
+          interval: 0,
+          itemsField: 'items',
+          titleField: 'title',
+        }
+
+      case 'layers':
+        return {
+          enabled: false,
+          url: '',
+          method: 'GET',
+          headers: {},
+          interval: 0,
+          layersField: 'layers',
+          titleField: 'title',
+        }
+
+      case 'scale':
       case 'dateRange':
       case 'searchBox':
       case 'slider':

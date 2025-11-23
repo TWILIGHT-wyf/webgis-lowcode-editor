@@ -134,6 +134,24 @@ export function useSnap() {
     return neighbors
   }
 
+  // 网格对齐功能
+  function snapToGrid(
+    previewPos: { x: number; y: number },
+    gridSize: number = 20,
+  ): { position: { x: number; y: number }; lines: { x?: number; y?: number }[] } {
+    const snappedX = Math.round(previewPos.x / gridSize) * gridSize
+    const snappedY = Math.round(previewPos.y / gridSize) * gridSize
+    const lines: { x?: number; y?: number }[] = []
+    // 只在对齐时显示辅助线
+    if (Math.abs(snappedX - previewPos.x) < 2) {
+      lines.push({ x: snappedX })
+    }
+    if (Math.abs(snappedY - previewPos.y) < 2) {
+      lines.push({ y: snappedY })
+    }
+    return { position: { x: snappedX, y: snappedY }, lines }
+  }
+
   // 计算最佳吸附
   function snapToNeighbors(
     threshold: number = 10,
@@ -204,5 +222,6 @@ export function useSnap() {
     boxCache,
     findSnapNeighbors,
     snapToNeighbors,
+    snapToGrid,
   }
 }

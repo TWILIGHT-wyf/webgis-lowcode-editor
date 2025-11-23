@@ -119,17 +119,40 @@ onBeforeUnmount(() => {
   window.removeEventListener('scroll', hideContextMenu, true)
 })
 
+// 获取画布配置
+const { canvasConfig } = storeToRefs(sizeStore)
+
 // stage层大小与网格变量
-const stageStyle = computed(() => ({
-  width: width.value + 'px',
-  height: height.value + 'px',
-  // 网格变量
-  '--grid-size': '20px',
-  '--grid-major': '100px',
-  '--grid-bg': '#fafafa',
-  '--grid-color': '#f0f0f0',
-  '--grid-major-color': '#e5e5e5',
-}))
+const stageStyle = computed(() => {
+  const config = canvasConfig.value
+  const baseStyle: Record<string, string> = {
+    width: width.value + 'px',
+    height: height.value + 'px',
+    backgroundColor: config.backgroundColor,
+  }
+
+  // 背景图片
+  if (config.backgroundImage) {
+    baseStyle.backgroundImage = `url(${config.backgroundImage})`
+    baseStyle.backgroundSize = 'cover'
+    baseStyle.backgroundPosition = 'center'
+    baseStyle.backgroundRepeat = 'no-repeat'
+  }
+
+  // 网格显示
+  if (config.showGrid) {
+    baseStyle['--grid-size'] = config.gridSize + 'px'
+    baseStyle['--grid-major'] = config.gridMajorSize + 'px'
+    baseStyle['--grid-color'] = config.gridColor
+    baseStyle['--grid-major-color'] = config.gridMajorColor
+  } else {
+    // 隐藏网格
+    baseStyle['--grid-color'] = 'transparent'
+    baseStyle['--grid-major-color'] = 'transparent'
+  }
+
+  return baseStyle
+})
 
 // 平移 + 缩放
 const { panX, panY, isPanning } = useCanvasInteraction(wrap, scale, {
