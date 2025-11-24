@@ -1,6 +1,6 @@
 <template>
   <div class="list-container" :style="containerStyle">
-    <el-scrollbar :height="scrollHeight">
+    <el-scrollbar :height="computedScrollHeight">
       <div v-if="listData.length === 0" class="empty-state">
         <el-empty :description="emptyText" :image-size="80" />
       </div>
@@ -93,10 +93,19 @@ const showSplit = computed(() => (comp.value?.props.showSplit as boolean) ?? tru
 const emptyText = computed(() => (comp.value?.props.emptyText as string) ?? '暂无数据')
 const iconSize = computed(() => (comp.value?.props.iconSize as number) ?? 20)
 const scrollHeight = computed(() => (comp.value?.props.scrollHeight as string) ?? '100%')
+const computedScrollHeight = computed(() => {
+  const height = scrollHeight.value
+  // 确保返回有效的高度值 (数字或带单位的字符串)
+  if (typeof height === 'number') return `${height}px`
+  if (typeof height === 'string' && (height.endsWith('px') || height.endsWith('%'))) return height
+  return '100%' // 默认值
+})
 
 // 字段映射
 const titleField = computed(() => (comp.value?.props.titleField as string) ?? 'title')
-const descriptionField = computed(() => (comp.value?.props.descriptionField as string) ?? 'description')
+const descriptionField = computed(
+  () => (comp.value?.props.descriptionField as string) ?? 'description',
+)
 const extraField = computed(() => (comp.value?.props.extraField as string) ?? 'extra')
 
 // 获取项数据
@@ -135,10 +144,13 @@ const getItemStyle = (index: number): CSSProperties => {
   return {
     padding: `${(s.itemPadding as number) ?? 12}px ${(s.itemPaddingX as number) ?? 16}px`,
     backgroundColor: (s.itemBackgroundColor as string) ?? '#ffffff',
-    borderBottom: showSplit.value && index < listData.value.length - 1
-      ? `1px solid ${(s.splitColor as string) ?? '#e4e7ed'}`
+    borderBottom:
+      showSplit.value && index < listData.value.length - 1
+        ? `1px solid ${(s.splitColor as string) ?? '#e4e7ed'}`
+        : 'none',
+    borderLeft: showBorder.value
+      ? `3px solid ${(s.borderColor as string) ?? 'transparent'}`
       : 'none',
-    borderLeft: showBorder.value ? `3px solid ${(s.borderColor as string) ?? 'transparent'}` : 'none',
     cursor: 'pointer',
     transition: 'all 0.2s',
   }

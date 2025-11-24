@@ -18,6 +18,72 @@
         <span class="mini-demo" :class="a.class"></span>
       </li>
     </ul>
+
+    <!-- 动画配置面板 -->
+    <div v-if="currentAnimation" class="animation-config">
+      <div class="config-title">动画配置</div>
+
+      <div class="config-item">
+        <label>触发方式</label>
+        <el-select v-model="currentAnimation.trigger" placeholder="选择触发方式" size="small">
+          <el-option label="页面加载时" value="load" />
+          <el-option label="鼠标悬停时" value="hover" />
+          <el-option label="点击时" value="click" />
+        </el-select>
+      </div>
+
+      <div class="config-item">
+        <label>持续时间 (秒)</label>
+        <el-input-number
+          v-model="currentAnimation.duration"
+          :min="0.1"
+          :max="10"
+          :step="0.1"
+          size="small"
+        />
+      </div>
+
+      <div class="config-item">
+        <label>延迟时间 (秒)</label>
+        <el-input-number
+          v-model="currentAnimation.delay"
+          :min="0"
+          :max="10"
+          :step="0.1"
+          size="small"
+        />
+      </div>
+
+      <div class="config-item">
+        <label>重复次数</label>
+        <el-select
+          v-model="currentAnimation.iterationCount"
+          placeholder="选择重复次数"
+          size="small"
+        >
+          <el-option label="1次" :value="1" />
+          <el-option label="2次" :value="2" />
+          <el-option label="3次" :value="3" />
+          <el-option label="5次" :value="5" />
+          <el-option label="无限循环" value="infinite" />
+        </el-select>
+      </div>
+
+      <div class="config-item">
+        <label>缓动函数</label>
+        <el-select
+          v-model="currentAnimation.timingFunction"
+          placeholder="选择缓动函数"
+          size="small"
+        >
+          <el-option label="ease" value="ease" />
+          <el-option label="linear" value="linear" />
+          <el-option label="ease-in" value="ease-in" />
+          <el-option label="ease-out" value="ease-out" />
+          <el-option label="ease-in-out" value="ease-in-out" />
+        </el-select>
+      </div>
+    </div>
   </div>
 </template>
 
@@ -29,6 +95,13 @@ import { useComponent } from '@/stores/component'
 const currentClass = ref<string | null>(null)
 // 用于强制重新渲染触发动画
 const replayKey = ref(0)
+
+const store = useComponent()
+
+// 当前选中组件的动画配置
+const currentAnimation = computed(() => {
+  return store.selectComponent?.animation
+})
 
 function triggerPreview(cls: string) {
   // 通过清空再设置的方式强制浏览器重新计算动画
@@ -45,13 +118,13 @@ function cancelPreview() {
 
 // 写入当前选中组件的 animation 配置
 function selectAnimation(a: { name: string; class: string }) {
-  const store = useComponent()
   const target = store.selectComponent
   if (target) {
     target.animation = {
       name: a.name,
       class: a.class,
       duration: 0.7,
+      delay: 0,
       iterationCount: 1,
       timingFunction: 'ease',
       trigger: 'load',
@@ -69,8 +142,42 @@ const previewClass = computed(() => {
   display: flex;
   flex-direction: column;
   gap: 12px;
-  padding: 0 28px 0 16px; 
+  padding: 0 28px 0 16px;
   box-sizing: border-box;
+}
+
+.animation-config {
+  background: #f9fafc;
+  border: 1px solid #e4e7ed;
+  border-radius: 8px;
+  padding: 16px;
+  margin-top: 12px;
+}
+
+.config-title {
+  font-size: 14px;
+  font-weight: 600;
+  color: #303133;
+  margin-bottom: 16px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid #e4e7ed;
+}
+
+.config-item {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-bottom: 16px;
+}
+
+.config-item:last-child {
+  margin-bottom: 0;
+}
+
+.config-item label {
+  font-size: 13px;
+  color: #606266;
+  font-weight: 500;
 }
 .preview-area {
   display: flex;

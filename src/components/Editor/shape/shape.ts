@@ -50,7 +50,7 @@ export function useShape(id: string) {
     preventBubble: true,
     dragThreshold: 5,
     rootRefForAbs: canvasWrapRef as any, // eslint-disable-line @typescript-eslint/no-explicit-any
-    dragCallback: (x, y, ctrlPressed, altPressed) => {
+    dragCallback: (x, y, ctrlPressed) => {
       ;(setSelected as (id: string) => void)(id)
       const comp = currentComponent.value
       if (!comp) return
@@ -141,6 +141,7 @@ export function useShape(id: string) {
 
       if (hitContainers.length > 0) {
         const targetContainer = hitContainers[0]
+        if (!targetContainer) return
 
         // 如果当前组件已经有父组件，且是同一个，则不做处理
         if (comp.groupId === targetContainer.id) return
@@ -320,7 +321,7 @@ export function useShape(id: string) {
     const myId = meComp.value.id
     const guideXs: number[] = []
     const guideYs: number[] = []
-    
+
     // 按住Ctrl时优先吸附网格
     if (isCtrlPressed) {
       // 对网格吸附
@@ -328,7 +329,7 @@ export function useShape(id: string) {
       const gridY = Math.round(newY / GRID_SIZE) * GRID_SIZE
       const gridRight = Math.round((newX + newWidth) / GRID_SIZE) * GRID_SIZE
       const gridBottom = Math.round((newY + newHeight) / GRID_SIZE) * GRID_SIZE
-      
+
       if (currentHandle.includes('w') && Math.abs(newX - gridX) < SNAP_TOL) {
         const rightFixed = startPos.x + startSize.width
         newX = gridX
@@ -355,66 +356,66 @@ export function useShape(id: string) {
 
       // 水平吸附（处理 e/w 手柄）
       if (currentHandle.includes('e') || currentHandle.includes('w')) {
-      if (currentHandle.includes('e')) {
-        const target = newX + newWidth
-        let best = { dist: SNAP_TOL + 1, gx: target }
-        for (const gx of guideXs) {
-          const d = Math.abs(gx - target)
-          if (d < best.dist) best = { dist: d, gx }
+        if (currentHandle.includes('e')) {
+          const target = newX + newWidth
+          let best = { dist: SNAP_TOL + 1, gx: target }
+          for (const gx of guideXs) {
+            const d = Math.abs(gx - target)
+            if (d < best.dist) best = { dist: d, gx }
+          }
+          if (best.dist <= SNAP_TOL) {
+            const snappedRight = best.gx
+            newWidth = Math.max(10, snappedRight - newX)
+          }
         }
-        if (best.dist <= SNAP_TOL) {
-          const snappedRight = best.gx
-          newWidth = Math.max(10, snappedRight - newX)
-        }
-      }
-      if (currentHandle.includes('w')) {
-        const rightFixed = startPos.x + startSize.width
-        const target = newX
-        let best = { dist: SNAP_TOL + 1, gx: target }
-        for (const gx of guideXs) {
-          const d = Math.abs(gx - target)
-          if (d < best.dist) best = { dist: d, gx }
-        }
-        if (best.dist <= SNAP_TOL) {
-          newX = best.gx
-          newWidth = Math.max(10, rightFixed - newX)
-          if (newWidth === 10) {
-            newX = rightFixed - 10
+        if (currentHandle.includes('w')) {
+          const rightFixed = startPos.x + startSize.width
+          const target = newX
+          let best = { dist: SNAP_TOL + 1, gx: target }
+          for (const gx of guideXs) {
+            const d = Math.abs(gx - target)
+            if (d < best.dist) best = { dist: d, gx }
+          }
+          if (best.dist <= SNAP_TOL) {
+            newX = best.gx
+            newWidth = Math.max(10, rightFixed - newX)
+            if (newWidth === 10) {
+              newX = rightFixed - 10
+            }
           }
         }
       }
-    }
 
       // 垂直吸附（处理 n/s 手柄）
       if (currentHandle.includes('s') || currentHandle.includes('n')) {
-      if (currentHandle.includes('s')) {
-        const target = newY + newHeight
-        let best = { dist: SNAP_TOL + 1, gy: target }
-        for (const gy of guideYs) {
-          const d = Math.abs(gy - target)
-          if (d < best.dist) best = { dist: d, gy }
-        }
-        if (best.dist <= SNAP_TOL) {
-          const snappedBottom = best.gy
-          newHeight = Math.max(10, snappedBottom - newY)
-        }
-      }
-      if (currentHandle.includes('n')) {
-        const bottomFixed = startPos.y + startSize.height
-        const target = newY
-        let best = { dist: SNAP_TOL + 1, gy: target }
-        for (const gy of guideYs) {
-          const d = Math.abs(gy - target)
-          if (d < best.dist) best = { dist: d, gy }
-        }
-        if (best.dist <= SNAP_TOL) {
-          newY = best.gy
-          newHeight = Math.max(10, bottomFixed - newY)
-          if (newHeight === 10) {
-            newY = bottomFixed - 10
+        if (currentHandle.includes('s')) {
+          const target = newY + newHeight
+          let best = { dist: SNAP_TOL + 1, gy: target }
+          for (const gy of guideYs) {
+            const d = Math.abs(gy - target)
+            if (d < best.dist) best = { dist: d, gy }
+          }
+          if (best.dist <= SNAP_TOL) {
+            const snappedBottom = best.gy
+            newHeight = Math.max(10, snappedBottom - newY)
           }
         }
-      }
+        if (currentHandle.includes('n')) {
+          const bottomFixed = startPos.y + startSize.height
+          const target = newY
+          let best = { dist: SNAP_TOL + 1, gy: target }
+          for (const gy of guideYs) {
+            const d = Math.abs(gy - target)
+            if (d < best.dist) best = { dist: d, gy }
+          }
+          if (best.dist <= SNAP_TOL) {
+            newY = best.gy
+            newHeight = Math.max(10, bottomFixed - newY)
+            if (newHeight === 10) {
+              newY = bottomFixed - 10
+            }
+          }
+        }
       }
     }
 

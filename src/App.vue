@@ -1,9 +1,10 @@
 <script setup lang="ts">
-import { ref } from 'vue'
+import { ref, onMounted } from 'vue'
 import headerNav from './components/header.vue'
 import SiderBar from './components/siderBar/siderBar.vue'
 import componentBar from './components/componentBar.vue'
 import CanvasBoard from './components/Editor/canvasBoard/canvasBoard.vue'
+import { provideComponentEvents } from '@/components/siderBar/events/events'
 
 // 侧边栏宽度
 const leftSidebarWidth = ref(300)
@@ -60,10 +61,21 @@ function startResizeRight(e: MouseEvent) {
   document.addEventListener('mousemove', onMouseMove)
   document.addEventListener('mouseup', onMouseUp)
 }
+
+// 初始化组件事件系统
+onMounted(() => {
+  provideComponentEvents()
+})
 </script>
 
 <template>
-  <div class="common-layout">
+  <!-- 路由视图：用于显示预览页面 -->
+  <router-view v-if="$route.path === '/runtime'" v-slot="{ Component }">
+    <component :is="Component" v-if="Component" />
+  </router-view>
+
+  <!-- 主编辑器界面（默认显示） -->
+  <div v-else class="common-layout">
     <el-container>
       <el-header>
         <headerNav />

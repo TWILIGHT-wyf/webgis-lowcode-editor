@@ -10,13 +10,21 @@
         </el-button>
       </el-button-group>
 
-      <el-button size="small" type="primary" plain>
+      <el-button size="small" type="primary" plain @click="openPreview">
         <el-icon><View /></el-icon>
         <span class="btn-label">预览</span>
       </el-button>
-      <el-button size="small" type="primary" plain>
+      <el-button size="small" type="success" plain @click="saveProject">
         <el-icon><Finished /></el-icon>
         <span class="btn-label">保存</span>
+      </el-button>
+      <el-button size="small" type="info" plain @click="loadProject">
+        <el-icon><FolderOpened /></el-icon>
+        <span class="btn-label">加载</span>
+      </el-button>
+      <el-button size="small" type="warning" plain @click="exportJSON">
+        <el-icon><Download /></el-icon>
+        <span class="btn-label">导出JSON</span>
       </el-button>
       <el-button size="small" type="danger" @click="reset"> 清空画布 </el-button>
     </div>
@@ -58,10 +66,16 @@ import { useComponent } from '@/stores/component'
 import { useSizeStore } from '@/stores/size'
 import { storeToRefs } from 'pinia'
 import { computed, ref, watch, onMounted } from 'vue'
+import { useRouter } from 'vue-router'
+import { ElMessage, ElMessageBox } from 'element-plus'
+import { componentsToJSON } from '@/utils/toCode'
 
+const router = useRouter()
 const sizeStore = useSizeStore()
 const { width, height, scale } = storeToRefs(sizeStore)
-const { reset, undo, redo, canUndo, canRedo } = useComponent()
+const compStore = useComponent()
+const { reset, undo, redo, canUndo, canRedo } = compStore
+const { componentStore } = storeToRefs(compStore)
 const canUndoRef = computed(() => canUndo())
 const canRedoRef = computed(() => canRedo())
 // 缩放
@@ -88,6 +102,88 @@ function applyTheme(dark: boolean) {
   if (dark) document.body.classList.add('theme-dark')
   else document.body.classList.remove('theme-dark')
 }
+
+// 打开预览页面
+function openPreview() {
+  router.push('/runtime')
+}
+
+// 保存项目到localStorage
+function saveProject() {
+  try {
+    const projectData = {
+      components: componentStore.value,
+      canvasSize: {
+        width: width.value,
+        height: height.value,
+      },
+      savedAt: new Date().toISOString(),
+    }
+    localStorage.setItem('webgis_project', JSON.stringify(projectData))
+    ElMessage.success('项目已保存到本地')
+  } catch (error) {
+    ElMessage.error('保存失败: ' + (error as Error).message)
+  }
+}
+
+// 从localStorage加载项目
+async function loadProject() {
+  try {
+    const saved = localStorage.getItem('webgis_project')
+    if (!saved) {
+      ElMessage.warning('没有找到保存的项目')
+      return
+    }
+
+    await ElMessageBox.confirm('加载项目将覆盖当前画布，是否继续？', '确认', {
+      confirmButtonText: '确定',
+      cancelButtonText: '取消',
+      type: 'warning',
+    })
+
+    const projectData = JSON.parse(saved)
+
+    // 清空当前画布
+    componentStore.value = []
+
+    // 加载组件数据
+    if (projectData.components) {
+      componentStore.value = projectData.components
+    }
+
+    // 恢复画布尺寸
+    if (projectData.canvasSize) {
+      width.value = projectData.canvasSize.width
+      height.value = projectData.canvasSize.height
+    }
+
+    compStore.commit()
+    ElMessage.success('项目加载成功')
+  } catch (error) {
+    if ((error as any) !== 'cancel') {
+      ElMessage.error('加载失败: ' + (error as Error).message)
+    }
+  }
+}
+
+// 导出JSON文件
+function exportJSON() {
+  try {
+    const jsonData = componentsToJSON(componentStore.value)
+    const blob = new Blob([jsonData], { type: 'application/json' })
+    const url = URL.createObjectURL(blob)
+    const link = document.createElement('a')
+    link.href = url
+    link.download = `webgis-project-${Date.now()}.json`
+    document.body.appendChild(link)
+    link.click()
+    document.body.removeChild(link)
+    URL.revokeObjectURL(url)
+    ElMessage.success('JSON文件已导出')
+  } catch (error) {
+    ElMessage.error('导出失败: ' + (error as Error).message)
+  }
+}
 </script>
 
 <style scoped>
@@ -97,9 +193,9 @@ function applyTheme(dark: boolean) {
   justify-content: space-between;
   padding: 8px 16px;
   gap: 12px;
-  background: linear-gradient(180deg, #fff 0%, #fafafa 100%);
-  box-shadow: 0 1px 4px rgba(16, 24, 40, 0.06);
-  border-bottom: 1px solid #eef2f6;
+  background: linear-gradient(180deg, var(--bg-primary) 0%, var(--bg-secondary) 100%);
+  box-shadow: 0 1px 4px var(--shadow-light);
+  border-bottom: 1px solid var(--border-light);
   height: 56px;
 }
 .left {
@@ -116,7 +212,7 @@ function applyTheme(dark: boolean) {
 .app-title {
   font-weight: 600;
   font-size: 16px;
-  color: #2c3e50;
+  color: var(--text-primary);
 }
 .right {
   display: flex;
@@ -127,23 +223,23 @@ function applyTheme(dark: boolean) {
   display: flex;
   align-items: center;
   gap: 6px;
-  background: rgba(0, 0, 0, 0.02);
+  background: var(--bg-tertiary);
   padding: 4px 8px;
   border-radius: 6px;
 }
 .control-label {
   font-size: 12px;
-  color: #606266;
+  color: var(--text-secondary);
 }
 .num {
   width: 72px;
 }
 .sep {
-  color: #909399;
+  color: var(--text-tertiary);
 }
 .percent {
   font-size: 12px;
-  color: #606266;
+  color: var(--text-secondary);
 }
 .btn-label {
   margin-left: 6px;

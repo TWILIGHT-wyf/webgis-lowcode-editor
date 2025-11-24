@@ -5533,6 +5533,7 @@ export function customProperties() {
             default: true,
           },
         ]
+      case 'barChart':
       case 'chart.bar':
         return [
           {
@@ -5619,6 +5620,7 @@ export function customProperties() {
             default: true,
           },
         ]
+      case 'stackedBarChart':
       case 'chart.stackedBar':
         return [
           {

@@ -2,8 +2,11 @@
   <div
     ref="wrapperRef"
     class="shape-wrapper"
+    :data-component-id="id"
     :style="wrapperStyle"
     @click.stop="handleClick"
+    @dblclick.stop="handleDoubleClick"
+    @mouseenter="handleMouseEnter"
     @contextmenu.stop.prevent="emitOpenContextMenu"
   >
     <!-- 统一动画容器：内容 + 边框 一起动 -->
@@ -36,6 +39,7 @@
 <script setup lang="ts">
 import { useShape } from './shape'
 import { useComponent } from '@/stores/component'
+import { useComponentEventHandlers } from '@/components/siderBar/events/events'
 
 const props = defineProps<{ id: string }>()
 
@@ -54,6 +58,9 @@ const {
 
 const compStore = useComponent()
 
+// 集成组件事件处理
+const eventHandlers = useComponentEventHandlers(props.id)
+
 const emit = defineEmits<{
   (e: 'open-context-menu', payload: { id: string; event: MouseEvent }): void
 }>()
@@ -62,13 +69,26 @@ function emitOpenContextMenu(e: MouseEvent) {
   emit('open-context-menu', { id: props.id, event: e })
 }
 
-function handleClick(e: MouseEvent) {
+async function handleClick(e: MouseEvent) {
   const comp = compStore.componentStore.find((c) => c.id === props.id)
   // 锁定的组件需要按住 Alt 才能选中
   if (comp?.style?.locked && !e.altKey) {
     return
   }
   compStore.toggleSelect(props.id, e.ctrlKey)
+
+  // 执行点击事件
+  await eventHandlers.handleClick()
+}
+
+async function handleDoubleClick() {
+  // 执行双击事件
+  await eventHandlers.handleDoubleClick()
+}
+
+async function handleMouseEnter() {
+  // 执行悬停事件
+  await eventHandlers.handleMouseEnter()
 }
 </script>
 

@@ -2,7 +2,6 @@
   <div class="relations-panel">
     <el-scrollbar class="relations-scrollbar">
       <el-collapse v-model="activeNames">
-
         <!-- 组件树结构 -->
         <el-collapse-item name="tree" title="组件树">
           <div class="relation-section">

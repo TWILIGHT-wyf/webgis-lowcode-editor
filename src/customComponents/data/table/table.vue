@@ -24,7 +24,7 @@
         :min-width="col.minWidth"
         :align="col.align"
         :sortable="col.sortable"
-        :fixed="col.fixed"
+        :fixed="col.fixed || undefined"
       >
         <template v-if="col.type === 'index'" #default="scope">
           {{ scope.$index + 1 }}
@@ -99,10 +99,14 @@ const tableData = computed(() => {
 // 表格配置
 const showStripe = computed(() => (comp.value?.props.stripe as boolean) ?? true)
 const showBorder = computed(() => (comp.value?.props.border as boolean) ?? true)
-const tableSize = computed(() => (comp.value?.props.size as 'large' | 'default' | 'small') ?? 'default')
+const tableSize = computed(
+  () => (comp.value?.props.size as 'large' | 'default' | 'small') ?? 'default',
+)
 const autoHeight = computed(() => (comp.value?.props.autoHeight as boolean) ?? false)
 const maxHeight = computed(() => (comp.value?.props.maxHeight as number) ?? undefined)
-const highlightCurrentRow = computed(() => (comp.value?.props.highlightCurrentRow as boolean) ?? true)
+const highlightCurrentRow = computed(
+  () => (comp.value?.props.highlightCurrentRow as boolean) ?? true,
+)
 const showHeader = computed(() => (comp.value?.props.showHeader as boolean) ?? true)
 const emptyText = computed(() => (comp.value?.props.emptyText as string) ?? '暂无数据')
 

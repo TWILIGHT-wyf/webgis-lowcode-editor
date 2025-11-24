@@ -7,6 +7,7 @@ import router from './router'
 import 'leaflet/dist/leaflet.css'
 import * as ElementPlusIconsVue from '@element-plus/icons-vue'
 import './styles/animations.css'
+import './styles/theme.css'
 import VueECharts from 'vue-echarts'
 
 if (import.meta.env.DEV) {

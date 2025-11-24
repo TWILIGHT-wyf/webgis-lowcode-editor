@@ -27,12 +27,12 @@
             "state": {
               "type": "markdown",
               "state": {
-                "file": "Commit规范.md",
-                "mode": "preview",
+                "file": "提升点.md",
+                "mode": "source",
                 "source": false
               },
               "icon": "lucide-file",
-              "title": "Commit规范"
+              "title": "提升点"
             }
           }
         ],
@@ -187,14 +187,17 @@
   },
   "active": "f59219b864c05277",
   "lastOpenFiles": [
-    "2025-11-21.md",
-    "2025-11-22.md",
-    "2025-11-23.md",
-    "API测试.md",
     "提示词.md",
+    "提升点.md",
+    "2025-11-24.md",
+    "Commit规范.md",
+    "BugFixes-20251124-Template.md",
+    "2025-11-23.md",
+    "2025-11-22.md",
+    "2025-11-21.md",
+    "API测试.md",
     "计划.md",
     "组件联动面板.md",
-    "Commit规范.md",
     "TypeScript-Complete-Guide.md",
     "2025-11-15.md",
     "2025-11-13.md",
@@ -210,12 +213,9 @@
     "2025-10-23.md",
     "2025-10-21.md",
     "2025-10-22.md",
-    "learning-plan.zh-CN.md",
     "未命名.canvas",
     "未命名 1.base",
     "未命名.base",
-    "2025-10-19.md",
-    "寒假实习冲刺计划-Vue+TS低代码构建器.md",
     "未命名"
   ]
 }

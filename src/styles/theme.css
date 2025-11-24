@@ -1,0 +1,87 @@
+/* 全局主题样式 */
+:root {
+  /* 浅色主题变量 */
+  --bg-primary: #ffffff;
+  --bg-secondary: #f5f7fa;
+  --bg-tertiary: #ebeef5;
+  --text-primary: #303133;
+  --text-secondary: #606266;
+  --text-tertiary: #909399;
+  --border-color: #dcdfe6;
+  --border-light: #e4e7ed;
+  --shadow-base: rgba(0, 0, 0, 0.1);
+  --shadow-light: rgba(0, 0, 0, 0.05);
+}
+
+/* 暗色主题 */
+.theme-dark {
+  --bg-primary: #1a1a1a;
+  --bg-secondary: #252525;
+  --bg-tertiary: #2f2f2f;
+  --text-primary: #e5e5e5;
+  --text-secondary: #b3b3b3;
+  --text-tertiary: #808080;
+  --border-color: #3a3a3a;
+  --border-light: #2f2f2f;
+  --shadow-base: rgba(0, 0, 0, 0.5);
+  --shadow-light: rgba(0, 0, 0, 0.3);
+}
+
+/* 应用主题到全局元素 */
+body {
+  background-color: var(--bg-primary);
+  color: var(--text-primary);
+}
+
+.theme-dark .header-bar {
+  background: linear-gradient(180deg, #252525 0%, #1f1f1f 100%);
+  border-bottom-color: var(--border-color);
+}
+
+.theme-dark .app-title {
+  color: var(--text-primary);
+}
+
+.theme-dark .properties-panel {
+  background-color: var(--bg-secondary);
+  border-left-color: var(--border-color);
+}
+
+.theme-dark .canvas-board {
+  background-color: var(--bg-tertiary);
+}
+
+.theme-dark .component-bar {
+  background-color: var(--bg-secondary);
+  border-right-color: var(--border-color);
+}
+
+/* Element Plus 组件暗色适配 */
+.theme-dark .el-input__wrapper {
+  background-color: var(--bg-tertiary);
+  box-shadow: 0 0 0 1px var(--border-color) inset;
+}
+
+.theme-dark .el-input__inner {
+  color: var(--text-primary);
+}
+
+.theme-dark .el-button {
+  border-color: var(--border-color);
+  color: var(--text-primary);
+}
+
+.theme-dark .el-button--primary {
+  background-color: #409eff;
+  border-color: #409eff;
+}
+
+.theme-dark .el-collapse-item__header {
+  background-color: var(--bg-secondary);
+  color: var(--text-primary);
+}
+
+.theme-dark .el-collapse-item__content {
+  background-color: var(--bg-primary);
+  color: var(--text-secondary);
+}

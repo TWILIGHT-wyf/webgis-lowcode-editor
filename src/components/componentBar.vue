@@ -7,26 +7,52 @@
       </div>
       <el-scrollbar class="componentBar">
         <div class="scroll-inner">
-          <el-collapse class="collapse">
-            <el-collapse-item
-              :title="cat.title"
-              :name="cat.title"
-              v-for="cat in categories"
-              :key="cat.key"
-            >
-              <div class="palette-list">
-                <div
-                  class="palette-item"
-                  v-for="item in cat.items"
-                  :key="item.type"
-                  draggable="true"
-                  @dragstart="onDrag($event, item)"
+          <!-- 页面模板选项卡 -->
+          <el-tabs v-model="activeTab" class="component-tabs">
+            <el-tab-pane label="组件" name="components">
+              <el-collapse class="collapse">
+                <el-collapse-item
+                  :title="cat.title"
+                  :name="cat.title"
+                  v-for="cat in categories"
+                  :key="cat.key"
                 >
-                  {{ item.label }}
+                  <div class="palette-list">
+                    <div
+                      class="palette-item"
+                      v-for="item in cat.items"
+                      :key="item.type"
+                      draggable="true"
+                      @dragstart="onDrag($event, item)"
+                    >
+                      {{ item.label }}
+                    </div>
+                  </div>
+                </el-collapse-item>
+              </el-collapse>
+            </el-tab-pane>
+            <el-tab-pane label="模板" name="templates">
+              <div class="templates-container">
+                <div
+                  class="template-card"
+                  v-for="template in pageTemplates"
+                  :key="template.id"
+                  @click="handleLoadTemplate(template)"
+                >
+                  <div class="template-icon">
+                    <el-icon><DocumentCopy /></el-icon>
+                  </div>
+                  <div class="template-info">
+                    <h4 class="template-name">{{ template.name }}</h4>
+                    <p class="template-desc">{{ template.description }}</p>
+                  </div>
+                  <el-tag :type="getCategoryTagType(template.category)" size="small">
+                    {{ getCategoryLabel(template.category) }}
+                  </el-tag>
                 </div>
               </div>
-            </el-collapse-item>
-          </el-collapse>
+            </el-tab-pane>
+          </el-tabs>
         </div>
       </el-scrollbar>
     </div>
@@ -111,10 +137,13 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, watch, onMounted, onUnmounted, nextTick } from 'vue'
+import { ref, watch, onMounted, onUnmounted, nextTick } from 'vue'
 import * as echarts from 'echarts'
 import { storeToRefs } from 'pinia'
-import { useComponent, type component } from '@/stores/component'
+import { useComponent } from '@/stores/component'
+import { templates, type PageTemplate } from '@/templates'
+import { ElMessageBox, ElMessage } from 'element-plus'
+import { DocumentCopy } from '@element-plus/icons-vue'
 
 type Category = {
   key: string
@@ -131,7 +160,7 @@ type Item = {
 
 // 组件 store
 const componentStore = useComponent()
-const { componentStore: components, selectComponent } = storeToRefs(componentStore)
+const { componentStore: components } = storeToRefs(componentStore)
 
 // 布局状态
 const componentLibHeight = ref(400)
@@ -143,6 +172,53 @@ const isResizing = ref(false)
 const graphContainer = ref<HTMLElement>()
 let chartInstance: echarts.ECharts | null = null
 const graphType = ref<'all' | 'hierarchy' | 'events' | 'data'>('all')
+
+// 模板相关
+const activeTab = ref<'components' | 'templates'>('components')
+const pageTemplates = ref<PageTemplate[]>(templates)
+
+// 加载模板
+const handleLoadTemplate = async (template: PageTemplate) => {
+  try {
+    await ElMessageBox.confirm(
+      `确定要加载"${template.name}"模板吗？这将清空当前画布内容。`,
+      '加载模板',
+      {
+        confirmButtonText: '确定',
+        cancelButtonText: '取消',
+        type: 'warning',
+      },
+    )
+    componentStore.loadTemplate(template.components)
+    ElMessage.success(`已加载模板: ${template.name}`)
+  } catch {
+    // 用户取消
+  }
+}
+
+// 获取分类标签类型
+const getCategoryTagType = (category: PageTemplate['category']) => {
+  const typeMap = {
+    dashboard: 'success',
+    gis: 'primary',
+    chart: 'warning',
+    form: 'info',
+    other: '',
+  }
+  return typeMap[category] || ''
+}
+
+// 获取分类标签文本
+const getCategoryLabel = (category: PageTemplate['category']) => {
+  const labelMap = {
+    dashboard: '大屏',
+    gis: '地图',
+    chart: '图表',
+    form: '表单',
+    other: '其他',
+  }
+  return labelMap[category] || '其他'
+}
 
 // 组件类型
 const categories = ref<Category[]>([
@@ -628,10 +704,14 @@ function startResize(e: MouseEvent) {
 // 切换关系图显示
 function toggleGraph() {
   graphVisible.value = !graphVisible.value
-  if (graphVisible.value && chartInstance) {
+  // 根据显示状态调整高度
+  if (graphVisible.value) {
+    graphHeight.value = 300
     nextTick(() => {
       chartInstance?.resize()
     })
+  } else {
+    graphHeight.value = 60
   }
 }
 
@@ -710,11 +790,13 @@ function updateGraph() {
 
   const option: echarts.EChartsOption = {
     tooltip: {
-      formatter: (params: any) => {
-        if (params.dataType === 'node') {
-          return `${params.data.name}<br/>类型: ${params.data.type}`
-        } else if (params.dataType === 'edge') {
-          return params.data.relationName
+      formatter: (params: echarts.TooltipComponentFormatterCallbackParams) => {
+        if (Array.isArray(params)) return ''
+        const data = params.data as { name?: string; type?: string; relationName?: string }
+        if (params.dataType === 'node' && data) {
+          return `${data.name}<br/>类型: ${data.type}`
+        } else if (params.dataType === 'edge' && data) {
+          return data.relationName || ''
         }
         return ''
       },
@@ -763,9 +845,10 @@ function updateGraph() {
 
   // 点击节点选中组件
   chartInstance.off('click')
-  chartInstance.on('click', (params: any) => {
+  chartInstance.on('click', (params: echarts.ECElementEvent) => {
     if (params.dataType === 'node' && params.data) {
-      componentStore.selectedId(params.data.id)
+      const nodeData = params.data as { id: string }
+      componentStore.selectedId(nodeData.id)
     }
   })
 }
@@ -823,7 +906,8 @@ onUnmounted(() => {
   display: flex;
   flex-direction: column;
   overflow: hidden;
-  min-height: 150px;
+  min-height: 60px;
+  transition: height 0.3s ease;
 }
 
 .section-header {
@@ -881,7 +965,7 @@ onUnmounted(() => {
   width: 100%;
   display: flex;
   justify-content: center;
-  padding: 8px 0;
+  padding: 8px 12px;
 }
 
 .collapse {
@@ -916,6 +1000,80 @@ onUnmounted(() => {
   background: var(--el-fill-color-lighter);
   box-shadow: var(--el-box-shadow-light);
   border-color: var(--el-color-primary-light-5);
+}
+
+/* 模板选项卡样式 */
+.component-tabs {
+  width: 100%;
+}
+
+:deep(.el-tabs__content) {
+  padding: 0;
+}
+
+.templates-container {
+  padding: 12px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.template-card {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 16px;
+  border: 1px solid var(--el-border-color);
+  border-radius: 8px;
+  background: var(--el-fill-color-blank);
+  cursor: pointer;
+  transition:
+    all 0.2s,
+    box-shadow 0.2s;
+}
+
+.template-card:hover {
+  background: var(--el-fill-color-light);
+  border-color: var(--el-color-primary-light-5);
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.1);
+  transform: translateY(-2px);
+}
+
+.template-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 48px;
+  height: 48px;
+  border-radius: 8px;
+  background: var(--el-color-primary-light-9);
+  color: var(--el-color-primary);
+  font-size: 24px;
+}
+
+.template-info {
+  flex: 1;
+}
+
+.template-name {
+  margin: 0 0 6px 0;
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--el-text-color-primary);
+}
+
+.template-desc {
+  margin: 0;
+  font-size: 13px;
+  color: var(--el-text-color-secondary);
+  line-height: 1.5;
+}
+
+.template-card .el-tag {
+  position: absolute;
+  top: 16px;
+  right: 16px;
 }
 
 /* 关系图样式 */

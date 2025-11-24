@@ -25,6 +25,34 @@ export interface DataSource {
   [key: string]: unknown
 }
 
+// 事件动作接口
+export interface EventAction {
+  id: string // 动作唯一ID
+  type: string // 动作类型
+  targetId?: string // 目标组件ID
+  eventName?: string // 自定义事件名称
+  eventParams?: string // 自定义事件参数（JSON字符串）
+  content?: string // 内容（如提示文本）
+  // 条件触发
+  condition?: {
+    enabled: boolean // 是否启用条件
+    expression: string // 条件表达式
+  }
+  // 延迟执行
+  delay?: number // 延迟毫秒数
+}
+
+// 组件事件系统
+export interface ComponentEvents {
+  click?: EventAction[] // 点击事件动作列表
+  hover?: EventAction[] // 悬停事件动作列表
+  doubleClick?: EventAction[] // 双击事件动作列表
+  // 自定义事件
+  custom?: {
+    [eventName: string]: EventAction[]
+  }
+}
+
 export interface component {
   id: string
   name?: string // 自定义组件名称，用于区分同类型组件
@@ -64,6 +92,8 @@ export interface component {
     // 子组件内边距
     padding?: number
   }
+  // 事件系统
+  events?: ComponentEvents
 }
 
 export const useComponent = defineStore('component', () => {
@@ -652,7 +682,7 @@ export const useComponent = defineStore('component', () => {
           showGrid: true,
           option: undefined,
         }
-      case 'chart.bar':
+      case 'barChart':
         return {
           dataInput: '120, 200, 150, 180, 270, 210, 220',
           xAxisInput: 'Mon, Tue, Wed, Thu, Fri, Sat, Sun',
@@ -674,7 +704,7 @@ export const useComponent = defineStore('component', () => {
           showGrid: true,
           option: undefined,
         }
-      case 'chart.stackedBar':
+      case 'stackedBarChart':
         return {
           xAxisInput: 'Mon, Tue, Wed, Thu, Fri, Sat, Sun',
           seriesNamesInput: 'Series 1, Series 2, Series 3',
@@ -2023,6 +2053,16 @@ export const useComponent = defineStore('component', () => {
     commit()
   }
 
+  // 加载模板
+  function loadTemplate(templateComponents: component[]) {
+    // 清空当前画布
+    reset()
+    // 加载模板组件(使用深拷贝避免引用问题)
+    componentStore.value = JSON.parse(JSON.stringify(templateComponents))
+    // 提交到历史
+    commit()
+  }
+
   // 初始化历史：记录初始空白状态
   initHistory()
   return {
@@ -2054,6 +2094,7 @@ export const useComponent = defineStore('component', () => {
     isDragging,
     clipboard,
     commit,
+    loadTemplate,
     undo,
     redo,
     canUndo,

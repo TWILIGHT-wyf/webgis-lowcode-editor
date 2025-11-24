@@ -16,7 +16,7 @@
         }}{{ suffix }}
       </div>
     </div>
-    <div v-if="displayChange !== 0" class="stat-footer">
+    <div v-if="displayChange !== 0 && typeof displayChange === 'number'" class="stat-footer">
       <span class="stat-change" :style="changeStyle">
         {{ displayChange > 0 ? '+' : '' }}{{ displayChange.toFixed(1) }}%
       </span>
@@ -53,23 +53,33 @@ const displayTitle = computed<string>(() => {
 })
 
 const displayValue = computed<number>(() => {
-  const ds = comp.value?.dataSource
-  const localValue = (comp.value?.props.value as number) ?? 0
+  try {
+    const ds = comp.value?.dataSource
+    const localValue = (comp.value?.props.value as number) ?? 0
 
-  if (ds?.enabled && remoteData.value) {
-    return extractNumber(remoteData.value, ds.valuePath, localValue)
+    if (ds?.enabled && remoteData.value) {
+      return extractNumber(remoteData.value, ds.valuePath, localValue)
+    }
+    return localValue
+  } catch (error) {
+    console.error('Error in displayValue:', error)
+    return 0
   }
-  return localValue
 })
 
 const displayChange = computed<number>(() => {
-  const ds = comp.value?.dataSource
-  const localChange = (comp.value?.props.change as number) ?? 0
+  try {
+    const ds = comp.value?.dataSource
+    const localChange = (comp.value?.props.change as number) ?? 0
 
-  if (ds?.enabled && remoteData.value) {
-    return extractNumber(remoteData.value, ds.changePath, localChange)
+    if (ds?.enabled && remoteData.value) {
+      return extractNumber(remoteData.value, ds.changePath, localChange)
+    }
+    return localChange
+  } catch (error) {
+    console.error('Error in displayChange:', error)
+    return 0
   }
-  return localChange
 })
 
 const icon = computed<string>(() => (comp.value?.props.icon as string) ?? 'el-icon-star-on')

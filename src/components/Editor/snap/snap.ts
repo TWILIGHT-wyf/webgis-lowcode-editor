@@ -173,7 +173,7 @@ export function useSnap() {
     let yLine: number | undefined
 
     // 获取当前组件的子组件ID列表(如果是容器)
-    const currentComp = componentStore.value.find(c => c.id === meComp.value.id)
+    const currentComp = componentStore.value.find((c) => c.id === meComp.value.id)
     const childrenIds = currentComp?.children || []
 
     boxCache.value.forEach((box, id) => {
