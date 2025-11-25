@@ -57,78 +57,81 @@
       </el-scrollbar>
     </div>
 
-    <!-- 拖拽分隔条 -->
-    <div class="resizer-horizontal" @mousedown="startResize">
-      <div class="resizer-line"></div>
-    </div>
-
-    <!-- 关系图部分 -->
-    <div class="relation-graph-section" :style="{ height: graphHeight + 'px' }">
-      <div class="section-header">
-        <span class="section-title">组件关系图</span>
-        <el-button
-          :icon="graphVisible ? 'el-icon-arrow-up' : 'el-icon-arrow-down'"
-          size="small"
-          text
-          @click="toggleGraph"
-        >
-          {{ graphVisible ? '收起' : '展开' }}
-        </el-button>
+    <!-- 关系图谱区域（包含拖拽条和关系图） -->
+    <div class="relation-wrapper">
+      <!-- 拖拽分隔条 -->
+      <div class="resizer-horizontal" @mousedown="startResize">
+        <div class="resizer-line"></div>
       </div>
-      <div v-show="graphVisible" class="graph-content">
-        <div class="graph-controls">
-          <el-button-group>
-            <el-button
-              :type="graphType === 'all' ? 'primary' : ''"
-              size="small"
-              @click="graphType = 'all'"
-            >
-              全部
-            </el-button>
-            <el-button
-              :type="graphType === 'hierarchy' ? 'primary' : ''"
-              size="small"
-              @click="graphType = 'hierarchy'"
-            >
-              层级
-            </el-button>
-            <el-button
-              :type="graphType === 'events' ? 'primary' : ''"
-              size="small"
-              @click="graphType = 'events'"
-            >
-              事件
-            </el-button>
-            <el-button
-              :type="graphType === 'data' ? 'primary' : ''"
-              size="small"
-              @click="graphType = 'data'"
-            >
-              数据
-            </el-button>
-          </el-button-group>
+
+      <!-- 关系图部分 -->
+      <div class="relation-graph-section" :style="relationStyle">
+        <div class="section-header">
+          <span class="section-title">组件关系图</span>
+          <el-button
+            :icon="graphVisible ? 'el-icon-arrow-up' : 'el-icon-arrow-down'"
+            size="small"
+            text
+            @click="toggleGraph"
+          >
+            {{ graphVisible ? '收起' : '展开' }}
+          </el-button>
         </div>
-        <div ref="graphContainer" class="graph-container"></div>
-        <div class="graph-legend">
-          <div class="legend-item">
-            <span class="legend-dot" style="background: #5470c6"></span>
-            <span>普通</span>
+        <div v-if="graphVisible" class="graph-content">
+          <div class="graph-controls">
+            <el-button-group>
+              <el-button
+                :type="graphType === 'all' ? 'primary' : ''"
+                size="small"
+                @click="graphType = 'all'"
+              >
+                全部
+              </el-button>
+              <el-button
+                :type="graphType === 'hierarchy' ? 'primary' : ''"
+                size="small"
+                @click="graphType = 'hierarchy'"
+              >
+                层级
+              </el-button>
+              <el-button
+                :type="graphType === 'events' ? 'primary' : ''"
+                size="small"
+                @click="graphType = 'events'"
+              >
+                事件
+              </el-button>
+              <el-button
+                :type="graphType === 'data' ? 'primary' : ''"
+                size="small"
+                @click="graphType = 'data'"
+              >
+                数据
+              </el-button>
+            </el-button-group>
           </div>
-          <div class="legend-item">
-            <span class="legend-dot" style="background: #91cc75"></span>
-            <span>容器</span>
-          </div>
-          <div class="legend-item">
-            <span class="legend-line" style="background: #409eff"></span>
-            <span>父子</span>
-          </div>
-          <div class="legend-item">
-            <span class="legend-line" style="background: #67c23a"></span>
-            <span>事件</span>
-          </div>
-          <div class="legend-item">
-            <span class="legend-line" style="background: #e6a23c"></span>
-            <span>数据</span>
+          <div ref="graphContainer" class="graph-container"></div>
+          <div class="graph-legend">
+            <div class="legend-item">
+              <span class="legend-dot" style="background: #5470c6"></span>
+              <span>普通</span>
+            </div>
+            <div class="legend-item">
+              <span class="legend-dot" style="background: #91cc75"></span>
+              <span>容器</span>
+            </div>
+            <div class="legend-item">
+              <span class="legend-line" style="background: #409eff"></span>
+              <span>父子</span>
+            </div>
+            <div class="legend-item">
+              <span class="legend-line" style="background: #67c23a"></span>
+              <span>事件</span>
+            </div>
+            <div class="legend-item">
+              <span class="legend-line" style="background: #e6a23c"></span>
+              <span>数据</span>
+            </div>
           </div>
         </div>
       </div>
@@ -137,7 +140,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, watch, onMounted, onUnmounted, nextTick } from 'vue'
+import { ref, watch, onMounted, onUnmounted, nextTick, computed } from 'vue'
 import * as echarts from 'echarts'
 import { storeToRefs } from 'pinia'
 import { useComponent } from '@/stores/component'
@@ -164,8 +167,69 @@ const { componentStore: components } = storeToRefs(componentStore)
 
 // 布局状态
 const componentLibHeight = ref(400)
-const graphHeight = ref(300)
 const graphVisible = ref(true)
+// 折叠时的最小高度（保留 header）
+const collapsedGraphHeight = 50
+// 展开时的默认高度
+const expandedGraphHeight = ref(300)
+
+// 常量：最小高度与分隔条高度（module level so can be reused）
+const MIN_COMPONENT_HEIGHT = 200
+const MIN_GRAPH_HEIGHT = 150
+const RESIZER_HEIGHT = 8
+
+// 根据容器高度调整两个区块的初始/切换后高度，确保两者之和填满可用高度
+function adjustHeightsToContainer() {
+  const container = document.querySelector('.componentBar-container') as HTMLElement
+  if (!container) return
+
+  const total = container.clientHeight - RESIZER_HEIGHT
+
+  if (graphVisible.value) {
+    // 如果当前和不足以填满容器，则把图谱高度扩展以填满剩余空间
+    const currentSum = componentLibHeight.value + expandedGraphHeight.value
+    if (currentSum < total) {
+      // 尽量让 expandedGraphHeight 吸收多余空间
+      expandedGraphHeight.value = Math.max(
+        MIN_GRAPH_HEIGHT,
+        expandedGraphHeight.value + (total - currentSum),
+      )
+    } else if (currentSum > total) {
+      // 如果当前和超过可用高度，优先压缩图谱到最小，再压缩组件库
+      let remaining = total
+      const graphAlloc = Math.max(
+        MIN_GRAPH_HEIGHT,
+        Math.min(expandedGraphHeight.value, remaining - MIN_COMPONENT_HEIGHT),
+      )
+      remaining -= graphAlloc
+      const compAlloc = Math.max(MIN_COMPONENT_HEIGHT, remaining)
+      expandedGraphHeight.value = graphAlloc
+      componentLibHeight.value = compAlloc
+    }
+  } else {
+    // 折叠时：组件库占满除折叠头部外的所有空间
+    componentLibHeight.value = Math.max(MIN_COMPONENT_HEIGHT, total - collapsedGraphHeight)
+  }
+}
+
+// 窗口尺寸变化统一处理：调整图表并修正分区高度
+function onWindowResize() {
+  if (chartInstance) chartInstance.resize()
+  adjustHeightsToContainer()
+}
+// 关系图容器的动态样式：折叠时只显示header，展开时使用设定高度
+const relationStyle = computed(() => {
+  if (!graphVisible.value) {
+    return {
+      height: collapsedGraphHeight + 'px',
+      flex: '0 0 auto',
+    }
+  }
+  return {
+    height: expandedGraphHeight.value + 'px',
+    flex: '0 0 auto',
+  }
+})
 const isResizing = ref(false)
 
 // 关系图
@@ -666,21 +730,37 @@ function onDrag(e: DragEvent, item: Item) {
 
 // 拖拽调整高度
 function startResize(e: MouseEvent) {
+  // 只有在关系图展开时才允许拖拽
+  if (!graphVisible.value) return
+
   isResizing.value = true
   const startY = e.clientY
   const startComponentHeight = componentLibHeight.value
-  const startGraphHeight = graphHeight.value
+  const startGraphHeight = expandedGraphHeight.value
+
+  // 获取容器总高度
+  const container = document.querySelector('.componentBar-container') as HTMLElement
+  if (!container) return
 
   const onMouseMove = (moveEvent: MouseEvent) => {
-    if (!isResizing.value) return
+    if (!isResizing.value || !container) return
+
     const deltaY = moveEvent.clientY - startY
     const newComponentHeight = startComponentHeight + deltaY
     const newGraphHeight = startGraphHeight - deltaY
 
-    // 设置最小高度
-    if (newComponentHeight >= 200 && newGraphHeight >= 150) {
+    // 获取容器总高度，减去拖拽条高度
+    const totalHeight = container.clientHeight
+    const maxTotalHeight = totalHeight - RESIZER_HEIGHT
+
+    // 确保两个高度都满足最小值，且总和不超过容器高度
+    if (
+      newComponentHeight >= MIN_COMPONENT_HEIGHT &&
+      newGraphHeight >= MIN_GRAPH_HEIGHT &&
+      newComponentHeight + newGraphHeight <= maxTotalHeight
+    ) {
       componentLibHeight.value = newComponentHeight
-      graphHeight.value = newGraphHeight
+      expandedGraphHeight.value = newGraphHeight
 
       // 调整图表大小
       if (chartInstance) {
@@ -688,6 +768,8 @@ function startResize(e: MouseEvent) {
           chartInstance?.resize()
         })
       }
+    } else {
+      // 超出约束则不应用
     }
   }
 
@@ -704,15 +786,20 @@ function startResize(e: MouseEvent) {
 // 切换关系图显示
 function toggleGraph() {
   graphVisible.value = !graphVisible.value
-  // 根据显示状态调整高度
-  if (graphVisible.value) {
-    graphHeight.value = 300
-    nextTick(() => {
-      chartInstance?.resize()
-    })
-  } else {
-    graphHeight.value = 60
-  }
+
+  nextTick(() => {
+    if (graphVisible.value) {
+      // 展开时，如果图表实例不存在则重新初始化
+      if (!chartInstance && graphContainer.value) {
+        chartInstance = echarts.init(graphContainer.value)
+        updateGraph()
+      } else {
+        chartInstance?.resize()
+      }
+    }
+    // 切换后调整高度以填充容器（展开或折叠都会影响分配）
+    adjustHeightsToContainer()
+  })
 }
 
 // 初始化关系图
@@ -721,10 +808,6 @@ function initChart() {
 
   chartInstance = echarts.init(graphContainer.value)
   updateGraph()
-
-  window.addEventListener('resize', () => {
-    chartInstance?.resize()
-  })
 }
 
 // 构建图数据
@@ -875,6 +958,10 @@ watch(graphType, () => {
 onMounted(() => {
   nextTick(() => {
     initChart()
+    // 初始时根据容器大小调整两个区域的高度
+    adjustHeightsToContainer()
+    // 注册统一的窗口 resize 处理
+    window.addEventListener('resize', onWindowResize)
   })
 })
 
@@ -883,6 +970,7 @@ onUnmounted(() => {
     chartInstance.dispose()
     chartInstance = null
   }
+  window.removeEventListener('resize', onWindowResize)
 })
 </script>
 
@@ -892,6 +980,7 @@ onUnmounted(() => {
   height: 100%;
   display: flex;
   flex-direction: column;
+  justify-content: flex-start;
   overflow: hidden;
 }
 
@@ -899,14 +988,26 @@ onUnmounted(() => {
   display: flex;
   flex-direction: column;
   overflow: hidden;
+  flex-shrink: 0;
+}
+
+.relation-wrapper {
+  display: flex;
+  flex-direction: column;
+  flex-shrink: 0;
+  overflow: hidden;
+  height: fit-content;
+}
+
+.relation-wrapper {
+  margin-top: auto;
 }
 
 .relation-graph-section {
-  flex: 1;
   display: flex;
   flex-direction: column;
   overflow: hidden;
-  min-height: 60px;
+  flex-shrink: 0;
   transition: height 0.3s ease;
 }
 
@@ -1129,28 +1230,64 @@ onUnmounted(() => {
 
 /* Dark theme */
 :deep(.theme-dark) .componentBar-container {
-  background: #0f1720;
-  color: #e6eef8;
+  background: var(--bg-secondary);
+  color: var(--text-primary);
 }
 
 :deep(.theme-dark) .palette-item {
-  background: #111319;
-  border-color: #2b2f36;
-  color: #d8dbe0;
+  background: var(--bg-tertiary);
+  border-color: var(--border-color);
+  color: var(--text-primary);
 }
 
 :deep(.theme-dark) .palette-item:hover {
-  background: #16202a;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.6);
+  background: var(--bg-primary);
+  box-shadow: 0 4px 12px var(--shadow-light);
 }
 
 :deep(.theme-dark) .section-header {
-  background: #0f1720;
-  border-color: #2b2f36;
+  background: var(--bg-secondary);
+  border-color: var(--border-color);
+  color: var(--text-primary);
 }
 
 :deep(.theme-dark) .graph-container {
-  background: #111319;
-  border-color: #2b2f36;
+  background: var(--bg-tertiary);
+  border-color: var(--border-color);
+}
+
+:deep(.theme-dark) .graph-legend {
+  background: var(--bg-tertiary);
+  color: var(--text-primary);
+}
+
+:deep(.theme-dark) .template-card {
+  background: var(--bg-tertiary);
+  border-color: var(--border-color);
+}
+
+:deep(.theme-dark) .template-card:hover {
+  background: var(--bg-primary);
+  border-color: var(--text-tertiary);
+}
+
+:deep(.theme-dark) .template-name {
+  color: var(--text-primary);
+}
+
+:deep(.theme-dark) .template-desc {
+  color: var(--text-secondary);
+}
+
+:deep(.theme-dark) .template-icon {
+  background: var(--bg-primary);
+}
+
+:deep(.theme-dark) .resizer-horizontal {
+  background: var(--bg-tertiary);
+}
+
+:deep(.theme-dark) .resizer-line {
+  background: var(--border-color);
 }
 </style>

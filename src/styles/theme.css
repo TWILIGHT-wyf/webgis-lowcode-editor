@@ -79,9 +79,206 @@ body {
 .theme-dark .el-collapse-item__header {
   background-color: var(--bg-secondary);
   color: var(--text-primary);
+  border-bottom-color: var(--border-color);
 }
 
 .theme-dark .el-collapse-item__content {
   background-color: var(--bg-primary);
   color: var(--text-secondary);
+}
+
+/* 属性面板适配 */
+.theme-dark .properties-panel {
+  background-color: var(--bg-secondary);
+  color: var(--text-primary);
+}
+
+.theme-dark .properties-scrollbar {
+  background-color: var(--bg-secondary);
+}
+
+.theme-dark .el-form-item__label {
+  color: var(--text-primary);
+}
+
+.theme-dark .el-input__wrapper {
+  background-color: var(--bg-tertiary);
+  box-shadow: 0 0 0 1px var(--border-color) inset;
+}
+
+.theme-dark .el-input__inner {
+  color: var(--text-primary);
+}
+
+.theme-dark .el-textarea__inner {
+  background-color: var(--bg-tertiary);
+  color: var(--text-primary);
+  border-color: var(--border-color);
+}
+
+.theme-dark .el-select__wrapper {
+  background-color: var(--bg-tertiary);
+  box-shadow: 0 0 0 1px var(--border-color) inset;
+}
+
+.theme-dark .el-select__input {
+  color: var(--text-primary);
+}
+
+/* 选项卡适配 */
+.theme-dark .el-tabs__header {
+  border-bottom-color: var(--border-color);
+}
+
+.theme-dark .el-tabs__item {
+  color: var(--text-secondary);
+}
+
+.theme-dark .el-tabs__item.is-active {
+  color: var(--text-primary);
+}
+
+.theme-dark .el-tabs__nav-wrap::after {
+  background-color: var(--border-color);
+}
+
+.theme-dark .el-tab-pane {
+  color: var(--text-primary);
+}
+
+/* 菜单适配 */
+.theme-dark .el-menu {
+  background-color: var(--bg-secondary);
+  border-right-color: var(--border-color);
+}
+
+.theme-dark .el-menu-item {
+  color: var(--text-secondary);
+}
+
+.theme-dark .el-menu-item:hover,
+.theme-dark .el-menu-item.is-active {
+  color: var(--text-primary);
+  background-color: var(--bg-tertiary);
+}
+
+/* 卡片适配 */
+.theme-dark .el-card {
+  background-color: var(--bg-secondary);
+  border-color: var(--border-color);
+  color: var(--text-primary);
+}
+
+.theme-dark .el-card__header {
+  background-color: var(--bg-tertiary);
+  border-bottom-color: var(--border-color);
+  color: var(--text-primary);
+}
+
+/* 下拉菜单适配 */
+.theme-dark .el-dropdown-menu {
+  background-color: var(--bg-secondary);
+  border-color: var(--border-color);
+}
+
+.theme-dark .el-dropdown-menu__item {
+  color: var(--text-primary);
+}
+
+.theme-dark .el-dropdown-menu__item:hover {
+  background-color: var(--bg-tertiary);
+}
+
+/* 滚动条适配 */
+.theme-dark .el-scrollbar__thumb {
+  background-color: var(--border-color);
+}
+
+.theme-dark .el-scrollbar__thumb:hover {
+  background-color: var(--text-tertiary);
+}
+
+/* 关系图谱适配 */
+.theme-dark .relation-graph-section {
+  background-color: var(--bg-secondary);
+}
+
+.theme-dark .section-header {
+  background-color: var(--bg-secondary);
+  border-color: var(--border-color);
+  color: var(--text-primary);
+}
+
+.theme-dark .graph-container {
+  background-color: var(--bg-tertiary);
+  border-color: var(--border-color);
+}
+
+.theme-dark .graph-legend {
+  background-color: var(--bg-tertiary);
+  color: var(--text-primary);
+}
+
+.theme-dark .resizer-horizontal {
+  background-color: var(--bg-tertiary);
+}
+
+.theme-dark .resizer-horizontal:hover {
+  background-color: var(--border-color);
+}
+
+/* 模板卡片适配 */
+.theme-dark .template-card {
+  background-color: var(--bg-secondary);
+  border-color: var(--border-color);
+}
+
+.theme-dark .template-card:hover {
+  background-color: var(--bg-tertiary);
+  border-color: var(--text-tertiary);
+}
+
+.theme-dark .template-name {
+  color: var(--text-primary);
+}
+
+.theme-dark .template-desc {
+  color: var(--text-secondary);
+}
+
+.theme-dark .template-icon {
+  background-color: var(--bg-tertiary);
+}
+
+/* 折叠面板调整 */
+.theme-dark .el-collapse {
+  border-color: var(--border-color);
+}
+
+.theme-dark .el-collapse-item {
+  border-bottom-color: var(--border-color);
+}
+
+.theme-dark .el-collapse-item__wrap {
+  background-color: var(--bg-secondary);
+}
+
+/* 按钮组适配 */
+.theme-dark .el-button-group .el-button {
+  border-color: var(--border-color);
+}
+
+.theme-dark .el-button-group .el-button:not(.el-button--primary) {
+  background-color: var(--bg-tertiary);
+}
+
+/* 表单项适配 */
+.theme-dark .el-form-item {
+  color: var(--text-primary);
+}
+
+.theme-dark .canvas-config,
+.theme-dark .component-config {
+  background-color: var(--bg-secondary);
+  color: var(--text-primary);
 }

@@ -102,7 +102,13 @@ export function provideComponentEvents() {
         if (action.targetId) {
           const target = components.value.find((c) => c.id === action.targetId)
           if (target) {
-            target.style.visible = !target.style.visible
+            // 确保style对象存在
+            if (!target.style) {
+              target.style = { visible: true }
+            }
+            // 切换可见性: undefined默认为true(可见)
+            const currentVisible = target.style.visible !== false
+            target.style.visible = !currentVisible
             componentStore.commit()
           }
         }

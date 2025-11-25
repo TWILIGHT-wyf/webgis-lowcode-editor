@@ -110,14 +110,11 @@ async function executeAction(action: EventAction, sourceComponent?: component): 
         if (target) {
           // 确保style对象存在
           if (!target.style) {
-            target.style = {}
+            target.style = { visible: true }
           }
-          // 切换可见性: undefined和true都视为可见,切换为false; false视为不可见,切换为true
-          if (target.style.visible === false) {
-            target.style.visible = true
-          } else {
-            target.style.visible = false
-          }
+          // 切换可见性: undefined默认为true(可见)
+          const currentVisible = target.style.visible !== false
+          target.style.visible = !currentVisible
 
           // 强制触发响应式更新
           compStore.commit()
