@@ -494,7 +494,6 @@ const { width: canvasWidth, height: canvasHeight, canvasConfig } = storeToRefs(s
 const { setSize: setCanvasSize } = sizeStore
 
 const activeCollapse = ref(['basic'])
-const canvasActiveCollapse = ref(['canvas'])
 const { styleSchema, dataSourceSchema, componentSchema } = customProperties()
 const isRow = computed(() => {
   const t = selectComponent.value?.type

@@ -186,7 +186,7 @@ async function loadProject() {
     compStore.commit()
     ElMessage.success('项目加载成功')
   } catch (error) {
-    if ((error as any) !== 'cancel') {
+    if ((error as unknown) !== 'cancel') {
       ElMessage.error('加载失败: ' + (error as Error).message)
     }
   }

@@ -11,6 +11,7 @@ import type {
 } from '@/type/suggestion'
 import type { component as Component } from '@/stores/component'
 import { nanoid } from 'nanoid'
+import http from '@/services/http'
 
 /**
  * 默认白名单配置
@@ -428,49 +429,56 @@ async function callAgent(request: SuggestionRequest): Promise<Omit<SuggestionRes
     }
   }
 
+  let timeoutId: number | null = null
+
   try {
     const controller = new AbortController()
-    const timeoutId = setTimeout(() => controller.abort(), AGENT_CONFIG.timeout)
+    // 使用 window.setTimeout 以获得 number 类型（前端环境）
+    timeoutId = window.setTimeout(() => controller.abort(), AGENT_CONFIG.timeout)
 
-    const response = await fetch(AGENT_CONFIG.endpoint, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        // 代理模式下不需要 Authorization header，密钥由代理服务器管理
-      },
-      body: JSON.stringify({
+    const resp = await http.post(
+      AGENT_CONFIG.endpoint,
+      {
         messages: [
           { role: 'system', content: buildSystemPrompt() },
           { role: 'user', content: buildUserMessage(request) },
         ],
         temperature: 0.7,
         max_tokens: 4096,
-      }),
-      signal: controller.signal,
-    })
+      },
+      {
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        signal: controller.signal,
+        timeout: AGENT_CONFIG.timeout,
+      },
+    )
 
-    clearTimeout(timeoutId)
-
-    if (!response.ok) {
-      const errorText = await response.text()
-      throw new Error(`API 请求失败: ${response.status} - ${errorText}`)
+    if (timeoutId !== null) {
+      clearTimeout(timeoutId)
+      timeoutId = null
     }
 
-    const data = await response.json()
-
-    // 提取 AI 回复内容（适配 OpenAI 格式）
+    const data = resp.data
     const content = data.choices?.[0]?.message?.content || data.content || ''
-
     return parseAgentResponse(content, request)
-  } catch (error) {
-    console.error('[SuggestService] Agent 调用失败:', error)
+  } catch (err: unknown) {
+    if (timeoutId !== null) {
+      clearTimeout(timeoutId)
+      timeoutId = null
+    }
 
-    const errorMessage =
-      error instanceof Error
-        ? error.name === 'AbortError'
-          ? '请求超时，请检查网络连接'
-          : error.message
-        : '未知错误'
+    console.error('[SuggestService] Agent 调用失败:', err)
+
+    // 超时/取消/其它错误处理
+    let errorMessage = '未知错误'
+    const errCode = (err as { code?: string })?.code
+    if (errCode === 'ECONNABORTED' || errCode === 'ERR_CANCELED') {
+      errorMessage = '请求超时或已取消，请检查网络连接'
+    } else if (err instanceof Error) {
+      errorMessage = err.message
+    }
 
     return {
       request,

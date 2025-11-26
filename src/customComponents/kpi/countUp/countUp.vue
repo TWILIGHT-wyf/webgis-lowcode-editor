@@ -105,6 +105,7 @@ function animateValue(start: number, end: number) {
 }
 
 // 格式化显示值
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 const displayValue = computed(() => {
   const val = animatedValue.value
   let result = val.toFixed(decimals.value)
