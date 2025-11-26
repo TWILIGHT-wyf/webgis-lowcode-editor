@@ -14,6 +14,11 @@ dist-ssr
 coverage
 *.local
 
+# 环境变量文件（包含敏感信息如 API 密钥）
+.env
+.env.local
+.env.*.local
+
 /cypress/videos/
 /cypress/screenshots/
 

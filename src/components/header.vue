@@ -14,6 +14,15 @@
         <el-icon><View /></el-icon>
         <span class="btn-label">预览</span>
       </el-button>
+
+      <el-divider direction="vertical" />
+
+      <el-button size="small" type="primary" @click="openAIAssist" :badge="pendingCount">
+        <el-icon><MagicStick /></el-icon>
+        <span class="btn-label">AI助手</span>
+        <el-badge v-if="pendingCount > 0" :value="pendingCount" :max="9" class="header-badge" />
+      </el-button>
+
       <el-button size="small" type="success" plain @click="saveProject">
         <el-icon><Finished /></el-icon>
         <span class="btn-label">保存</span>
@@ -64,10 +73,12 @@
 <script setup lang="ts">
 import { useComponent } from '@/stores/component'
 import { useSizeStore } from '@/stores/size'
+import { useSuggestion } from '@/stores/suggestion'
 import { storeToRefs } from 'pinia'
 import { computed, ref, watch, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { ElMessage, ElMessageBox } from 'element-plus'
+import { MagicStick } from '@element-plus/icons-vue'
 import { componentsToJSON } from '@/utils/toCode'
 
 const router = useRouter()
@@ -78,6 +89,11 @@ const { reset, undo, redo, canUndo, canRedo } = compStore
 const { componentStore } = storeToRefs(compStore)
 const canUndoRef = computed(() => canUndo())
 const canRedoRef = computed(() => canRedo())
+
+// AI 助手
+const suggestionStore = useSuggestion()
+const pendingCount = computed(() => suggestionStore.pendingSuggestions.length)
+
 // 缩放
 const scalePercent = computed({
   get: () => Math.round((scale.value ?? 0) * 100),
@@ -106,6 +122,16 @@ function applyTheme(dark: boolean) {
 // 打开预览页面
 function openPreview() {
   router.push('/runtime')
+}
+
+// 打开 AI 助手
+const emit = defineEmits<{
+  'open-ai-assist': []
+}>()
+
+function openAIAssist() {
+  emit('open-ai-assist')
+  ElMessage.info('AI 助手已在右侧面板打开')
 }
 
 // 保存项目到localStorage

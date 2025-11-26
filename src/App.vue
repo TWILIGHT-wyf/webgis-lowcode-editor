@@ -4,11 +4,18 @@ import headerNav from './components/header.vue'
 import SiderBar from './components/siderBar/siderBar.vue'
 import componentBar from './components/componentBar.vue'
 import CanvasBoard from './components/Editor/canvasBoard/canvasBoard.vue'
+import AIAssistDialog from '@/components/AIAssistDialog.vue'
 import { provideComponentEvents } from '@/components/siderBar/events/events'
 
 // 侧边栏宽度
 const leftSidebarWidth = ref(300)
 const rightSidebarWidth = ref(340)
+
+// AI 助手悬浮窗状态
+const aiVisible = ref(false)
+
+// SiderBar 引用
+const sideBarRef = ref<InstanceType<typeof SiderBar> | null>(null)
 const isResizingLeft = ref(false)
 const isResizingRight = ref(false)
 
@@ -66,6 +73,11 @@ function startResizeRight(e: MouseEvent) {
 onMounted(() => {
   provideComponentEvents()
 })
+
+// 打开 AI 助手
+function handleOpenAIAssist() {
+  aiVisible.value = true
+}
 </script>
 
 <template>
@@ -78,7 +90,7 @@ onMounted(() => {
   <div v-else class="common-layout">
     <el-container>
       <el-header>
-        <headerNav />
+        <headerNav @open-ai-assist="handleOpenAIAssist" />
       </el-header>
       <el-container>
         <!-- 左侧边栏 -->
@@ -101,10 +113,13 @@ onMounted(() => {
 
         <!-- 右侧边栏 -->
         <el-aside :width="rightSidebarWidth + 'px'">
-          <SiderBar />
+          <SiderBar ref="sideBarRef" />
         </el-aside>
       </el-container>
     </el-container>
+
+    <!-- AI 助手悬浮窗 -->
+    <AIAssistDialog v-model:visible="aiVisible" />
   </div>
 </template>
 

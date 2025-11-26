@@ -214,150 +214,291 @@ function validateDiff(diff: DiffItem): { valid: boolean; errors: string[] } {
 }
 
 /**
- * 模拟 Agent 调用（实际项目中替换为真实 API）
+ * Agent API 配置
+ * 使用本地代理服务器转发请求，保护 API 密钥安全
+ *
+ * 启动代理: cd server && npm install && npm start
+ */
+const AGENT_CONFIG = {
+  // 本地代理服务器地址
+  endpoint: 'http://localhost:3001/api/ai/generate',
+  // 代理模式下不需要在前端配置密钥，密钥存储在服务器端
+  apiKey: 'proxy-mode', // 占位符，实际密钥在 server/.env 中配置
+  // 模型名称（用于显示，实际模型在 server/.env 中配置）
+  model: 'gemini-via-proxy',
+  // 请求超时时间（毫秒）
+  timeout: 60000,
+}
+
+/**
+ * 构建发送给 Agent 的系统提示词
+ */
+function buildSystemPrompt(): string {
+  return `你是一个专业的 WebGIS 可视化大屏设计助手。用户会描述他们想要的组件或布局需求，你需要根据需求生成对应的组件配置。
+
+## 可用组件类型
+### 图表类
+- lineChart: 折线图（用于趋势分析）
+- barChart: 柱状图（用于数据对比）
+- stackedBarChart: 堆叠柱状图
+- pieChart: 饼图（用于占比分析）
+- doughnutChart: 环形图
+- scatterChart: 散点图
+- radarChart: 雷达图
+- gaugeChart: 仪表盘
+- funnelChart: 漏斗图
+- sankeyChart: 桑基图
+
+### KPI 指标类
+- stat: 统计指标卡
+- countUp: 数字滚动
+- progress: 进度条
+- badge: 徽章
+- box: 信息盒子
+- Text: 文本
+
+### 数据展示类
+- table: 数据表格
+- list: 列表
+- timeline: 时间线
+- cardGrid: 卡片网格
+- pivot: 透视表
+
+### 控件类
+- select: 下拉选择
+- multiSelect: 多选
+- dateRange: 日期范围
+- searchBox: 搜索框
+- slider: 滑块
+- switch: 开关
+- checkboxGroup: 复选框组
+- buttonGroup: 按钮组
+
+### 布局类
+- row, col, flex, grid: 布局容器
+- panel: 面板
+- tabs: 标签页
+- modal: 弹窗
+
+### 媒体类
+- image: 图片
+- video: 视频
+
+### 地图类
+- base: 基础地图
+- tile: 瓦片图层
+- marker: 标记点
+- heat: 热力图
+
+## 输出格式
+请严格按照以下 JSON 格式返回，不要包含任何其他文字：
+{
+  "diffs": [
+    {
+      "action": "add",
+      "componentType": "组件类型",
+      "component": {
+        "type": "组件类型",
+        "name": "组件名称",
+        "position": { "x": 数字, "y": 数字 },
+        "size": { "width": 数字, "height": 数字 },
+        "rotation": 0,
+        "zindex": 1,
+        "style": { "visible": true, "locked": false },
+        "props": { /* 组件特定属性 */ }
+      },
+      "description": "操作描述"
+    }
+  ],
+  "summary": "总结说明"
+}
+
+## 注意事项
+1. position.x 和 position.y 必须 >= 0
+2. size.width 和 size.height 范围为 50-2000
+3. 多个组件时注意位置错开，避免重叠
+4. 根据组件类型提供合理的 props 配置
+5. 只返回 JSON，不要有其他解释文字`
+}
+
+/**
+ * 构建用户消息
+ */
+function buildUserMessage(request: SuggestionRequest): string {
+  const contextInfo = request.context
+    ? `\n当前画布尺寸: ${request.context.canvasSize?.width || 1920}x${request.context.canvasSize?.height || 1080}\n已有组件数量: ${request.context.components?.length || 0}`
+    : ''
+
+  return `用户需求: ${request.prompt}${contextInfo}`
+}
+
+/**
+ * 解析 Agent 响应
+ */
+function parseAgentResponse(
+  responseText: string,
+  request: SuggestionRequest,
+): Omit<SuggestionResult, 'id'> {
+  try {
+    // 尝试提取 JSON（处理可能包含 markdown 代码块的情况）
+    let jsonStr = responseText
+    const jsonMatch = responseText.match(/```(?:json)?\s*([\s\S]*?)```/)
+    if (jsonMatch && jsonMatch[1]) {
+      jsonStr = jsonMatch[1].trim()
+    }
+
+    const parsed = JSON.parse(jsonStr)
+
+    return {
+      request,
+      diffs: parsed.diffs || [],
+      summary: parsed.summary || `生成了 ${parsed.diffs?.length || 0} 个组件`,
+      confidence: 0.9,
+      agentVersion: AGENT_CONFIG.model || 'unknown',
+      timestamp: Date.now(),
+      validated: false,
+    }
+  } catch (error) {
+    console.error('[SuggestService] 解析 Agent 响应失败:', error)
+    // 返回错误提示
+    return {
+      request,
+      diffs: [
+        {
+          action: 'add',
+          componentType: 'Text',
+          component: {
+            type: 'Text',
+            name: '错误提示',
+            position: { x: 50, y: 50 },
+            size: { width: 400, height: 80 },
+            rotation: 0,
+            zindex: 1,
+            style: { visible: true, locked: false },
+            props: {
+              content: `Agent 响应解析失败，请重试。原始响应: ${responseText.slice(0, 200)}...`,
+            },
+          },
+          description: '解析错误提示',
+        },
+      ],
+      summary: 'Agent 响应解析失败',
+      confidence: 0,
+      agentVersion: AGENT_CONFIG.model || 'unknown',
+      timestamp: Date.now(),
+      validated: false,
+    }
+  }
+}
+
+/**
+ * 调用真实 Agent API
  */
 async function callAgent(request: SuggestionRequest): Promise<Omit<SuggestionResult, 'id'>> {
-  // 模拟延迟
-  await new Promise((resolve) => setTimeout(resolve, 800))
-
-  // 简单解析 prompt
-  const prompt = request.prompt.toLowerCase()
-  const diffs: DiffItem[] = []
-
-  // 示例：检测 KPI 需求
-  if (prompt.includes('kpi') || prompt.includes('指标')) {
-    diffs.push({
-      action: 'add',
-      componentType: 'stat',
-      component: {
-        type: 'stat',
-        name: 'KPI 指标卡',
-        position: { x: 50, y: 50 },
-        size: { width: 200, height: 120 },
-        rotation: 0,
-        zindex: 1,
-        style: { visible: true, locked: false },
-        props: {
-          title: '总销售额',
-          value: 12580,
-          unit: '元',
-          trend: 'up',
-        },
-      },
-      description: '新增 KPI 指标卡',
-    })
-  }
-
-  // 示例：检测图表需求
-  if (prompt.includes('折线') || prompt.includes('line')) {
-    diffs.push({
-      action: 'add',
-      componentType: 'lineChart',
-      component: {
-        type: 'lineChart',
-        name: '折线图',
-        position: { x: 300, y: 50 },
-        size: { width: 400, height: 280 },
-        rotation: 0,
-        zindex: 1,
-        style: { visible: true, locked: false },
-        props: {
-          title: '趋势分析',
-          xAxisData: ['1月', '2月', '3月', '4月', '5月', '6月'],
-          series: [
-            {
-              name: '销售额',
-              data: [120, 200, 150, 280, 320, 390],
+  // 检查 API 配置
+  if (!AGENT_CONFIG.endpoint || !AGENT_CONFIG.apiKey) {
+    console.warn('[SuggestService] Agent API 未配置，请设置 AGENT_CONFIG')
+    return {
+      request,
+      diffs: [
+        {
+          action: 'add',
+          componentType: 'Text',
+          component: {
+            type: 'Text',
+            name: '配置提示',
+            position: { x: 50, y: 50 },
+            size: { width: 500, height: 100 },
+            rotation: 0,
+            zindex: 1,
+            style: { visible: true, locked: false },
+            props: {
+              content:
+                '⚠️ Agent API 未配置。请在 suggestService.ts 中设置 AGENT_CONFIG 的 endpoint、apiKey 和 model。',
             },
-          ],
+          },
+          description: 'API 配置提示',
         },
-      },
-      description: '新增折线图组件',
-    })
+      ],
+      summary: 'Agent API 未配置',
+      confidence: 0,
+      agentVersion: 'not-configured',
+      timestamp: Date.now(),
+      validated: false,
+    }
   }
 
-  if (prompt.includes('柱状') || prompt.includes('bar')) {
-    diffs.push({
-      action: 'add',
-      componentType: 'barChart',
-      component: {
-        type: 'barChart',
-        name: '柱状图',
-        position: { x: 300, y: 360 },
-        size: { width: 400, height: 280 },
-        rotation: 0,
-        zindex: 1,
-        style: { visible: true, locked: false },
-        props: {
-          title: '数据对比',
-          xAxisData: ['产品A', '产品B', '产品C', '产品D'],
-          series: [
-            {
-              name: '销量',
-              data: [320, 450, 280, 510],
+  try {
+    const controller = new AbortController()
+    const timeoutId = setTimeout(() => controller.abort(), AGENT_CONFIG.timeout)
+
+    const response = await fetch(AGENT_CONFIG.endpoint, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        // 代理模式下不需要 Authorization header，密钥由代理服务器管理
+      },
+      body: JSON.stringify({
+        messages: [
+          { role: 'system', content: buildSystemPrompt() },
+          { role: 'user', content: buildUserMessage(request) },
+        ],
+        temperature: 0.7,
+        max_tokens: 4096,
+      }),
+      signal: controller.signal,
+    })
+
+    clearTimeout(timeoutId)
+
+    if (!response.ok) {
+      const errorText = await response.text()
+      throw new Error(`API 请求失败: ${response.status} - ${errorText}`)
+    }
+
+    const data = await response.json()
+
+    // 提取 AI 回复内容（适配 OpenAI 格式）
+    const content = data.choices?.[0]?.message?.content || data.content || ''
+
+    return parseAgentResponse(content, request)
+  } catch (error) {
+    console.error('[SuggestService] Agent 调用失败:', error)
+
+    const errorMessage =
+      error instanceof Error
+        ? error.name === 'AbortError'
+          ? '请求超时，请检查网络连接'
+          : error.message
+        : '未知错误'
+
+    return {
+      request,
+      diffs: [
+        {
+          action: 'add',
+          componentType: 'Text',
+          component: {
+            type: 'Text',
+            name: '错误提示',
+            position: { x: 50, y: 50 },
+            size: { width: 500, height: 80 },
+            rotation: 0,
+            zindex: 1,
+            style: { visible: true, locked: false },
+            props: {
+              content: `❌ Agent 调用失败: ${errorMessage}`,
             },
-          ],
+          },
+          description: '错误提示',
         },
-      },
-      description: '新增柱状图组件',
-    })
-  }
-
-  if (prompt.includes('饼图') || prompt.includes('pie')) {
-    diffs.push({
-      action: 'add',
-      componentType: 'pieChart',
-      component: {
-        type: 'pieChart',
-        name: '饼图',
-        position: { x: 750, y: 50 },
-        size: { width: 300, height: 300 },
-        rotation: 0,
-        zindex: 1,
-        style: { visible: true, locked: false },
-        props: {
-          title: '占比分析',
-          data: [
-            { name: '类型A', value: 335 },
-            { name: '类型B', value: 234 },
-            { name: '类型C', value: 154 },
-            { name: '类型D', value: 135 },
-          ],
-        },
-      },
-      description: '新增饼图组件',
-    })
-  }
-
-  // 如果没有识别到任何内容，返回提示
-  if (diffs.length === 0) {
-    diffs.push({
-      action: 'add',
-      componentType: 'Text',
-      component: {
-        type: 'Text',
-        name: '提示文本',
-        position: { x: 50, y: 50 },
-        size: { width: 300, height: 60 },
-        rotation: 0,
-        zindex: 1,
-        style: { visible: true, locked: false },
-        props: {
-          content: `未能识别您的需求："${request.prompt}"。请尝试更具体的描述，如"添加 KPI 和折线图"。`,
-        },
-      },
-      description: '添加提示信息',
-    })
-  }
-
-  return {
-    request,
-    diffs,
-    summary: `根据您的需求生成了 ${diffs.length} 个组件`,
-    confidence: diffs.length > 0 ? 0.85 : 0.3,
-    agentVersion: '1.0.0-demo',
-    timestamp: Date.now(),
-    validated: false,
+      ],
+      summary: `调用失败: ${errorMessage}`,
+      confidence: 0,
+      agentVersion: AGENT_CONFIG.model || 'unknown',
+      timestamp: Date.now(),
+      validated: false,
+    }
   }
 }
 
