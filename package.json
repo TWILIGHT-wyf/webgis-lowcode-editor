@@ -26,7 +26,6 @@
     "dompurify": "^3.3.0",
     "echarts": "^6.0.0",
     "element-plus": "^2.11.5",
-    "express": "^5.1.0",
     "leaflet": "^1.9.4",
     "leaflet.heat": "^0.2.0",
     "leaflet.markercluster": "^1.5.3",
@@ -62,7 +61,8 @@
     "vite": "^7.1.7",
     "vite-plugin-vue-devtools": "^8.0.2",
     "vitest": "^3.2.4",
-    "vue-tsc": "^3.1.0"
+    "vue-tsc": "^3.1.0",
+    "express": "^5.1.0"
   },
   "msw": {
     "workerDirectory": [
