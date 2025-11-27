@@ -40,17 +40,18 @@ jobs:
   deploy-vercel:
     needs: build-and-test
     runs-on: ubuntu-latest
-    if: github.ref == 'refs/heads/master' && github.event_name == 'push' && secrets.VERCEL_TOKEN != ''
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
 
       - name: Deploy to Vercel
-        # use a well-adopted Vercel action to deploy; supports org/project ids if provided
-        uses: amondnet/vercel-action@v20
+        # only run deploy on pushes to master
+        if: github.ref == 'refs/heads/master' && github.event_name == 'push'
+        # use official Vercel Action; it supports org/project via secrets
+        uses: vercel/action@v3
         with:
-          # older versions expect `zeit-token`; provide both to be compatible
-          zeit-token: ${{ secrets.VERCEL_TOKEN }}
           vercel-token: ${{ secrets.VERCEL_TOKEN }}
-          github-token: ${{ secrets.GITHUB_TOKEN }}
           vercel-args: '--prod'
+          # Optional: set these if you want to target a specific Vercel org/project
+          # vercel-org-id: ${{ secrets.VERCEL_ORG_ID }}
+          # vercel-project-id: ${{ secrets.VERCEL_PROJECT_ID }}
