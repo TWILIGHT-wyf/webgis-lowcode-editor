@@ -14,13 +14,13 @@ jobs:
       - name: Checkout source
         uses: actions/checkout@v4
 
-      # 使用 pnpm —— 彻底避免 rollup-native 的 npm bug
+     
       - name: Setup pnpm
         uses: pnpm/action-setup@v2
         with:
           version: 9
 
-      # 安装 Node（20.x）
+      
       - name: Setup Node
         uses: actions/setup-node@v4
         with:
@@ -30,27 +30,20 @@ jobs:
       - name: Install dependencies
         run: pnpm install
 
-      # -----------------------------
+     
       # 1. Lint
-      # -----------------------------
       - name: Run ESLint
         run: pnpm run lint
 
-      # -----------------------------
       # 2. Type Check
-      # -----------------------------
       - name: Type Check
         run: pnpm run type-check
 
-      # -----------------------------
       # 3. Unit Test（Vitest）
-      # -----------------------------
       - name: Run unit tests
         run: pnpm run test:unit -- --run
 
-      # -----------------------------
       # 4. Playwright E2E
-      # -----------------------------
       - name: Install Playwright browsers
         run: pnpm exec playwright install --with-deps
 
