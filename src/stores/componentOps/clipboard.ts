@@ -1,4 +1,5 @@
 import { ref } from 'vue'
+import { nanoid } from 'nanoid'
 import type { Ref } from 'vue'
 
 export interface ClipboardApi<C> {
@@ -109,7 +110,7 @@ export function createClipboard<
       const base = snapshotWithoutGrouping(lastComp as unknown as C)
       const newComp = {
         ...base,
-        id: Date.now().toString(),
+        id: nanoid(),
         position: { x: position.x, y: position.y },
         zindex: maxZ + 1,
       } as C
@@ -120,7 +121,7 @@ export function createClipboard<
       const snaps = clipboard.value.map((c) => snapshotWithoutGrouping(c as unknown as C))
       const anchor = snaps[0]!
       const newIds: string[] = []
-      const timestamp = Date.now()
+      const timestamp = nanoid()
 
       const expectedPos: Record<string, { x: number; y: number }> = {}
       snaps.forEach((comp, index) => {

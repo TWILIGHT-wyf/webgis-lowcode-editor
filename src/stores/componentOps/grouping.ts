@@ -1,4 +1,5 @@
 import type { Ref } from 'vue'
+import { nanoid } from 'nanoid'
 
 export interface GroupingApi {
   groupComponents: (ids: string[]) => void
@@ -39,7 +40,7 @@ export function createGrouping<
     const maxX = Math.max(...members.map((c) => c.position.x + c.size.width))
     const maxY = Math.max(...members.map((c) => c.position.y + c.size.height))
 
-    const groupId = `group_${Date.now()}`
+    const groupId = `group_${nanoid()}`
 
     const groupComponent = {
       id: groupId,

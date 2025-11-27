@@ -10,12 +10,7 @@ import './styles/animations.css'
 import './styles/theme.css'
 import VueECharts from 'vue-echarts'
 
-if (import.meta.env.DEV) {
-  const { worker } = await import('./mock/browser')
-  await worker.start({
-    onUnhandledRequest: 'bypass', // 忽略未定义的请求，不拦截
-  })
-}
+
 
 const app = createApp(App)
 for (const [key, component] of Object.entries(ElementPlusIconsVue)) {

@@ -1,5 +1,6 @@
 import { defineStore } from 'pinia'
 import { ref } from 'vue'
+import { nanoid } from 'nanoid'
 import { createHistory, createClipboard, createGrouping, createZOrder } from '@/stores/componentOps'
 
 export interface DataSource {
@@ -1898,7 +1899,7 @@ export const useComponent = defineStore('component', () => {
     const maxZ = componentStore.value.reduce((max, c) => Math.max(max, c.zindex ?? 0), 0)
     const newComponent: component = {
       ...component,
-      id: Date.now().toString(),
+      id: nanoid(),
       zindex: maxZ + 1,
       style: {
         ...defaultStyleByType(component.type),

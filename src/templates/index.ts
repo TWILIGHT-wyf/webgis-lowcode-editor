@@ -1,4 +1,5 @@
 import type { component } from '@/stores/component'
+import { nanoid } from 'nanoid'
 
 export interface PageTemplate {
   id: string
@@ -19,7 +20,7 @@ export const dashboardTemplate: PageTemplate = {
   components: [
     // 标题
     {
-      id: 'template_title_' + Date.now(),
+      id: `template_title_${nanoid()}`,
       type: 'Text',
       position: { x: 660, y: 30 },
       size: { width: 600, height: 60 },
@@ -49,7 +50,7 @@ export const dashboardTemplate: PageTemplate = {
     },
     // KPI 1 - 左上
     {
-      id: 'template_kpi1_' + Date.now() + '_1',
+      id: `template_kpi1_${nanoid()}_1`,
       type: 'stat',
       position: { x: 50, y: 120 },
       size: { width: 280, height: 140 },
@@ -84,7 +85,7 @@ export const dashboardTemplate: PageTemplate = {
     },
     // KPI 2 - 左上
     {
-      id: 'template_kpi2_' + Date.now() + '_2',
+      id: `template_kpi2_${nanoid()}_2`,
       type: 'stat',
       position: { x: 360, y: 120 },
       size: { width: 280, height: 140 },
@@ -119,7 +120,7 @@ export const dashboardTemplate: PageTemplate = {
     },
     // KPI 3 - 右上
     {
-      id: 'template_kpi3_' + Date.now() + '_3',
+      id: `template_kpi3_${nanoid()}_3`,
       type: 'stat',
       position: { x: 1280, y: 120 },
       size: { width: 280, height: 140 },
@@ -154,7 +155,7 @@ export const dashboardTemplate: PageTemplate = {
     },
     // KPI 4 - 右上
     {
-      id: 'template_kpi4_' + Date.now() + '_4',
+      id: `template_kpi4_${nanoid()}_4`,
       type: 'stat',
       position: { x: 1590, y: 120 },
       size: { width: 280, height: 140 },
@@ -189,7 +190,7 @@ export const dashboardTemplate: PageTemplate = {
     },
     // 折线图 - 左侧
     {
-      id: 'template_chart1_' + Date.now() + '_5',
+      id: `template_chart1_${nanoid()}_5`,
       type: 'lineChart',
       position: { x: 50, y: 300 },
       size: { width: 590, height: 350 },
@@ -237,7 +238,7 @@ export const dashboardTemplate: PageTemplate = {
     },
     // 柱状图 - 中间
     {
-      id: 'template_chart2_' + Date.now() + '_6',
+      id: `template_chart2_${nanoid()}_6`,
       type: 'barChart',
       position: { x: 670, y: 300 },
       size: { width: 580, height: 350 },
@@ -285,7 +286,7 @@ export const dashboardTemplate: PageTemplate = {
     },
     // 饼图 - 右侧
     {
-      id: 'template_chart3_' + Date.now() + '_7',
+      id: `template_chart3_${nanoid()}_7`,
       type: 'pieChart',
       position: { x: 1280, y: 300 },
       size: { width: 590, height: 350 },
@@ -315,7 +316,7 @@ export const dashboardTemplate: PageTemplate = {
     },
     // 表格 - 底部
     {
-      id: 'template_table_' + Date.now() + '_8',
+      id: `template_table_${nanoid()}_8`,
       type: 'table',
       position: { x: 50, y: 690 },
       size: { width: 1820, height: 350 },
@@ -371,7 +372,7 @@ export const gisTemplate: PageTemplate = {
   components: [
     // 标题
     {
-      id: 'template_gis_title_' + Date.now(),
+      id: `template_gis_title_${nanoid()}`,
       type: 'Text',
       position: { x: 660, y: 30 },
       size: { width: 600, height: 50 },
@@ -392,7 +393,7 @@ export const gisTemplate: PageTemplate = {
     },
     // 左侧KPI面板
     {
-      id: 'template_gis_kpi1_' + Date.now() + '_1',
+      id: `template_gis_kpi1_${nanoid()}_1`,
       type: 'countUp',
       position: { x: 50, y: 120 },
       size: { width: 300, height: 120 },
@@ -413,7 +414,7 @@ export const gisTemplate: PageTemplate = {
       },
     },
     {
-      id: 'template_gis_kpi2_' + Date.now() + '_2',
+      id: `template_gis_kpi2_${nanoid()}_2`,
       type: 'countUp',
       position: { x: 50, y: 260 },
       size: { width: 300, height: 120 },
@@ -435,7 +436,7 @@ export const gisTemplate: PageTemplate = {
     },
     // 中间地图占位(需要实际地图组件)
     {
-      id: 'template_gis_map_' + Date.now() + '_3',
+      id: `template_gis_map_${nanoid()}_3`,
       type: 'Text',
       position: { x: 380, y: 120 },
       size: { width: 1160, height: 700 },
@@ -457,7 +458,7 @@ export const gisTemplate: PageTemplate = {
     },
     // 右侧统计
     {
-      id: 'template_gis_chart_' + Date.now() + '_4',
+      id: `template_gis_chart_${nanoid()}_4`,
       type: 'barChart',
       position: { x: 1570, y: 120 },
       size: { width: 300, height: 400 },
@@ -489,7 +490,7 @@ export const chartAnalysisTemplate: PageTemplate = {
   components: [
     // 标题
     {
-      id: 'template_chart_title_' + Date.now(),
+      id: `template_chart_title_${nanoid()}`,
       type: 'Text',
       position: { x: 760, y: 40 },
       size: { width: 400, height: 50 },
@@ -509,7 +510,7 @@ export const chartAnalysisTemplate: PageTemplate = {
     },
     // 2x2 图表布局
     {
-      id: 'template_chart_line_' + Date.now() + '_1',
+      id: `template_chart_line_${nanoid()}_1`,
       type: 'lineChart',
       position: { x: 50, y: 120 },
       size: { width: 920, height: 450 },
@@ -530,7 +531,7 @@ export const chartAnalysisTemplate: PageTemplate = {
       },
     },
     {
-      id: 'template_chart_bar_' + Date.now() + '_2',
+      id: `template_chart_bar_${nanoid()}_2`,
       type: 'barChart',
       position: { x: 1000, y: 120 },
       size: { width: 870, height: 450 },
@@ -551,7 +552,7 @@ export const chartAnalysisTemplate: PageTemplate = {
       },
     },
     {
-      id: 'template_chart_pie_' + Date.now() + '_3',
+      id: `template_chart_pie_${nanoid()}_3`,
       type: 'pieChart',
       position: { x: 50, y: 600 },
       size: { width: 920, height: 440 },
@@ -571,7 +572,7 @@ export const chartAnalysisTemplate: PageTemplate = {
       },
     },
     {
-      id: 'template_chart_radar_' + Date.now() + '_4',
+      id: `template_chart_radar_${nanoid()}_4`,
       type: 'radarChart',
       position: { x: 1000, y: 600 },
       size: { width: 870, height: 440 },
@@ -603,7 +604,7 @@ export const formTemplate: PageTemplate = {
   components: [
     // 表单标题
     {
-      id: 'template_form_title_' + Date.now(),
+      id: `template_form_title_${nanoid()}`,
       type: 'Text',
       position: { x: 660, y: 50 },
       size: { width: 600, height: 60 },
@@ -623,7 +624,7 @@ export const formTemplate: PageTemplate = {
     },
     // 表单容器
     {
-      id: 'template_form_container_' + Date.now() + '_1',
+      id: `template_form_container_${nanoid()}_1`,
       type: 'panel',
       position: { x: 400, y: 150 },
       size: { width: 1120, height: 800 },
