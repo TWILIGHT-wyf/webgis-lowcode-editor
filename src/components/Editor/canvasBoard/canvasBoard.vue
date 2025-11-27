@@ -3,6 +3,7 @@
     class="canvas-wrap"
     ref="wrap"
     :class="{ dragging: isPanning }"
+    data-testid="canvas-board"
     @dragover.prevent
     @contextmenu.prevent="onCanvasContextMenu"
     @click="handleCanvasClick"
