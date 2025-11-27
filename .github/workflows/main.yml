@@ -1,0 +1,50 @@
+name: CI
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout source
+        uses: actions/checkout@v4
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v2
+        with:
+          version: 9
+
+      # 安装 Node（20.x）
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'pnpm'
+
+      - name: Install dependencies
+        run: pnpm install
+
+      # 1. Lint
+      - name: Run ESLint
+        run: pnpm run lint
+
+
+      # 2. Type Check
+      - name: Type Check
+        run: pnpm run type-check
+
+      # 3. Unit Test（Vitest）
+      - name: Run unit tests
+        run: pnpm run test:unit -- --run
+
+      # 4. Playwright E2E
+      - name: Install Playwright browsers
+        run: pnpm exec playwright install --with-deps
+
+      - name: Run e2e tests
+        run: pnpm run test:e2e
