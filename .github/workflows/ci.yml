@@ -2,44 +2,57 @@ name: CI
 
 on:
   push:
-    branches: ['master']
+    branches: [ main ]
   pull_request:
-    branches: ['master']
+    branches: [ main ]
 
 jobs:
-  build:
+  build-and-test:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout
+      - name: Checkout source
         uses: actions/checkout@v4
 
+      # 使用 pnpm —— 彻底避免 rollup-native 的 npm bug
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v2
+        with:
+          version: 9
+
+      # 安装 Node（20.x）
       - name: Setup Node
         uses: actions/setup-node@v4
         with:
           node-version: 20
+          cache: 'pnpm'
 
       - name: Install dependencies
-        run: |
-          npm ci --include=optional || (rm -rf node_modules package-lock.json && npm install)
+        run: pnpm install
 
-      - name: Lint
-        run: npm run lint
+      # -----------------------------
+      # 1. Lint
+      # -----------------------------
+      - name: Run ESLint
+        run: pnpm run lint
 
+      # -----------------------------
+      # 2. Type Check
+      # -----------------------------
       - name: Type Check
-        run: npm run type-check
+        run: pnpm run type-check
 
-      - name: Unit Test
-        run: npm run test:unit
+      # -----------------------------
+      # 3. Unit Test（Vitest）
+      # -----------------------------
+      - name: Run unit tests
+        run: pnpm run test:unit -- --run
 
-      - name: E2E Test
-        run: npm run test:e2e
+      # -----------------------------
+      # 4. Playwright E2E
+      # -----------------------------
+      - name: Install Playwright browsers
+        run: pnpm exec playwright install --with-deps
 
-      - name: Build
-        run: npm run build
-
-      - name: Upload artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: dist
-          path: dist
+      - name: Run e2e tests
+        run: pnpm run test:e2e
