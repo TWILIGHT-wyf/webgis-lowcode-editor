@@ -3,7 +3,7 @@
  */
 import { mount } from '@vue/test-utils'
 import { describe, it, expect, vi } from 'vitest'
-import BarChartComponent from '../../src/customComponents/chart/barChart/BarChart.vue'
+import BarChartComponent from '../../src/customComponents/chart/barChart/barChart.vue'
 import { setActivePinia, createPinia } from 'pinia'
 import { useComponent } from '../../src/stores/component'
 import type { component } from '../../src/stores/component'
