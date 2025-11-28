@@ -14,40 +14,39 @@ jobs:
       - name: Checkout source
         uses: actions/checkout@v4
 
-      # Setup pnpm
       - name: Setup pnpm
         uses: pnpm/action-setup@v2
         with:
           version: 9
-          run_install: false
 
-      # Setup Node (with pnpm cache)
       - name: Setup Node
         uses: actions/setup-node@v4
         with:
           node-version: 20
           cache: 'pnpm'
 
-      # Install dependencies
       - name: Install dependencies
         run: pnpm install
 
-      # Lint
+      # 1. Lint
       - name: Run ESLint
         run: pnpm run lint
 
-      # Type Check
+      # 2. Type Check
       - name: Type Check
         run: pnpm run type-check
 
-      # Vitest unit tests
+      # 3. Unit Test
       - name: Run unit tests
         run: pnpm run test:unit -- --run
 
-      # Playwright installation
+      # 4. Build
+      - name: Build project
+        run: pnpm run build
+
+      # 5. Playwright E2E
       - name: Install Playwright browsers
         run: pnpm exec playwright install --with-deps
 
-      # Playwright e2e
       - name: Run e2e tests
         run: pnpm run test:e2e
