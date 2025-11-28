@@ -10,6 +10,8 @@
 
 一款基于 Vue 3 + TypeScript 的**数据可视化大屏低代码搭建平台**，支持拖拽式组件编排、实时预览、AI 智能生成等功能。
 ### 预览地址：https://webgis-lowcode-editor.vercel.app/  （要翻墙）
+<img width="2560" height="1356" alt="屏幕截图 2025-11-28 212428" src="https://github.com/user-attachments/assets/bce9519e-088e-4de6-bd12-9d132e478f2c" />
+
 ai功能暂时还未部署上线
 ## ✨ 特性
 
