@@ -1,6 +1,8 @@
-import { computed } from 'vue'
+import { computed, ref, watch } from 'vue'
 import { useComponent } from '@/stores/component'
+import { useSizeStore } from '@/stores/size'
 import { storeToRefs } from 'pinia'
+import { useDataSource } from '@/datasource/useDataSource'
 
 export function customProperties() {
   const componentStore = useComponent()
@@ -9257,4 +9259,307 @@ export function customProperties() {
   })
 
   return { styleSchema, dataSourceSchema, componentSchema }
+}
+
+// Canvas Settings Composable
+export function useCanvasSettings() {
+  const sizeStore = useSizeStore()
+  const { width: canvasWidth, height: canvasHeight, canvasConfig } = storeToRefs(sizeStore)
+  const { setSize: setCanvasSize } = sizeStore
+
+  return {
+    canvasWidth,
+    canvasHeight,
+    canvasConfig,
+    setCanvasSize,
+  }
+}
+
+// Component Properties Composable
+export function useComponentProperties() {
+  const storeComponent = useComponent()
+  const { selectComponent, selectedIds } = storeToRefs(storeComponent)
+
+  const activeCollapse = ref(['basic', 'style'])
+
+  const isRow = computed(() => {
+    const t = selectComponent.value?.type
+    return t === 'Row' || t === 'layout.row'
+  })
+
+  const isMultiSelect = computed(() => selectedIds.value.length > 1)
+
+  const getStyleValue = (key: string) => {
+    const target = isRow.value ? selectComponent.value!.props : selectComponent.value!.style!
+    return {
+      get value() {
+        return target[key]
+      },
+      set value(v) {
+        target[key] = v
+        storeComponent.commitDebounced()
+      },
+    }
+  }
+
+  const rotationForUi = computed({
+    get: () => {
+      const rot = selectComponent.value?.rotation ?? 0
+      return ((rot % 360) + 360) % 360
+    },
+    set: (val: number) => {
+      const comp = selectComponent.value
+      if (!comp) return
+      const current = comp.rotation ?? 0
+      const k = Math.round((current - val) / 360)
+      storeComponent.updateComponentRotation(val + 360 * k)
+    },
+  })
+
+  return {
+    selectComponent,
+    selectedIds,
+    activeCollapse,
+    isRow,
+    isMultiSelect,
+    getStyleValue,
+    rotationForUi,
+  }
+}
+
+// Data Preview Composable
+export function useDataPreview() {
+  const storeComponent = useComponent()
+  const { selectComponent } = storeToRefs(storeComponent)
+
+  const {
+    data: previewData,
+    loading: previewLoading,
+    error: previewError,
+  } = useDataSource(computed(() => selectComponent.value?.dataSource))
+
+  return {
+    previewData,
+    previewLoading,
+    previewError,
+  }
+}
+
+// Component Fields Composable
+export function useComponentFields() {
+  const storeComponent = useComponent()
+  const { selectComponent } = storeToRefs(storeComponent)
+  const { componentSchema } = customProperties()
+
+  const headersInput = ref('')
+
+  function applyHeadersFromInput() {
+    const ds = selectComponent.value?.dataSource
+    if (!ds) return
+    try {
+      const text = headersInput.value.trim()
+      ds.headers = text ? (JSON.parse(text) as Record<string, string>) : {}
+      storeComponent.commitDebounced()
+    } catch {}
+  }
+
+  watch(
+    () => selectComponent.value?.dataSource,
+    (ds) => {
+      if (!ds) return
+      const raw = ds.headers
+      if (typeof raw === 'string') {
+        headersInput.value = raw
+      } else {
+        headersInput.value = JSON.stringify(raw ?? {}, null, 2)
+      }
+    },
+    { immediate: true, deep: true },
+  )
+
+  const componentFieldInput = ref<Record<string, string>>({})
+
+  function applyComponentField(key: string) {
+    const comp = selectComponent.value
+    if (!comp) return
+    const text = componentFieldInput.value[key]?.trim() ?? ''
+    if (!text) {
+      Reflect.set(comp.props as Record<string, unknown>, key, undefined)
+      storeComponent.commitDebounced()
+      return
+    }
+    try {
+      const parsed = JSON.parse(text)
+      Reflect.set(comp.props as Record<string, unknown>, key, parsed)
+    } catch {
+      Reflect.set(comp.props as Record<string, unknown>, key, text)
+    }
+    storeComponent.commitDebounced()
+  }
+
+  watch(
+    () => selectComponent.value,
+    (comp) => {
+      if (!comp) {
+        componentFieldInput.value = {}
+        return
+      }
+      for (const f of componentSchema.value) {
+        if (!('props' in comp) || !comp.props) comp.props = {}
+        if (comp.props[f.key] === undefined) {
+          Reflect.set(comp.props as Record<string, unknown>, f.key, f.default ?? undefined)
+        }
+        const v = comp.props[f.key]
+        componentFieldInput.value[f.key] =
+          v === undefined ? '' : typeof v === 'string' ? v : JSON.stringify(v, null, 2)
+      }
+    },
+    { immediate: true, deep: true },
+  )
+
+  return {
+    headersInput,
+    applyHeadersFromInput,
+    componentFieldInput,
+    applyComponentField,
+  }
+}
+
+// Layer Actions Composable
+export function useLayerActions() {
+  const storeComponent = useComponent()
+  const { selectComponent } = storeToRefs(storeComponent)
+
+  const handleBringToFront = () =>
+    selectComponent.value && storeComponent.bringToFront(selectComponent.value.id)
+  const handleBringForward = () =>
+    selectComponent.value && storeComponent.bringForward(selectComponent.value.id)
+  const handleSendBackward = () =>
+    selectComponent.value && storeComponent.sendBackward(selectComponent.value.id)
+  const handleSendToBack = () =>
+    selectComponent.value && storeComponent.sendToBack(selectComponent.value.id)
+  const handleDelete = () => storeComponent.removeComponent(selectComponent.value!.id)
+
+  return {
+    handleBringToFront,
+    handleBringForward,
+    handleSendBackward,
+    handleSendToBack,
+    handleDelete,
+  }
+}
+
+// Multi Select Composable
+export function useMultiSelect() {
+  const storeComponent = useComponent()
+  const { selectComponent, selectedIds } = storeToRefs(storeComponent)
+
+  const handleDeleteMulti = () => storeComponent.removeMultipleComponents([...selectedIds.value])
+
+  watch(
+    () => selectComponent.value?.position,
+    (newPos) => {
+      if (selectedIds.value.length <= 1 || !newPos) return
+      selectedIds.value.forEach((id) => {
+        const comp = storeComponent.componentStore.find((c) => c.id === id)
+        if (comp && comp.id !== selectComponent.value?.id) {
+          comp.position.x = newPos.x
+          comp.position.y = newPos.y
+        }
+      })
+      storeComponent.commitDebounced()
+    },
+    { deep: true },
+  )
+
+  watch(
+    () => selectComponent.value?.size,
+    (newSize) => {
+      if (selectedIds.value.length <= 1 || !newSize) return
+      selectedIds.value.forEach((id) => {
+        const comp = storeComponent.componentStore.find((c) => c.id === id)
+        if (comp && comp.id !== selectComponent.value?.id) {
+          comp.size.width = newSize.width
+          comp.size.height = newSize.height
+        }
+      })
+      storeComponent.commitDebounced()
+    },
+    { deep: true },
+  )
+
+  watch(
+    () => selectComponent.value?.rotation,
+    (newRotation) => {
+      if (selectedIds.value.length <= 1 || newRotation === undefined) return
+      selectedIds.value.forEach((id) => {
+        const comp = storeComponent.componentStore.find((c) => c.id === id)
+        if (comp && comp.id !== selectComponent.value?.id) comp.rotation = newRotation
+      })
+      storeComponent.commitDebounced()
+    },
+  )
+
+  watch(
+    () => selectComponent.value?.style,
+    (newStyle) => {
+      if (selectedIds.value.length <= 1 || !newStyle) return
+      selectedIds.value.forEach((id) => {
+        const comp = storeComponent.componentStore.find((c) => c.id === id)
+        if (comp && comp.id !== selectComponent.value?.id && comp.style) {
+          Object.assign(comp.style, { ...newStyle })
+        }
+      })
+      storeComponent.commitDebounced()
+    },
+    { deep: true },
+  )
+
+  return {
+    handleDeleteMulti,
+  }
+}
+
+// Component Initialization Composable
+export function useComponentInitialization() {
+  const storeComponent = useComponent()
+  const { selectComponent } = storeToRefs(storeComponent)
+  const { styleSchema } = customProperties()
+
+  watch(
+    () => selectComponent.value,
+    (comp) => {
+      if (!comp) return
+      if (!comp.style) comp.style = {}
+      if (comp.style.opacity === undefined) comp.style.opacity = 100
+      if (comp.style.visible === undefined) comp.style.visible = true
+      if (comp.style.locked === undefined) comp.style.locked = false
+
+      for (const f of styleSchema.value) {
+        if (comp.type === 'Row' || comp.type === 'layout.row') {
+          if (comp.props[f.key] === undefined)
+            Reflect.set(comp.props as Record<string, unknown>, f.key, f.default)
+        } else {
+          if (comp.style[f.key] === undefined)
+            Reflect.set(comp.style as Record<string, unknown>, f.key, f.default)
+        }
+      }
+
+      if (!comp.props) comp.props = {}
+      if (!comp.props.text) comp.props.text = '示例文本'
+
+      if (!comp.dataSource) {
+        comp.dataSource = {
+          enabled: false,
+          url: '',
+          method: 'GET',
+          headers: {},
+          body: '',
+          interval: 0,
+          dataPath: '',
+        }
+      }
+    },
+    { immediate: true },
+  )
 }

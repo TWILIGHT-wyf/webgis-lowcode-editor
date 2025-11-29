@@ -4,6 +4,8 @@ import { storeToRefs } from 'pinia'
 import { useComponent } from '@/stores/component'
 import { useDataSource } from '@/datasource/useDataSource'
 import { extractWithFallback } from '@/datasource/dataUtils'
+import Shape from '@/components/Editor/shape/shape.vue'
+import { getComponent } from '@/customComponents/registry'
 
 const props = defineProps<{
   id: string
@@ -62,6 +64,10 @@ const tabs = computed(() => {
   ]
 })
 
+function getChildComponent(childId: string) {
+  return componentStore.value.find((c) => c.id === childId)
+}
+
 // 初始化 activeTab
 watch(
   tabs,
@@ -93,8 +99,24 @@ const containerStyle = computed(() => {
       :closable="comp?.props?.closable || false"
       :addable="comp?.props?.addable || false"
     >
-      <el-tab-pane v-for="tab in tabs" :key="tab.name" :label="tab.label" :name="String(tab.name)">
-        {{ tab.content }}
+      <el-tab-pane
+        v-for="(tab, idx) in tabs"
+        :key="tab.name"
+        :label="tab.label"
+        :name="String(tab.name)"
+      >
+        <template v-if="comp?.children && comp.children.length > 0 && idx === 0">
+          <Shape v-for="childId in comp.children" :key="childId" :id="childId">
+            <component
+              :is="getComponent(getChildComponent(childId)?.type || '')"
+              :id="childId"
+              :style="{ width: '100%', height: '100%' }"
+            />
+          </Shape>
+        </template>
+        <template v-else>
+          {{ tab.content }}
+        </template>
       </el-tab-pane>
     </el-tabs>
   </div>

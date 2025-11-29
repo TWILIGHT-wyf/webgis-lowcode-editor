@@ -1,6 +1,7 @@
 import { provide, inject, type InjectionKey, computed } from 'vue'
 import { useComponent, type EventAction, type component } from '@/stores/component'
 import { storeToRefs } from 'pinia'
+import { nanoid } from 'nanoid'
 
 // 组件通信的 provide/inject key
 export const ComponentEventsKey: InjectionKey<ComponentEventsContext> = Symbol('ComponentEvents')
@@ -21,6 +22,243 @@ export type EventHandler = (params?: unknown) => void | Promise<void>
 
 // 事件监听器存储
 const eventListeners = new Map<string, Map<string, EventHandler[]>>()
+
+/**
+ * 事件配置管理 composable
+ * 用于在事件面板中管理组件的事件配置
+ */
+export function useEventConfiguration() {
+  const componentStore = useComponent()
+  const { selectComponent, componentStore: components } = storeToRefs(componentStore)
+
+  // 初始化事件对象
+  function ensureEvents() {
+    if (!selectComponent.value) return
+    if (!selectComponent.value.events) {
+      selectComponent.value.events = {}
+    }
+  }
+
+  // 点击事件列表
+  const clickActions = computed<EventAction[]>({
+    get: () => {
+      if (!selectComponent.value?.events?.click) return []
+      return selectComponent.value.events.click
+    },
+    set: (value) => {
+      if (selectComponent.value?.events) {
+        selectComponent.value.events.click = value
+      }
+    },
+  })
+
+  // 悬停事件列表
+  const hoverActions = computed<EventAction[]>({
+    get: () => {
+      if (!selectComponent.value?.events?.hover) return []
+      return selectComponent.value.events.hover
+    },
+    set: (value) => {
+      if (selectComponent.value?.events) {
+        selectComponent.value.events.hover = value
+      }
+    },
+  })
+
+  // 双击事件列表
+  const doubleClickActions = computed<EventAction[]>({
+    get: () => {
+      if (!selectComponent.value?.events?.doubleClick) return []
+      return selectComponent.value.events.doubleClick
+    },
+    set: (value) => {
+      if (selectComponent.value?.events) {
+        selectComponent.value.events.doubleClick = value
+      }
+    },
+  })
+
+  // 自定义事件列表
+  const customEvents = computed(() => {
+    if (!selectComponent.value?.events?.custom) return []
+    return Object.keys(selectComponent.value.events.custom).map((eventName) => ({
+      name: eventName,
+      actions: selectComponent.value!.events!.custom![eventName] || [],
+    }))
+  })
+
+  // 所有组件列表（包括当前组件，因为可以给自己添加事件）
+  const otherComponents = computed(() => {
+    return components.value
+  })
+
+  // 获取组件显示标签
+  function getComponentLabel(comp: component) {
+    if (comp.name) {
+      return `${comp.name} (${comp.type})`
+    }
+    return `${comp.type} #${comp.id.slice(0, 6)}`
+  }
+
+  // ==================== 点击事件 ====================
+  function addClickAction() {
+    ensureEvents()
+    if (!selectComponent.value!.events!.click) {
+      selectComponent.value!.events!.click = []
+    }
+    selectComponent.value!.events!.click.push({
+      id: nanoid(),
+      type: '',
+    })
+    componentStore.commit()
+  }
+
+  function removeClickAction(index: number) {
+    if (!selectComponent.value?.events?.click) return
+    selectComponent.value.events.click.splice(index, 1)
+    componentStore.commit()
+  }
+
+  // ==================== 悬停事件 ====================
+  function addHoverAction() {
+    ensureEvents()
+    if (!selectComponent.value!.events!.hover) {
+      selectComponent.value!.events!.hover = []
+    }
+    selectComponent.value!.events!.hover.push({
+      id: nanoid(),
+      type: '',
+    })
+    componentStore.commit()
+  }
+
+  function removeHoverAction(index: number) {
+    if (!selectComponent.value?.events?.hover) return
+    selectComponent.value.events.hover.splice(index, 1)
+    componentStore.commit()
+  }
+
+  // ==================== 双击事件 ====================
+  function addDoubleClickAction() {
+    ensureEvents()
+    if (!selectComponent.value!.events!.doubleClick) {
+      selectComponent.value!.events!.doubleClick = []
+    }
+    selectComponent.value!.events!.doubleClick.push({
+      id: nanoid(),
+      type: '',
+    })
+    componentStore.commit()
+  }
+
+  function removeDoubleClickAction(index: number) {
+    if (!selectComponent.value?.events?.doubleClick) return
+    selectComponent.value.events.doubleClick.splice(index, 1)
+    componentStore.commit()
+  }
+
+  // ==================== 自定义事件 ====================
+  function addCustomEvent() {
+    ensureEvents()
+    if (!selectComponent.value!.events!.custom) {
+      selectComponent.value!.events!.custom = {}
+    }
+    const eventName = `customEvent${Object.keys(selectComponent.value!.events!.custom).length + 1}`
+    selectComponent.value!.events!.custom[eventName] = []
+    componentStore.commit()
+  }
+
+  function removeCustomEvent(eventName: string) {
+    if (!selectComponent.value?.events?.custom) return
+    delete selectComponent.value.events.custom[eventName]
+    componentStore.commit()
+  }
+
+  function renameCustomEvent(oldName: string, newName: string) {
+    if (!selectComponent.value?.events?.custom || !newName || oldName === newName) return
+    if (selectComponent.value.events.custom[newName]) {
+      alert('事件名称已存在')
+      return
+    }
+    const actions = selectComponent.value.events.custom[oldName]
+    if (actions) {
+      delete selectComponent.value.events.custom[oldName]
+      selectComponent.value.events.custom[newName] = actions
+      componentStore.commit()
+    }
+  }
+
+  function promptRenameEvent(oldName: string) {
+    const newName = prompt('输入新的事件名称:', oldName)
+    if (newName && newName !== oldName) {
+      renameCustomEvent(oldName, newName)
+    }
+  }
+
+  function addCustomEventAction(eventName: string) {
+    if (!selectComponent.value?.events?.custom?.[eventName]) return
+    selectComponent.value.events.custom[eventName].push({
+      id: nanoid(),
+      type: '',
+    })
+    componentStore.commit()
+  }
+
+  function removeCustomEventAction(eventName: string, index: number) {
+    if (!selectComponent.value?.events?.custom?.[eventName]) return
+    selectComponent.value.events.custom[eventName].splice(index, 1)
+    componentStore.commit()
+  }
+
+  // 动作类型变化时，清理不相关的字段
+  function onActionTypeChange(action: EventAction) {
+    // 清理字段
+    if (action.type !== 'custom-event') {
+      delete action.eventName
+      delete action.eventParams
+    }
+    if (action.type !== 'show-tooltip') {
+      delete action.content
+    }
+    if (
+      ![
+        'toggle-visibility',
+        'scroll-to',
+        'play-animation',
+        'open-modal',
+        'highlight',
+        'show-detail',
+        'preview',
+      ].includes(action.type)
+    ) {
+      delete action.targetId
+    }
+    componentStore.commitDebounced()
+  }
+
+  return {
+    selectComponent,
+    clickActions,
+    hoverActions,
+    doubleClickActions,
+    customEvents,
+    otherComponents,
+    getComponentLabel,
+    addClickAction,
+    removeClickAction,
+    addHoverAction,
+    removeHoverAction,
+    addDoubleClickAction,
+    removeDoubleClickAction,
+    addCustomEvent,
+    removeCustomEvent,
+    renameCustomEvent,
+    promptRenameEvent,
+    addCustomEventAction,
+    removeCustomEventAction,
+    onActionTypeChange,
+  }
+}
 
 /**
  * 提供组件事件系统上下文

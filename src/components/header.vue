@@ -1,273 +1,224 @@
 <template>
-  <header class="header-bar">
-    <div class="left">
-      <el-button-group>
-        <el-button size="small" type="primary" plain @click="undo" :disabled="!canUndoRef">
-          <el-icon><Back /></el-icon>
-        </el-button>
-        <el-button size="small" type="primary" plain @click="redo" :disabled="!canRedoRef">
-          <el-icon><Right /></el-icon>
-        </el-button>
-      </el-button-group>
+  <div class="header-container">
+    <div class="left-section">
+      <div class="brand">
+        <span class="logo-text">WebGIS Studio</span>
+      </div>
 
-      <el-button size="small" type="primary" plain @click="openPreview">
-        <el-icon><View /></el-icon>
-        <span class="btn-label">预览</span>
-      </el-button>
+      <div class="divider"></div>
 
-      <el-divider direction="vertical" />
-
-      <el-button size="small" type="primary" @click="openAIAssist" :badge="pendingCount">
-        <el-icon><MagicStick /></el-icon>
-        <span class="btn-label">AI助手</span>
-        <el-badge v-if="pendingCount > 0" :value="pendingCount" :max="9" class="header-badge" />
-      </el-button>
-
-      <el-button size="small" type="success" plain @click="saveProject">
-        <el-icon><Finished /></el-icon>
-        <span class="btn-label">保存</span>
-      </el-button>
-      <el-button size="small" type="info" plain @click="loadProject">
-        <el-icon><FolderOpened /></el-icon>
-        <span class="btn-label">加载</span>
-      </el-button>
-      <el-button size="small" type="warning" plain @click="exportJSON">
-        <el-icon><Download /></el-icon>
-        <span class="btn-label">导出JSON</span>
-      </el-button>
-      <el-button size="small" type="danger" @click="reset"> 清空画布 </el-button>
+      <div class="history-controls">
+        <el-tooltip content="撤销 (Ctrl+Z)" placement="bottom">
+          <el-button text circle @click="undo" :disabled="!canUndoRef">
+            <el-icon><Back /></el-icon>
+          </el-button>
+        </el-tooltip>
+        <el-tooltip content="重做 (Ctrl+Y)" placement="bottom">
+          <el-button text circle @click="redo" :disabled="!canRedoRef">
+            <el-icon><Right /></el-icon>
+          </el-button>
+        </el-tooltip>
+      </div>
     </div>
 
-    <div class="center">
-      <div class="app-title">WebGIS Studio</div>
-    </div>
+    <div class="center-section">
+      </div>
 
-    <div class="right">
-      <div class="control-row">
-        <label class="control-label">画布</label>
-        <el-input-number class="num" size="small" label="width" v-model="width" :controls="false" />
-        <span class="sep">×</span>
-        <el-input-number
-          class="num"
-          size="small"
-          label="height"
-          v-model="height"
-          :controls="false"
+    <div class="right-section">
+      <el-tooltip content="预览运行效果" placement="bottom">
+        <el-button round @click="openPreview">
+          <el-icon class="icon-left"><View /></el-icon>
+          预览
+        </el-button>
+      </el-tooltip>
+
+      <el-button type="primary" round @click="openAIAssist" class="ai-btn">
+        <el-icon class="icon-left"><MagicStick /></el-icon>
+        AI 助手
+        <el-badge
+          v-if="pendingCount > 0"
+          :value="pendingCount"
+          is-dot
+          class="ai-badge"
         />
-      </div>
+      </el-button>
 
-      <div class="control-row">
-        <label class="control-label">缩放</label>
-        <el-input-number class="num" size="small" v-model="scalePercent" :controls="false" />
-        <span class="percent">%</span>
-      </div>
+      <div class="divider"></div>
 
-      <div class="control-row">
-        <label class="control-label">主题</label>
-        <el-switch size="small" v-model="isDark" active-text="暗" inactive-text="亮" />
-      </div>
+      <el-dropdown trigger="click" @command="handleCommand">
+        <el-button text circle>
+          <el-icon><MoreFilled /></el-icon>
+        </el-button>
+        <template #dropdown>
+          <el-dropdown-menu>
+            <el-dropdown-item command="save" :icon="Finished">保存项目</el-dropdown-item>
+            <el-dropdown-item command="load" :icon="FolderOpened">加载项目</el-dropdown-item>
+            <el-dropdown-item command="export" :icon="Download">导出 JSON</el-dropdown-item>
+            <el-dropdown-item divided command="reset" style="color: #F56C6C" :icon="Delete">
+              清空画布
+            </el-dropdown-item>
+          </el-dropdown-menu>
+        </template>
+      </el-dropdown>
+
+      <el-switch
+        v-model="isDark"
+        inline-prompt
+        :active-icon="Moon"
+        :inactive-icon="Sunny"
+        style="margin-left: 8px"
+      />
     </div>
-  </header>
+  </div>
 </template>
 
 <script setup lang="ts">
+import { computed, ref, watch, onMounted } from 'vue'
+import { useRouter } from 'vue-router'
 import { useComponent } from '@/stores/component'
 import { useSizeStore } from '@/stores/size'
 import { useSuggestion } from '@/stores/suggestion'
 import { storeToRefs } from 'pinia'
-import { computed, ref, watch, onMounted } from 'vue'
-import { useRouter } from 'vue-router'
 import { ElMessage, ElMessageBox } from 'element-plus'
-import { MagicStick } from '@element-plus/icons-vue'
 import { componentsToJSON } from '@/utils/toCode'
+import {
+  Back, Right, View, MagicStick, MoreFilled,
+  Finished, FolderOpened, Download, Delete, Moon, Sunny
+} from '@element-plus/icons-vue'
 
 const router = useRouter()
-const sizeStore = useSizeStore()
-const { width, height, scale } = storeToRefs(sizeStore)
 const compStore = useComponent()
-const { reset, undo, redo, canUndo, canRedo } = compStore
+const sizeStore = useSizeStore()
+const suggestionStore = useSuggestion()
+
+const { width, height } = storeToRefs(sizeStore)
 const { componentStore } = storeToRefs(compStore)
+const { reset, undo, redo, canUndo, canRedo } = compStore
+
 const canUndoRef = computed(() => canUndo())
 const canRedoRef = computed(() => canRedo())
-
-// AI 助手
-const suggestionStore = useSuggestion()
 const pendingCount = computed(() => suggestionStore.pendingSuggestions.length)
 
-// 缩放
-const scalePercent = computed({
-  get: () => Math.round((scale.value ?? 0) * 100),
-  set: (val: number) => {
-    const n = Number(val)
-    if (!Number.isNaN(n)) scale.value = n / 100
-  },
-})
-
-// 主题
+// 主题切换
 const isDark = ref(false)
 onMounted(() => {
   isDark.value = localStorage.getItem('theme') === 'dark'
   applyTheme(isDark.value)
 })
-watch(isDark, (v) => {
-  localStorage.setItem('theme', v ? 'dark' : 'light')
-  applyTheme(v)
+watch(isDark, (val) => {
+  localStorage.setItem('theme', val ? 'dark' : 'light')
+  applyTheme(val)
 })
-
 function applyTheme(dark: boolean) {
-  if (dark) document.body.classList.add('theme-dark')
-  else document.body.classList.remove('theme-dark')
+  document.body.classList.toggle('theme-dark', dark)
 }
 
-// 打开预览页面
-function openPreview() {
-  router.push('/runtime')
-}
+// 事件发射
+const emit = defineEmits(['open-ai-assist'])
+function openAIAssist() { emit('open-ai-assist') }
+function openPreview() { router.push('/runtime') }
 
-// 打开 AI 助手
-const emit = defineEmits<{
-  'open-ai-assist': []
-}>()
-
-function openAIAssist() {
-  emit('open-ai-assist')
-  ElMessage.info('AI 助手已在右侧面板打开')
-}
-
-// 保存项目到localStorage
-function saveProject() {
-  try {
-    const projectData = {
-      components: componentStore.value,
-      canvasSize: {
-        width: width.value,
-        height: height.value,
-      },
-      savedAt: new Date().toISOString(),
-    }
-    localStorage.setItem('webgis_project', JSON.stringify(projectData))
-    ElMessage.success('项目已保存到本地')
-  } catch (error) {
-    ElMessage.error('保存失败: ' + (error as Error).message)
+// 统一处理下拉菜单命令
+function handleCommand(cmd: string) {
+  switch (cmd) {
+    case 'save': saveProject(); break;
+    case 'load': loadProject(); break;
+    case 'export': exportJSON(); break;
+    case 'reset': reset(); break;
   }
 }
 
-// 从localStorage加载项目
+// 项目操作逻辑
+function saveProject() {
+  try {
+    const data = {
+      components: componentStore.value,
+      canvasSize: { width: width.value, height: height.value },
+      savedAt: new Date().toISOString()
+    }
+    localStorage.setItem('webgis_project', JSON.stringify(data))
+    ElMessage.success('项目已保存')
+  } catch (e) {
+    ElMessage.error(`保存失败${e}`)
+  }
+}
+
 async function loadProject() {
   try {
     const saved = localStorage.getItem('webgis_project')
-    if (!saved) {
-      ElMessage.warning('没有找到保存的项目')
-      return
+    if (!saved) return ElMessage.warning('暂无存档')
+    await ElMessageBox.confirm('加载将覆盖当前内容，确定吗？', '提示', { type: 'warning' })
+    const data = JSON.parse(saved)
+    componentStore.value = data.components || []
+    if (data.canvasSize) {
+      width.value = data.canvasSize.width
+      height.value = data.canvasSize.height
     }
-
-    await ElMessageBox.confirm('加载项目将覆盖当前画布，是否继续？', '确认', {
-      confirmButtonText: '确定',
-      cancelButtonText: '取消',
-      type: 'warning',
-    })
-
-    const projectData = JSON.parse(saved)
-
-    // 清空当前画布
-    componentStore.value = []
-
-    // 加载组件数据
-    if (projectData.components) {
-      componentStore.value = projectData.components
-    }
-
-    // 恢复画布尺寸
-    if (projectData.canvasSize) {
-      width.value = projectData.canvasSize.width
-      height.value = projectData.canvasSize.height
-    }
-
     compStore.commit()
-    ElMessage.success('项目加载成功')
-  } catch (error) {
-    if ((error as unknown) !== 'cancel') {
-      ElMessage.error('加载失败: ' + (error as Error).message)
-    }
-  }
+    ElMessage.success('加载成功')
+  } catch (e) { if (e !== 'cancel') ElMessage.error('加载失败') }
 }
 
-// 导出JSON文件
 function exportJSON() {
-  try {
-    const jsonData = componentsToJSON(componentStore.value)
-    const blob = new Blob([jsonData], { type: 'application/json' })
-    const url = URL.createObjectURL(blob)
-    const link = document.createElement('a')
-    link.href = url
-    link.download = `webgis-project-${Date.now()}.json`
-    document.body.appendChild(link)
-    link.click()
-    document.body.removeChild(link)
-    URL.revokeObjectURL(url)
-    ElMessage.success('JSON文件已导出')
-  } catch (error) {
-    ElMessage.error('导出失败: ' + (error as Error).message)
-  }
+  const json = componentsToJSON(componentStore.value)
+  const blob = new Blob([json], { type: 'application/json' })
+  const url = URL.createObjectURL(blob)
+  const link = document.createElement('a')
+  link.href = url
+  link.download = `project-${Date.now()}.json`
+  link.click()
+  URL.revokeObjectURL(url)
 }
 </script>
 
 <style scoped>
-.header-bar {
+.header-container {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 8px 16px;
-  gap: 12px;
-  background: linear-gradient(180deg, var(--bg-primary) 0%, var(--bg-secondary) 100%);
-  box-shadow: 0 1px 4px var(--shadow-light);
-  border-bottom: 1px solid var(--border-light);
-  height: 56px;
+  height: 100%;
+  padding: 0 16px;
+  /* 背景色由父级卡片决定 */
 }
-.left {
+
+.left-section, .right-section {
   display: flex;
   align-items: center;
   gap: 8px;
 }
-.center {
-  flex: 1;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-.app-title {
-  font-weight: 600;
-  font-size: 16px;
+
+.brand {
+  font-weight: 700;
+  font-size: 18px;
   color: var(--text-primary);
+  margin-right: 8px;
+  letter-spacing: -0.5px;
 }
-.right {
-  display: flex;
-  align-items: center;
-  gap: 12px;
+
+.divider {
+  width: 1px;
+  height: 20px;
+  background-color: var(--border-light);
+  margin: 0 8px;
 }
-.control-row {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  background: var(--bg-tertiary);
-  padding: 4px 8px;
-  border-radius: 6px;
+
+.icon-left {
+  margin-right: 4px;
 }
-.control-label {
-  font-size: 12px;
-  color: var(--text-secondary);
+
+.ai-btn {
+  position: relative;
+  background: linear-gradient(135deg, #4285F4, #34A853); /* Google 风格渐变 */
+  border: none;
 }
-.num {
-  width: 72px;
+
+.ai-btn:hover {
+  opacity: 0.9;
 }
-.sep {
-  color: var(--text-tertiary);
-}
-.percent {
-  font-size: 12px;
-  color: var(--text-secondary);
-}
-.btn-label {
-  margin-left: 6px;
+
+.ai-badge {
+  position: absolute;
+  top: -2px;
+  right: -2px;
 }
 </style>

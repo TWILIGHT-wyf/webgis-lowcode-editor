@@ -115,13 +115,15 @@ export function useShape(id: string) {
       const comp = currentComponent.value
       if (!comp) return
 
-      // 容器类型列表
-      const containerTypes = ['panel', 'row', 'col', 'flex', 'grid', 'modal', 'tabs', 'Group']
+      // 容器类型列表（以小写形式列出以便不区分大小写比较）
+      const containerTypes = ['panel', 'row', 'col', 'flex', 'grid', 'modal', 'tabs', 'group']
 
-      // 查找所有容器组件
-      const containers = compStore.componentStore.filter(
-        (c) => containerTypes.includes(c.type) && c.id !== comp.id && c.id !== comp.groupId,
-      )
+      // 查找所有容器组件（类型比较不区分大小写）
+      const containers = compStore.componentStore.filter((c) => {
+        if (!c.type) return false
+        const t = String(c.type).toLowerCase()
+        return containerTypes.includes(t) && c.id !== comp.id && c.id !== comp.groupId
+      })
 
       // 计算当前组件的中心点
       const compCenterX = comp.position.x + comp.size.width / 2

@@ -7,31 +7,37 @@ import CanvasBoard from './components/Editor/canvasBoard/canvasBoard.vue'
 import AIAssistDialog from '@/components/AIAssistDialog.vue'
 import { provideComponentEvents } from '@/components/siderBar/events/events'
 
-// 侧边栏宽度
+// 侧边栏宽度状态
 const leftSidebarWidth = ref(300)
 const rightSidebarWidth = ref(340)
 
-// AI 助手悬浮窗状态
+// AI 助手状态
 const aiVisible = ref(false)
 
-// SiderBar 引用
-const sideBarRef = ref<InstanceType<typeof SiderBar> | null>(null)
+// 拖拽调整宽度的状态
 const isResizingLeft = ref(false)
 const isResizingRight = ref(false)
 
-// 左侧边栏宽度调整
+// 初始化事件系统
+onMounted(() => {
+  provideComponentEvents()
+})
+
+// 打开 AI 助手
+function handleOpenAIAssist() {
+  aiVisible.value = true
+}
+
+// 左侧拖拽逻辑
 function startResizeLeft(e: MouseEvent) {
   isResizingLeft.value = true
   const startX = e.clientX
   const startWidth = leftSidebarWidth.value
 
-  const onMouseMove = (moveEvent: MouseEvent) => {
+  const onMouseMove = (ev: MouseEvent) => {
     if (!isResizingLeft.value) return
-    const deltaX = moveEvent.clientX - startX
-    const newWidth = startWidth + deltaX
-    if (newWidth >= 250 && newWidth <= 600) {
-      leftSidebarWidth.value = newWidth
-    }
+    const newWidth = startWidth + (ev.clientX - startX)
+    if (newWidth >= 200 && newWidth <= 600) leftSidebarWidth.value = newWidth
   }
 
   const onMouseUp = () => {
@@ -44,19 +50,16 @@ function startResizeLeft(e: MouseEvent) {
   document.addEventListener('mouseup', onMouseUp)
 }
 
-// 右侧边栏宽度调整
+// 右侧拖拽逻辑
 function startResizeRight(e: MouseEvent) {
   isResizingRight.value = true
   const startX = e.clientX
   const startWidth = rightSidebarWidth.value
 
-  const onMouseMove = (moveEvent: MouseEvent) => {
+  const onMouseMove = (ev: MouseEvent) => {
     if (!isResizingRight.value) return
-    const deltaX = startX - moveEvent.clientX
-    const newWidth = startWidth + deltaX
-    if (newWidth >= 280 && newWidth <= 600) {
-      rightSidebarWidth.value = newWidth
-    }
+    const newWidth = startWidth + (startX - ev.clientX)
+    if (newWidth >= 240 && newWidth <= 600) rightSidebarWidth.value = newWidth
   }
 
   const onMouseUp = () => {
@@ -68,114 +71,118 @@ function startResizeRight(e: MouseEvent) {
   document.addEventListener('mousemove', onMouseMove)
   document.addEventListener('mouseup', onMouseUp)
 }
-
-// 初始化组件事件系统
-onMounted(() => {
-  provideComponentEvents()
-})
-
-// 打开 AI 助手
-function handleOpenAIAssist() {
-  aiVisible.value = true
-}
 </script>
 
 <template>
-  <!-- 路由视图：用于显示预览页面 -->
   <router-view v-if="$route.path === '/runtime'" v-slot="{ Component }">
     <component :is="Component" v-if="Component" />
   </router-view>
 
-  <!-- 主编辑器界面（默认显示） -->
-  <div v-else class="common-layout">
-    <el-container>
-      <el-header>
-        <headerNav @open-ai-assist="handleOpenAIAssist" />
-      </el-header>
-      <el-container>
-        <!-- 左侧边栏 -->
-        <el-aside :width="leftSidebarWidth + 'px'">
-          <componentBar />
-        </el-aside>
+  <div v-else class="app-layout">
 
-        <!-- 左侧拖拽条 -->
-        <div class="sidebar-resizer" @mousedown="startResizeLeft">
-          <div class="resizer-handle"></div>
-        </div>
+    <header class="header-card">
+      <headerNav @open-ai-assist="handleOpenAIAssist" />
+    </header>
 
-        <!-- 中间画布 -->
-        <el-main><CanvasBoard /></el-main>
+    <div class="main-content">
 
-        <!-- 右侧拖拽条 -->
-        <div class="sidebar-resizer" @mousedown="startResizeRight">
-          <div class="resizer-handle"></div>
-        </div>
+      <aside class="floating-card sidebar-card" :style="{ width: leftSidebarWidth + 'px' }">
+        <componentBar />
+      </aside>
 
-        <!-- 右侧边栏 -->
-        <el-aside :width="rightSidebarWidth + 'px'">
-          <SiderBar ref="sideBarRef" />
-        </el-aside>
-      </el-container>
-    </el-container>
+      <div class="resize-handle" @mousedown="startResizeLeft"></div>
 
-    <!-- AI 助手悬浮窗 -->
+      <main class="floating-card canvas-card">
+        <CanvasBoard />
+      </main>
+
+      <div class="resize-handle" @mousedown="startResizeRight"></div>
+
+      <aside class="floating-card sidebar-card" :style="{ width: rightSidebarWidth + 'px' }">
+        <SiderBar />
+      </aside>
+
+    </div>
+
     <AIAssistDialog v-model:visible="aiVisible" />
   </div>
 </template>
 
-<style>
-html,
-body,
-#app {
-  height: 100%;
-  margin: 0;
-  overflow: hidden;
-}
-.el-container {
-  height: 100%;
-}
-</style>
-
 <style scoped>
-.common-layout {
-  height: 100vh;
-}
-
-.el-main {
-  overflow: hidden;
-  padding: 0;
-  flex: 1;
-}
-
-.el-aside {
-  overflow: hidden;
-}
-
-.sidebar-resizer {
-  width: 6px;
-  cursor: ew-resize;
+.app-layout {
   display: flex;
-  align-items: center;
-  justify-content: center;
-  background: var(--el-fill-color-light);
-  position: relative;
+  flex-direction: column;
+  height: 100vh;
+  background-color: var(--bg-app); /* 使用主题定义的应用底色 */
+  padding: 12px; /* 给整个页面四周留出空隙 */
+  box-sizing: border-box;
+  gap: 12px;     /* 顶部栏和主体之间的间距 */
+  overflow: hidden;
+}
+
+/* 顶部导航卡片 */
+.header-card {
+  height: 56px;
+  flex-shrink: 0;
+  background-color: var(--bg-card);
+  border-radius: var(--radius-card);
+  box-shadow: var(--shadow-card);
   z-index: 10;
-  transition: background 0.2s;
 }
 
-.sidebar-resizer:hover {
-  background: var(--el-color-primary-light-7);
+/* 主体内容区 (横向 Flex) */
+.main-content {
+  flex: 1;
+  display: flex;
+  overflow: hidden; /* 防止内容溢出 */
+  min-height: 0;    /* 关键：允许 Flex 子项在高度上收缩 */
 }
 
-.resizer-handle {
-  width: 2px;
-  height: 60px;
-  border-radius: 1px;
-  background: var(--el-border-color-darker);
+/* 通用悬浮卡片样式 */
+.floating-card {
+  background-color: var(--bg-card);
+  border-radius: var(--radius-card);
+  box-shadow: var(--shadow-card);
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
 }
 
-.sidebar-resizer:hover .resizer-handle {
-  background: var(--el-color-primary);
-  width: 3px;
+.sidebar-card {
+  flex-shrink: 0;
+  transition: width 0.05s linear; /* 拖拽时更跟手 */
+}
+
+.canvas-card {
+  flex: 1;
+  margin: 0; /* 无需 margin，由 main-content 的 gap 或 resize-handle 占位 */
+  position: relative;
+  /* 画布背景在 CanvasBoard 内部设置，这里只需作为容器 */
+}
+
+/* 拖拽条样式 */
+.resize-handle {
+  width: 12px; /* 实际上占据 12px 的空间作为视觉间距 */
+  cursor: col-resize;
+  flex-shrink: 0;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  /* 透明背景，模拟 gap */
+}
+
+/* 拖拽条中间的小竖线 (Hover 时显示，增强交互感) */
+.resize-handle::after {
+  content: '';
+  width: 4px;
+  height: 32px;
+  background-color: rgba(0, 0, 0, 0.1);
+  border-radius: 2px;
+  opacity: 0;
+  transition: opacity 0.2s;
+}
+
+.resize-handle:hover::after {
+  opacity: 1;
 }
 </style>

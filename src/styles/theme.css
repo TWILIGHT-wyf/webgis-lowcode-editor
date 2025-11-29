@@ -1,284 +1,71 @@
-/* 全局主题样式 */
+
+
 :root {
-  /* 浅色主题变量 */
-  --bg-primary: #ffffff;
-  --bg-secondary: #f5f7fa;
-  --bg-tertiary: #ebeef5;
-  --text-primary: #303133;
-  --text-secondary: #606266;
-  --text-tertiary: #909399;
-  --border-color: #dcdfe6;
-  --border-light: #e4e7ed;
-  --shadow-base: rgba(0, 0, 0, 0.1);
-  --shadow-light: rgba(0, 0, 0, 0.05);
+  /* --- 浅色主题 (Gemini 风格) --- */
+  --bg-app: #F0F4F9;          /* 应用底色 (浅灰蓝) */
+  --bg-card: #FFFFFF;         /* 卡片背景 (纯白) */
+  --bg-hover: #F5F7FA;        /* 悬停背景 */
+
+  --text-primary: #1F1F1F;    /* 主要文字 */
+  --text-secondary: #444746;  /* 次要文字 */
+  --text-tertiary: #747775;   /* 提示文字 */
+
+  --border-color: transparent; /* 隐藏默认边框，用阴影代替 */
+  --border-light: #E0E3E7;     /* 内部轻微分割线 */
+
+  /* 柔和的悬浮阴影 */
+  --shadow-card: 0 2px 6px rgba(60, 64, 67, 0.04), 0 0 2px rgba(60, 64, 67, 0.06);
+  --shadow-hover: 0 4px 8px rgba(60, 64, 67, 0.08), 0 0 4px rgba(60, 64, 67, 0.08);
+
+  /* 现代圆角 */
+  --radius-card: 16px;
+  --radius-btn: 20px;
 }
 
-/* 暗色主题 */
+/* --- 暗色主题适配 --- */
 .theme-dark {
-  --bg-primary: #1a1a1a;
-  --bg-secondary: #252525;
-  --bg-tertiary: #2f2f2f;
-  --text-primary: #e5e5e5;
-  --text-secondary: #b3b3b3;
-  --text-tertiary: #808080;
-  --border-color: #3a3a3a;
-  --border-light: #2f2f2f;
-  --shadow-base: rgba(0, 0, 0, 0.5);
-  --shadow-light: rgba(0, 0, 0, 0.3);
+  --bg-app: #131314;
+  --bg-card: #1E1F20;
+  --bg-hover: #2D2E30;
+
+  --text-primary: #E3E3E3;
+  --text-secondary: #C4C7C5;
+  --text-tertiary: #8E918F;
+
+  --border-color: transparent;
+  --border-light: #444746;
+
+  --shadow-card: 0 2px 6px rgba(0, 0, 0, 0.2);
+  --shadow-hover: 0 4px 12px rgba(0, 0, 0, 0.4);
 }
 
-/* 应用主题到全局元素 */
+/* 全局重置与字体 */
 body {
-  background-color: var(--bg-primary);
+  background-color: var(--bg-app);
   color: var(--text-primary);
+  margin: 0;
+  font-family: 'Google Sans', 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  -webkit-font-smoothing: antialiased;
 }
 
-.theme-dark .header-bar {
-  background: linear-gradient(180deg, #252525 0%, #1f1f1f 100%);
-  border-bottom-color: var(--border-color);
+/* 滚动条优化 */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-thumb {
+  background: rgba(128, 128, 128, 0.2);
+  border-radius: 3px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
 }
 
-.theme-dark .app-title {
-  color: var(--text-primary);
+/* Element Plus 覆盖样式 - 让组件适应卡片风格 */
+.el-button {
+  border-radius: var(--radius-btn);
 }
-
-.theme-dark .properties-panel {
-  background-color: var(--bg-secondary);
-  border-left-color: var(--border-color);
-}
-
-.theme-dark .canvas-board {
-  background-color: var(--bg-tertiary);
-}
-
-.theme-dark .component-bar {
-  background-color: var(--bg-secondary);
-  border-right-color: var(--border-color);
-}
-
-/* Element Plus 组件暗色适配 */
-.theme-dark .el-input__wrapper {
-  background-color: var(--bg-tertiary);
-  box-shadow: 0 0 0 1px var(--border-color) inset;
-}
-
-.theme-dark .el-input__inner {
-  color: var(--text-primary);
-}
-
-.theme-dark .el-button {
-  border-color: var(--border-color);
-  color: var(--text-primary);
-}
-
-.theme-dark .el-button--primary {
-  background-color: #409eff;
-  border-color: #409eff;
-}
-
-.theme-dark .el-collapse-item__header {
-  background-color: var(--bg-secondary);
-  color: var(--text-primary);
-  border-bottom-color: var(--border-color);
-}
-
-.theme-dark .el-collapse-item__content {
-  background-color: var(--bg-primary);
-  color: var(--text-secondary);
-}
-
-/* 属性面板适配 */
-.theme-dark .properties-panel {
-  background-color: var(--bg-secondary);
-  color: var(--text-primary);
-}
-
-.theme-dark .properties-scrollbar {
-  background-color: var(--bg-secondary);
-}
-
-.theme-dark .el-form-item__label {
-  color: var(--text-primary);
-}
-
-.theme-dark .el-input__wrapper {
-  background-color: var(--bg-tertiary);
-  box-shadow: 0 0 0 1px var(--border-color) inset;
-}
-
-.theme-dark .el-input__inner {
-  color: var(--text-primary);
-}
-
-.theme-dark .el-textarea__inner {
-  background-color: var(--bg-tertiary);
-  color: var(--text-primary);
-  border-color: var(--border-color);
-}
-
-.theme-dark .el-select__wrapper {
-  background-color: var(--bg-tertiary);
-  box-shadow: 0 0 0 1px var(--border-color) inset;
-}
-
-.theme-dark .el-select__input {
-  color: var(--text-primary);
-}
-
-/* 选项卡适配 */
-.theme-dark .el-tabs__header {
-  border-bottom-color: var(--border-color);
-}
-
-.theme-dark .el-tabs__item {
-  color: var(--text-secondary);
-}
-
-.theme-dark .el-tabs__item.is-active {
-  color: var(--text-primary);
-}
-
-.theme-dark .el-tabs__nav-wrap::after {
-  background-color: var(--border-color);
-}
-
-.theme-dark .el-tab-pane {
-  color: var(--text-primary);
-}
-
-/* 菜单适配 */
-.theme-dark .el-menu {
-  background-color: var(--bg-secondary);
-  border-right-color: var(--border-color);
-}
-
-.theme-dark .el-menu-item {
-  color: var(--text-secondary);
-}
-
-.theme-dark .el-menu-item:hover,
-.theme-dark .el-menu-item.is-active {
-  color: var(--text-primary);
-  background-color: var(--bg-tertiary);
-}
-
-/* 卡片适配 */
-.theme-dark .el-card {
-  background-color: var(--bg-secondary);
-  border-color: var(--border-color);
-  color: var(--text-primary);
-}
-
-.theme-dark .el-card__header {
-  background-color: var(--bg-tertiary);
-  border-bottom-color: var(--border-color);
-  color: var(--text-primary);
-}
-
-/* 下拉菜单适配 */
-.theme-dark .el-dropdown-menu {
-  background-color: var(--bg-secondary);
-  border-color: var(--border-color);
-}
-
-.theme-dark .el-dropdown-menu__item {
-  color: var(--text-primary);
-}
-
-.theme-dark .el-dropdown-menu__item:hover {
-  background-color: var(--bg-tertiary);
-}
-
-/* 滚动条适配 */
-.theme-dark .el-scrollbar__thumb {
-  background-color: var(--border-color);
-}
-
-.theme-dark .el-scrollbar__thumb:hover {
-  background-color: var(--text-tertiary);
-}
-
-/* 关系图谱适配 */
-.theme-dark .relation-graph-section {
-  background-color: var(--bg-secondary);
-}
-
-.theme-dark .section-header {
-  background-color: var(--bg-secondary);
-  border-color: var(--border-color);
-  color: var(--text-primary);
-}
-
-.theme-dark .graph-container {
-  background-color: var(--bg-tertiary);
-  border-color: var(--border-color);
-}
-
-.theme-dark .graph-legend {
-  background-color: var(--bg-tertiary);
-  color: var(--text-primary);
-}
-
-.theme-dark .resizer-horizontal {
-  background-color: var(--bg-tertiary);
-}
-
-.theme-dark .resizer-horizontal:hover {
-  background-color: var(--border-color);
-}
-
-/* 模板卡片适配 */
-.theme-dark .template-card {
-  background-color: var(--bg-secondary);
-  border-color: var(--border-color);
-}
-
-.theme-dark .template-card:hover {
-  background-color: var(--bg-tertiary);
-  border-color: var(--text-tertiary);
-}
-
-.theme-dark .template-name {
-  color: var(--text-primary);
-}
-
-.theme-dark .template-desc {
-  color: var(--text-secondary);
-}
-
-.theme-dark .template-icon {
-  background-color: var(--bg-tertiary);
-}
-
-/* 折叠面板调整 */
-.theme-dark .el-collapse {
-  border-color: var(--border-color);
-}
-
-.theme-dark .el-collapse-item {
-  border-bottom-color: var(--border-color);
-}
-
-.theme-dark .el-collapse-item__wrap {
-  background-color: var(--bg-secondary);
-}
-
-/* 按钮组适配 */
-.theme-dark .el-button-group .el-button {
-  border-color: var(--border-color);
-}
-
-.theme-dark .el-button-group .el-button:not(.el-button--primary) {
-  background-color: var(--bg-tertiary);
-}
-
-/* 表单项适配 */
-.theme-dark .el-form-item {
-  color: var(--text-primary);
-}
-
-.theme-dark .canvas-config,
-.theme-dark .component-config {
-  background-color: var(--bg-secondary);
-  color: var(--text-primary);
+.el-input__wrapper {
+  border-radius: 8px;
+  box-shadow: 0 0 0 1px var(--border-light) inset !important;
 }

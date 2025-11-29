@@ -1,153 +1,110 @@
 <template>
   <div class="sider-root">
-    <el-menu
-      :default-active="activeIndex"
-      mode="horizontal"
-      @select="menuSelect"
-      class="sider-menu"
-    >
-      <el-menu-item index="1">属性</el-menu-item>
-      <el-menu-item index="2">动画</el-menu-item>
-      <el-menu-item index="3">联动</el-menu-item>
-      <el-menu-item index="4">事件</el-menu-item>
-      <el-menu-item index="5">
-        <el-icon><MagicStick /></el-icon>
-        AI助手
-        <el-badge v-if="pendingCount > 0" :value="pendingCount" :max="99" class="menu-badge" />
-      </el-menu-item>
-    </el-menu>
-
-    <div class="sidebar-content">
-      <Propertie v-if="activeIndex === '1'" class="fill" />
-      <Animation v-if="activeIndex === '2'" class="fill" />
-      <Relations v-if="activeIndex === '3'" class="fill" />
-      <Events v-if="activeIndex === '4'" class="fill" />
-      <div v-if="activeIndex === '5'" class="fill ai-assist-container">
-        <el-tabs v-model="aiTab" class="ai-tabs">
-          <el-tab-pane label="生成建议" name="suggest">
-            <SuggestionPanel />
-          </el-tab-pane>
-          <el-tab-pane name="audit">
-            <template #label>
-              审计日志
-              <el-badge
-                v-if="auditCount > 0"
-                :value="auditCount"
-                :max="99"
-                class="tab-badge"
-                type="info"
-              />
-            </template>
-            <AuditPanel />
-          </el-tab-pane>
-        </el-tabs>
-      </div>
-    </div>
+    <el-tabs v-model="activeIndex" class="property-tabs" stretch>
+      <el-tab-pane label="属性" name="1">
+        <div class="tab-content">
+          <Propertie />
+        </div>
+      </el-tab-pane>
+      <el-tab-pane label="动画" name="2">
+        <div class="tab-content">
+          <Animation />
+        </div>
+      </el-tab-pane>
+      <el-tab-pane label="联动" name="3">
+        <div class="tab-content">
+          <Relations />
+        </div>
+      </el-tab-pane>
+      <el-tab-pane label="事件" name="4">
+        <div class="tab-content">
+          <Events />
+        </div>
+      </el-tab-pane>
+    </el-tabs>
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref, computed } from 'vue'
-import { MagicStick } from '@element-plus/icons-vue'
+import { ref } from 'vue'
 import Propertie from './properties/properties.vue'
 import Animation from './animation/animation.vue'
 import Relations from './relations/relations.vue'
 import Events from './events/events.vue'
-import SuggestionPanel from './suggestion/SuggestionPanel.vue'
-import AuditPanel from './suggestion/AuditPanel.vue'
-import { useSuggestion } from '@/stores/suggestion'
 
+// 默认激活属性面板
 const activeIndex = ref('1')
-const aiTab = ref('suggest')
-const suggestionStore = useSuggestion()
-const pendingCount = computed(() => suggestionStore.pendingSuggestions.length)
-const auditCount = computed(() => suggestionStore.auditRecords.length)
-
-const menuSelect = (index: string) => {
-  activeIndex.value = index
-}
-
-// 切换到 AI 助手标签页
-function switchToAIAssist() {
-  activeIndex.value = '5'
-  aiTab.value = 'suggest'
-}
-
-// 暴露给父组件
-defineExpose({
-  switchToAIAssist,
-})
 </script>
 
 <style scoped>
+/* 根容器：占满父级卡片 */
 .sider-root {
   height: 100%;
-  display: flex;
-  flex-direction: column;
-}
-
-.sider-menu {
-  flex: 0 0 auto;
-}
-
-.sidebar-content {
-  flex: 1 1 auto;
   width: 100%;
   display: flex;
   flex-direction: column;
+  background-color: transparent;
   overflow: hidden;
 }
 
-/* 让内部面板（Propertie/Animation/Relations）撑满可用高度 */
-.fill {
-  flex: 1 1 auto;
-  min-height: 0;
-  overflow: hidden;
-}
-
-.menu-badge {
-  margin-left: 6px;
-}
-
-.ai-assist-container {
-  display: flex;
-  flex-direction: column;
-  padding: 0;
-}
-
-.ai-tabs {
+/* Tabs 容器：Flex 布局，垂直排列 */
+.property-tabs {
   height: 100%;
   display: flex;
   flex-direction: column;
 }
 
-.ai-tabs :deep(.el-tabs__header) {
-  margin-bottom: 0;
-  padding: 0 12px;
+/* Tab 头部样式优化 */
+.property-tabs :deep(.el-tabs__header) {
+  margin: 0;
+  padding: 0 8px;
+  border-bottom: 1px solid var(--border-light);
+  flex-shrink: 0; /* 防止头部被压缩 */
 }
 
-.ai-tabs :deep(.el-tabs__content) {
+.property-tabs :deep(.el-tabs__nav-wrap::after) {
+  height: 1px;
+  background-color: transparent;
+}
+
+.property-tabs :deep(.el-tabs__item) {
+  height: 48px;
+  line-height: 48px;
+  font-size: 14px;
+  color: var(--text-secondary);
+  font-weight: 500;
+}
+
+.property-tabs :deep(.el-tabs__item.is-active) {
+  color: #1967D2;
+  font-weight: 600;
+}
+
+.property-tabs :deep(.el-tabs__active-bar) {
+  background-color: #1967D2;
+  height: 3px;
+  border-radius: 3px 3px 0 0;
+}
+
+/* 关键修复：Tab 内容区撑满剩余空间 */
+.property-tabs :deep(.el-tabs__content) {
   flex: 1;
-  overflow-y: auto;
+  height: 0; /* 关键：强制限制高度，触发内部滚动条 */
   padding: 0;
+  overflow: hidden; /* 防止原生滚动条溢出 */
 }
 
-.tab-badge {
-  margin-left: 6px;
+
+.property-tabs :deep(.el-tab-pane) {
+  height: 100%;
 }
 
-/* Dark theme */
-:deep(.theme-dark) .sider-root {
-  background: #0b1116;
-  color: #dfe7ee;
-}
-:deep(.theme-dark) .sider-menu {
-  background: transparent;
-}
-:deep(.theme-dark) .sidebar-content {
-  background: transparent;
-}
-:deep(.theme-dark) .fill {
-  background: transparent;
+/* 内部包装器：承载子组件 */
+.tab-content {
+  height: 100%;
+  width: 100%;
+  overflow: hidden; /* 禁止此处滚动，交给子组件(el-scrollbar) */
+  display: flex;
+  flex-direction: column;
 }
 </style>
