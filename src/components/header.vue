@@ -22,9 +22,38 @@
     </div>
 
     <div class="center-section">
-      </div>
+    </div>
 
     <div class="right-section">
+      <!-- 常用操作区 (原下拉菜单内容) -->
+      <div class="action-group">
+        <el-tooltip content="保存到本地缓存" placement="bottom">
+          <el-button text circle @click="saveProject">
+            <el-icon><Finished /></el-icon>
+          </el-button>
+        </el-tooltip>
+
+        <el-tooltip content="从本地缓存加载" placement="bottom">
+          <el-button text circle @click="loadProject">
+            <el-icon><FolderOpened /></el-icon>
+          </el-button>
+        </el-tooltip>
+
+        <el-tooltip content="导出 JSON 文件" placement="bottom">
+          <el-button text circle @click="exportJSON">
+            <el-icon><Download /></el-icon>
+          </el-button>
+        </el-tooltip>
+
+        <el-tooltip content="清空画布" placement="bottom">
+          <el-button text circle type="danger" @click="handleReset">
+            <el-icon><Delete /></el-icon>
+          </el-button>
+        </el-tooltip>
+      </div>
+
+      <div class="divider"></div>
+
       <el-tooltip content="预览运行效果" placement="bottom">
         <el-button round @click="openPreview">
           <el-icon class="icon-left"><View /></el-icon>
@@ -45,28 +74,12 @@
 
       <div class="divider"></div>
 
-      <el-dropdown trigger="click" @command="handleCommand">
-        <el-button text circle>
-          <el-icon><MoreFilled /></el-icon>
-        </el-button>
-        <template #dropdown>
-          <el-dropdown-menu>
-            <el-dropdown-item command="save" :icon="Finished">保存项目</el-dropdown-item>
-            <el-dropdown-item command="load" :icon="FolderOpened">加载项目</el-dropdown-item>
-            <el-dropdown-item command="export" :icon="Download">导出 JSON</el-dropdown-item>
-            <el-dropdown-item divided command="reset" style="color: #F56C6C" :icon="Delete">
-              清空画布
-            </el-dropdown-item>
-          </el-dropdown-menu>
-        </template>
-      </el-dropdown>
-
       <el-switch
         v-model="isDark"
         inline-prompt
         :active-icon="Moon"
         :inactive-icon="Sunny"
-        style="margin-left: 8px"
+        style="margin-left: 4px"
       />
     </div>
   </div>
@@ -82,7 +95,7 @@ import { storeToRefs } from 'pinia'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { componentsToJSON } from '@/utils/toCode'
 import {
-  Back, Right, View, MagicStick, MoreFilled,
+  Back, Right, View, MagicStick,
   Finished, FolderOpened, Download, Delete, Moon, Sunny
 } from '@element-plus/icons-vue'
 
@@ -118,16 +131,6 @@ const emit = defineEmits(['open-ai-assist'])
 function openAIAssist() { emit('open-ai-assist') }
 function openPreview() { router.push('/runtime') }
 
-// 统一处理下拉菜单命令
-function handleCommand(cmd: string) {
-  switch (cmd) {
-    case 'save': saveProject(); break;
-    case 'load': loadProject(); break;
-    case 'export': exportJSON(); break;
-    case 'reset': reset(); break;
-  }
-}
-
 // 项目操作逻辑
 function saveProject() {
   try {
@@ -137,7 +140,7 @@ function saveProject() {
       savedAt: new Date().toISOString()
     }
     localStorage.setItem('webgis_project', JSON.stringify(data))
-    ElMessage.success('项目已保存')
+    ElMessage.success('项目已保存到本地')
   } catch (e) {
     ElMessage.error(`保存失败${e}`)
   }
@@ -146,8 +149,8 @@ function saveProject() {
 async function loadProject() {
   try {
     const saved = localStorage.getItem('webgis_project')
-    if (!saved) return ElMessage.warning('暂无存档')
-    await ElMessageBox.confirm('加载将覆盖当前内容，确定吗？', '提示', { type: 'warning' })
+    if (!saved) return ElMessage.warning('暂无本地存档')
+    await ElMessageBox.confirm('加载将覆盖当前画布内容，确定吗？', '提示', { type: 'warning' })
     const data = JSON.parse(saved)
     componentStore.value = data.components || []
     if (data.canvasSize) {
@@ -169,6 +172,18 @@ function exportJSON() {
   link.click()
   URL.revokeObjectURL(url)
 }
+
+function handleReset() {
+  ElMessageBox.confirm('确定要清空画布吗？此操作不可逆。', '警告', {
+    type: 'warning',
+    confirmButtonText: '确定清空',
+    cancelButtonText: '取消',
+    confirmButtonClass: 'el-button--danger'
+  }).then(() => {
+    reset()
+    ElMessage.success('画布已清空')
+  }).catch(() => {})
+}
 </script>
 
 <style scoped>
@@ -185,6 +200,12 @@ function exportJSON() {
   display: flex;
   align-items: center;
   gap: 8px;
+}
+
+.action-group {
+  display: flex;
+  align-items: center;
+  gap: 4px;
 }
 
 .brand {

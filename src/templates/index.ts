@@ -11,12 +11,47 @@ export interface PageTemplate {
   components: component[]
 }
 
-// 默认样式基础对象，用于简化代码
+// 默认样式基础对象
 const baseStyle = {
   opacity: 100,
   visible: true,
   locked: false,
 }
+
+// --- 深色主题图表通用配置 (ECharts Option) ---
+// 用于修复深色背景下坐标轴文字看不清的问题
+const darkChartOption = JSON.stringify({
+  textStyle: { color: '#9ca3af' }, // 全局文字颜色 (灰色-400)
+  title: { textStyle: { color: '#f3f4f6' } }, // 标题颜色 (灰色-100)
+  legend: { textStyle: { color: '#9ca3af' } }, // 图例颜色
+  xAxis: {
+    axisLabel: { color: '#9ca3af' },
+    axisLine: { lineStyle: { color: '#4b5563' } }, // 轴线颜色 (灰色-600)
+    splitLine: { lineStyle: { color: '#374151' } }, // 分割线 (灰色-700)
+  },
+  yAxis: {
+    axisLabel: { color: '#9ca3af' },
+    axisLine: { lineStyle: { color: '#4b5563' } },
+    splitLine: { lineStyle: { color: '#374151' } },
+  },
+})
+
+// 深色饼图/仪表盘配置
+const darkPieOption = JSON.stringify({
+  textStyle: { color: '#9ca3af' },
+  title: { textStyle: { color: '#f3f4f6' } },
+  legend: { textStyle: { color: '#9ca3af' } },
+})
+
+const darkGaugeOption = JSON.stringify({
+  series: [
+    {
+      axisLabel: { color: '#9ca3af', distance: 25 }, // 刻度标签颜色
+      axisTick: { lineStyle: { color: '#4b5563' } }, // 刻度线
+      splitLine: { lineStyle: { color: '#6b7280' } }, // 分隔线
+    },
+  ],
+})
 
 // ==================== 1. 数据大屏模板 (优化版) ====================
 export const dashboardTemplate: PageTemplate = {
@@ -148,7 +183,7 @@ export const dashboardTemplate: PageTemplate = {
         icon: 'el-icon-wallet',
       },
     },
-    // --- 主图表区域 ---
+    // --- 主图表区域 (已添加 option 覆盖) ---
     {
       id: `template_dash_chart_main_${nanoid()}`,
       type: 'lineChart',
@@ -170,11 +205,12 @@ export const dashboardTemplate: PageTemplate = {
         areaOpacity: 0.2,
         smooth: true,
         lineColor: '#60a5fa',
-        titleColor: '#e5e7eb',
+        titleColor: '#e5e7eb', // 标题颜色
         showGrid: true,
+        option: darkChartOption, // 注入深色模式 ECharts 配置
       },
     },
-    // --- 右侧饼图 ---
+    // --- 右侧饼图 (已添加 option 覆盖) ---
     {
       id: `template_dash_chart_pie_${nanoid()}`,
       type: 'doughnutChart',
@@ -195,6 +231,7 @@ export const dashboardTemplate: PageTemplate = {
         outerRadius: '70%',
         titleColor: '#e5e7eb',
         legendPosition: 'bottom',
+        option: darkPieOption, // 注入深色模式配置
       },
     },
     // --- 底部表格 ---
@@ -239,7 +276,6 @@ export const dashboardTemplate: PageTemplate = {
 }
 
 // ==================== 2. GIS 监控模板 (增强版) ====================
-// GIS 模板关联 ID
 const gisIds = {
   statRow: `template_gis_row_${nanoid()}`,
   kpi1: `template_gis_kpi1_${nanoid()}`,
@@ -255,7 +291,6 @@ export const gisTemplate: PageTemplate = {
   preview: '',
   category: 'gis',
   components: [
-    // --- 1. 基础底图 (全屏) ---
     {
       id: `template_gis_base_${nanoid()}`,
       type: 'base',
@@ -268,12 +303,10 @@ export const gisTemplate: PageTemplate = {
         centerLat: 31.2304,
         centerLng: 121.4737,
         zoom: 12,
-        // 使用深色底图风格
         tileUrl: 'https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png',
         attribution: '&copy; OpenStreetMap &copy; CARTO',
       },
     },
-    // --- 2. 热力图层 ---
     {
       id: `template_gis_heat_${nanoid()}`,
       type: 'heat',
@@ -295,7 +328,6 @@ export const gisTemplate: PageTemplate = {
         })),
       },
     },
-    // --- 3. 标记层 (设备点) ---
     {
       id: `template_gis_marker_${nanoid()}`,
       type: 'marker',
@@ -317,7 +349,6 @@ export const gisTemplate: PageTemplate = {
         ],
       },
     },
-    // --- 顶部标题栏 ---
     {
       id: `template_gis_title_box_${nanoid()}`,
       type: 'box',
@@ -348,7 +379,6 @@ export const gisTemplate: PageTemplate = {
       },
       props: { text: '智慧城市 GIS 指挥中心' },
     },
-    // --- 左侧搜索浮层 ---
     {
       id: `template_gis_search_${nanoid()}`,
       type: 'searchBox',
@@ -367,7 +397,6 @@ export const gisTemplate: PageTemplate = {
         buttonText: '定位',
       },
     },
-    // --- 右上角图层控制 ---
     {
       id: `template_gis_layers_${nanoid()}`,
       type: 'layers',
@@ -391,7 +420,6 @@ export const gisTemplate: PageTemplate = {
         ],
       },
     },
-    // --- 右下角图例 ---
     {
       id: `template_gis_legend_${nanoid()}`,
       type: 'legend',
@@ -415,7 +443,6 @@ export const gisTemplate: PageTemplate = {
         ],
       },
     },
-    // --- 底部统计条 (Grouping) ---
     {
       id: gisIds.statRow,
       type: 'row',
@@ -508,7 +535,6 @@ export const gisTemplate: PageTemplate = {
 }
 
 // ==================== 3. 表单录入模板 (优化版) ====================
-// 表单模板关联 ID
 const formIds = {
   panel: `template_form_panel_${nanoid()}`,
   labelName: `template_form_label_name_${nanoid()}`,
@@ -541,7 +567,6 @@ export const formTemplate: PageTemplate = {
       style: { ...baseStyle, backgroundColor: '#f3f4f6', borderWidth: 0 },
       props: { content: '' },
     },
-    // --- 表单容器面板 ---
     {
       id: formIds.panel,
       type: 'panel',
@@ -562,7 +587,6 @@ export const formTemplate: PageTemplate = {
         showFooter: true,
         footerContent: '请确保信息真实有效',
       },
-      // 将作为子组件的容器
       children: [
         formIds.labelName, formIds.inputName,
         formIds.labelDept, formIds.selectDept,
@@ -572,8 +596,6 @@ export const formTemplate: PageTemplate = {
         formIds.btnGroup
       ],
     },
-    // --- 表单项 (子组件) ---
-    // 1. 姓名
     {
       id: formIds.labelName,
       groupId: formIds.panel,
@@ -588,7 +610,7 @@ export const formTemplate: PageTemplate = {
     {
       id: formIds.inputName,
       groupId: formIds.panel,
-      type: 'searchBox', // 复用 searchBox 作为输入框
+      type: 'searchBox',
       position: { x: 160, y: 50 },
       size: { width: 300, height: 40 },
       rotation: 0,
@@ -596,10 +618,9 @@ export const formTemplate: PageTemplate = {
       style: baseStyle,
       props: {
         placeholder: '请输入真实姓名',
-        showSearchButton: false, // 隐藏搜索按钮，纯输入框
+        showSearchButton: false,
       },
     },
-    // 2. 部门
     {
       id: formIds.labelDept,
       groupId: formIds.panel,
@@ -630,7 +651,6 @@ export const formTemplate: PageTemplate = {
         ],
       },
     },
-    // 3. 入职日期
     {
       id: formIds.labelDate,
       groupId: formIds.panel,
@@ -656,7 +676,6 @@ export const formTemplate: PageTemplate = {
         endPlaceholder: '试用期结束',
       },
     },
-    // 4. 状态
     {
       id: formIds.labelStatus,
       groupId: formIds.panel,
@@ -684,7 +703,6 @@ export const formTemplate: PageTemplate = {
         inactiveValue: false,
       },
     },
-    // 5. 技能标签
     {
       id: formIds.labelTags,
       groupId: formIds.panel,
@@ -716,7 +734,6 @@ export const formTemplate: PageTemplate = {
         ],
       },
     },
-    // 6. 按钮组
     {
       id: formIds.btnGroup,
       groupId: formIds.panel,
@@ -744,7 +761,6 @@ export const chartAnalysisTemplate: PageTemplate = {
   preview: '',
   category: 'chart',
   components: [
-    // 标题
     {
       id: `template_chart_title_${nanoid()}`,
       type: 'Text',
@@ -766,8 +782,6 @@ export const chartAnalysisTemplate: PageTemplate = {
         text: '年度业务数据分析报告',
       },
     },
-    // 2x2 图表布局
-    // 1. 折线图
     {
       id: `template_chart_line_${nanoid()}`,
       type: 'lineChart',
@@ -791,7 +805,6 @@ export const chartAnalysisTemplate: PageTemplate = {
         showArea: true,
       },
     },
-    // 2. 柱状图
     {
       id: `template_chart_bar_${nanoid()}`,
       type: 'barChart',
@@ -814,7 +827,6 @@ export const chartAnalysisTemplate: PageTemplate = {
         barWidth: '40%',
       },
     },
-    // 3. 饼图
     {
       id: `template_chart_pie_${nanoid()}`,
       type: 'pieChart',
@@ -836,7 +848,6 @@ export const chartAnalysisTemplate: PageTemplate = {
         radius: '70%',
       },
     },
-    // 4. 雷达图
     {
       id: `template_chart_radar_${nanoid()}`,
       type: 'radarChart',
@@ -865,7 +876,6 @@ export const chartAnalysisTemplate: PageTemplate = {
 }
 
 // ==================== 5. IoT 物联网模板 (新增) ====================
-// IoT 模板关联 ID
 const iotIds = {
   panel: `template_iot_panel_${nanoid()}`,
   status1: `template_iot_status1_${nanoid()}`,
@@ -882,7 +892,6 @@ export const iotTemplate: PageTemplate = {
   preview: '',
   category: 'dashboard',
   components: [
-    // 标题
     {
       id: `template_iot_title_${nanoid()}`,
       type: 'Text',
@@ -901,7 +910,6 @@ export const iotTemplate: PageTemplate = {
       },
       props: { text: '数字化工厂 - 生产线实时监控' },
     },
-    // 背景
     {
       id: `template_iot_bg_${nanoid()}`,
       type: 'box',
@@ -912,7 +920,7 @@ export const iotTemplate: PageTemplate = {
       style: { ...baseStyle, backgroundColor: '#020617' },
       props: { content: '' },
     },
-    // 左侧 - 仪表盘组
+    // 左侧 - 仪表盘组 (已添加 option 覆盖)
     {
       id: `template_iot_gauge1_${nanoid()}`,
       type: 'gaugeChart',
@@ -927,6 +935,7 @@ export const iotTemplate: PageTemplate = {
         name: '负载率',
         titleColor: '#fff',
         axisLineColor: [[0.3, '#67e0e3'], [0.7, '#37a2da'], [1, '#fd666d']],
+        option: darkGaugeOption, // 注入深色模式配置
       },
     },
     {
@@ -945,6 +954,7 @@ export const iotTemplate: PageTemplate = {
         name: '温度',
         titleColor: '#fff',
         pointerColor: '#f59e0b',
+        option: darkGaugeOption, // 注入深色模式配置
       },
     },
     // 中间 - 流水线状态
@@ -967,7 +977,6 @@ export const iotTemplate: PageTemplate = {
       props: { title: '产线实时状态', showHeader: true },
       children: [iotIds.status1, iotIds.status2, iotIds.status3, iotIds.status4, iotIds.progress],
     },
-    // 状态指示灯 (Badge模拟)
     {
       id: iotIds.status1,
       groupId: iotIds.panel,
@@ -1040,7 +1049,6 @@ export const iotTemplate: PageTemplate = {
         slotColor: '#fff',
       },
     },
-    // 总体进度
     {
       id: iotIds.progress,
       groupId: iotIds.panel,
@@ -1060,7 +1068,7 @@ export const iotTemplate: PageTemplate = {
         status: 'success',
       },
     },
-    // 右侧 - 产量统计
+    // 右侧 - 产量统计 (已添加 option 覆盖)
     {
       id: `template_iot_bar_${nanoid()}`,
       type: 'barChart',
@@ -1076,9 +1084,9 @@ export const iotTemplate: PageTemplate = {
         seriesName: '件数',
         seriesData: [120, 132, 101, 134, 90],
         barColor: '#3b82f6',
+        option: darkChartOption, // 注入深色模式配置
       },
     },
-    // 底部 - 报警列表
     {
       id: `template_iot_list_${nanoid()}`,
       type: 'list',
@@ -1102,7 +1110,6 @@ export const iotTemplate: PageTemplate = {
 }
 
 // ==================== 6. 项目管理模板 (新增) ====================
-// 项目管理模板关联 ID
 const pmIds = {
   timelinePanel: `template_pm_timeline_panel_${nanoid()}`,
   timeline: `template_pm_timeline_${nanoid()}`,
@@ -1117,7 +1124,6 @@ export const projectTemplate: PageTemplate = {
   preview: '',
   category: 'other',
   components: [
-    // 标题
     {
       id: `template_pm_title_${nanoid()}`,
       type: 'Text',
@@ -1128,7 +1134,6 @@ export const projectTemplate: PageTemplate = {
       style: { ...baseStyle, fontSize: 28, fontWeight: 'bold' },
       props: { text: 'SaaS 平台研发项目' },
     },
-    // 总体进度条
     {
       id: `template_pm_progress_${nanoid()}`,
       type: 'progress',
@@ -1139,7 +1144,6 @@ export const projectTemplate: PageTemplate = {
       style: baseStyle,
       props: { value: 45, strokeWidth: 15, status: 'primary' },
     },
-    // 项目阶段时间轴
     {
       id: pmIds.timelinePanel,
       type: 'panel',
@@ -1171,7 +1175,6 @@ export const projectTemplate: PageTemplate = {
         showCard: true,
       },
     },
-    // 团队成员
     {
       id: pmIds.teamPanel,
       type: 'panel',
@@ -1205,7 +1208,6 @@ export const projectTemplate: PageTemplate = {
         ],
       },
     },
-    // 右侧统计区
     {
       id: `template_pm_chart_${nanoid()}`,
       type: 'pieChart',
