@@ -91,8 +91,8 @@
 <script setup lang="ts">
 import { ref, computed, watch, onUnmounted } from 'vue'
 import { MagicStick, Close } from '@element-plus/icons-vue'
-import SuggestionPanel from './siderBar/suggestion/SuggestionPanel.vue'
-import AuditPanel from './siderBar/suggestion/AuditPanel.vue'
+import SuggestionPanel from '../siderBar/suggestion/SuggestionPanel.vue'
+import AuditPanel from '../siderBar/suggestion/AuditPanel.vue'
 import { useSuggestion } from '@/stores/suggestion'
 
 // Props

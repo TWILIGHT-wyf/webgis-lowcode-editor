@@ -1,15 +1,5 @@
-
-import type { component } from '@/stores/component'
+import type { PageTemplate } from '@/types/page'
 import { nanoid } from 'nanoid'
-
-export interface PageTemplate {
-  id: string
-  name: string
-  description: string
-  preview: string // 预览图URL
-  category: 'dashboard' | 'gis' | 'form' | 'chart' | 'other'
-  components: component[]
-}
 
 // 默认样式基础对象
 const baseStyle = {
@@ -198,7 +188,20 @@ export const dashboardTemplate: PageTemplate = {
       },
       props: {
         title: '年度销售趋势分析',
-        xAxisData: ['1月', '2月', '3月', '4月', '5月', '6月', '7月', '8月', '9月', '10月', '11月', '12月'],
+        xAxisData: [
+          '1月',
+          '2月',
+          '3月',
+          '4月',
+          '5月',
+          '6月',
+          '7月',
+          '8月',
+          '9月',
+          '10月',
+          '11月',
+          '12月',
+        ],
         seriesName: '销售额',
         dataInput: '1200, 1800, 1500, 2100, 2800, 2400, 2900, 3200, 3500, 4200, 5000, 4800',
         showArea: true,
@@ -263,11 +266,46 @@ export const dashboardTemplate: PageTemplate = {
           { prop: 'customer', label: '客户', width: 200 },
         ],
         data: [
-          { id: 'ORD-20240301-01', time: '2024-03-01 14:32:10', product: 'iPhone 15 Pro Max 256GB', amount: 9999, status: '已完成', customer: '张**' },
-          { id: 'ORD-20240301-02', time: '2024-03-01 14:35:45', product: 'Dyson 吹风机 HD15', amount: 2999, status: '配送中', customer: '李**' },
-          { id: 'ORD-20240301-03', time: '2024-03-01 14:42:22', product: 'Sony WH-1000XM5', amount: 2499, status: '待发货', customer: '王**' },
-          { id: 'ORD-20240301-04', time: '2024-03-01 14:55:00', product: 'Nike Air Jordan 1', amount: 1299, status: '已完成', customer: '赵**' },
-          { id: 'ORD-20240301-05', time: '2024-03-01 15:05:30', product: 'SK-II 神仙水 230ml', amount: 1540, status: '已完成', customer: '陈**' },
+          {
+            id: 'ORD-20240301-01',
+            time: '2024-03-01 14:32:10',
+            product: 'iPhone 15 Pro Max 256GB',
+            amount: 9999,
+            status: '已完成',
+            customer: '张**',
+          },
+          {
+            id: 'ORD-20240301-02',
+            time: '2024-03-01 14:35:45',
+            product: 'Dyson 吹风机 HD15',
+            amount: 2999,
+            status: '配送中',
+            customer: '李**',
+          },
+          {
+            id: 'ORD-20240301-03',
+            time: '2024-03-01 14:42:22',
+            product: 'Sony WH-1000XM5',
+            amount: 2499,
+            status: '待发货',
+            customer: '王**',
+          },
+          {
+            id: 'ORD-20240301-04',
+            time: '2024-03-01 14:55:00',
+            product: 'Nike Air Jordan 1',
+            amount: 1299,
+            status: '已完成',
+            customer: '赵**',
+          },
+          {
+            id: 'ORD-20240301-05',
+            time: '2024-03-01 15:05:30',
+            product: 'SK-II 神仙水 230ml',
+            amount: 1540,
+            status: '已完成',
+            customer: '陈**',
+          },
         ],
         stripe: false,
       },
@@ -588,12 +626,17 @@ export const formTemplate: PageTemplate = {
         footerContent: '请确保信息真实有效',
       },
       children: [
-        formIds.labelName, formIds.inputName,
-        formIds.labelDept, formIds.selectDept,
-        formIds.labelDate, formIds.dateEntry,
-        formIds.labelStatus, formIds.switchStatus,
-        formIds.labelTags, formIds.multiTags,
-        formIds.btnGroup
+        formIds.labelName,
+        formIds.inputName,
+        formIds.labelDept,
+        formIds.selectDept,
+        formIds.labelDate,
+        formIds.dateEntry,
+        formIds.labelStatus,
+        formIds.switchStatus,
+        formIds.labelTags,
+        formIds.multiTags,
+        formIds.btnGroup,
       ],
     },
     {
@@ -604,7 +647,13 @@ export const formTemplate: PageTemplate = {
       size: { width: 100, height: 40 },
       rotation: 0,
       zindex: 6,
-      style: { ...baseStyle, fontSize: 14, fontWeight: 'bold', textAlign: 'right', lineHeight: 2.8 },
+      style: {
+        ...baseStyle,
+        fontSize: 14,
+        fontWeight: 'bold',
+        textAlign: 'right',
+        lineHeight: 2.8,
+      },
       props: { text: '姓名：' },
     },
     {
@@ -629,7 +678,13 @@ export const formTemplate: PageTemplate = {
       size: { width: 100, height: 40 },
       rotation: 0,
       zindex: 6,
-      style: { ...baseStyle, fontSize: 14, fontWeight: 'bold', textAlign: 'right', lineHeight: 2.8 },
+      style: {
+        ...baseStyle,
+        fontSize: 14,
+        fontWeight: 'bold',
+        textAlign: 'right',
+        lineHeight: 2.8,
+      },
       props: { text: '所属部门：' },
     },
     {
@@ -659,7 +714,13 @@ export const formTemplate: PageTemplate = {
       size: { width: 100, height: 40 },
       rotation: 0,
       zindex: 6,
-      style: { ...baseStyle, fontSize: 14, fontWeight: 'bold', textAlign: 'right', lineHeight: 2.8 },
+      style: {
+        ...baseStyle,
+        fontSize: 14,
+        fontWeight: 'bold',
+        textAlign: 'right',
+        lineHeight: 2.8,
+      },
       props: { text: '入职日期：' },
     },
     {
@@ -684,7 +745,13 @@ export const formTemplate: PageTemplate = {
       size: { width: 100, height: 40 },
       rotation: 0,
       zindex: 6,
-      style: { ...baseStyle, fontSize: 14, fontWeight: 'bold', textAlign: 'right', lineHeight: 2.8 },
+      style: {
+        ...baseStyle,
+        fontSize: 14,
+        fontWeight: 'bold',
+        textAlign: 'right',
+        lineHeight: 2.8,
+      },
       props: { text: '启用账号：' },
     },
     {
@@ -711,7 +778,13 @@ export const formTemplate: PageTemplate = {
       size: { width: 100, height: 40 },
       rotation: 0,
       zindex: 6,
-      style: { ...baseStyle, fontSize: 14, fontWeight: 'bold', textAlign: 'right', lineHeight: 2.8 },
+      style: {
+        ...baseStyle,
+        fontSize: 14,
+        fontWeight: 'bold',
+        textAlign: 'right',
+        lineHeight: 2.8,
+      },
       props: { text: '技能标签：' },
     },
     {
@@ -928,13 +1001,22 @@ export const iotTemplate: PageTemplate = {
       size: { width: 400, height: 350 },
       rotation: 0,
       zindex: 5,
-      style: { ...baseStyle, backgroundColor: 'rgba(15, 23, 42, 0.8)', borderRadius: 8, border: '1px solid #1e293b' },
+      style: {
+        ...baseStyle,
+        backgroundColor: 'rgba(15, 23, 42, 0.8)',
+        borderRadius: 8,
+        border: '1px solid #1e293b',
+      },
       props: {
         title: '主要设备负载',
         value: 85,
         name: '负载率',
         titleColor: '#fff',
-        axisLineColor: [[0.3, '#67e0e3'], [0.7, '#37a2da'], [1, '#fd666d']],
+        axisLineColor: [
+          [0.3, '#67e0e3'],
+          [0.7, '#37a2da'],
+          [1, '#fd666d'],
+        ],
         option: darkGaugeOption, // 注入深色模式配置
       },
     },
@@ -945,7 +1027,12 @@ export const iotTemplate: PageTemplate = {
       size: { width: 400, height: 350 },
       rotation: 0,
       zindex: 5,
-      style: { ...baseStyle, backgroundColor: 'rgba(15, 23, 42, 0.8)', borderRadius: 8, border: '1px solid #1e293b' },
+      style: {
+        ...baseStyle,
+        backgroundColor: 'rgba(15, 23, 42, 0.8)',
+        borderRadius: 8,
+        border: '1px solid #1e293b',
+      },
       props: {
         title: '车间温度',
         value: 42,
@@ -1076,7 +1163,12 @@ export const iotTemplate: PageTemplate = {
       size: { width: 400, height: 350 },
       rotation: 0,
       zindex: 5,
-      style: { ...baseStyle, backgroundColor: 'rgba(15, 23, 42, 0.8)', borderRadius: 8, border: '1px solid #1e293b' },
+      style: {
+        ...baseStyle,
+        backgroundColor: 'rgba(15, 23, 42, 0.8)',
+        borderRadius: 8,
+        border: '1px solid #1e293b',
+      },
       props: {
         title: '小时产量',
         titleColor: '#fff',
@@ -1094,7 +1186,14 @@ export const iotTemplate: PageTemplate = {
       size: { width: 400, height: 350 },
       rotation: 0,
       zindex: 5,
-      style: { ...baseStyle, backgroundColor: 'rgba(15, 23, 42, 0.8)', borderRadius: 8, border: '1px solid #1e293b', titleColor: '#fff', descriptionColor: '#94a3b8' },
+      style: {
+        ...baseStyle,
+        backgroundColor: 'rgba(15, 23, 42, 0.8)',
+        borderRadius: 8,
+        border: '1px solid #1e293b',
+        titleColor: '#fff',
+        descriptionColor: '#94a3b8',
+      },
       props: {
         data: [
           { title: '4号机组温度过高', description: '14:20:35 - 温度达到 85°C', extra: '严重' },
@@ -1166,9 +1265,24 @@ export const projectTemplate: PageTemplate = {
       style: baseStyle,
       props: {
         data: [
-          { title: '需求评审', timestamp: '2024-01-10', type: 'success', content: '已完成需求确认' },
-          { title: 'UI设计', timestamp: '2024-01-25', type: 'success', content: '高保真原型已定稿' },
-          { title: '前端开发', timestamp: '2024-02-20', type: 'primary', content: '进行中，完成度 60%' },
+          {
+            title: '需求评审',
+            timestamp: '2024-01-10',
+            type: 'success',
+            content: '已完成需求确认',
+          },
+          {
+            title: 'UI设计',
+            timestamp: '2024-01-25',
+            type: 'success',
+            content: '高保真原型已定稿',
+          },
+          {
+            title: '前端开发',
+            timestamp: '2024-02-20',
+            type: 'primary',
+            content: '进行中，完成度 60%',
+          },
           { title: '后端联调', timestamp: '2024-03-01', type: 'info', content: '计划中' },
           { title: 'UAT测试', timestamp: '2024-03-15', type: 'warning', content: '待启动' },
         ],
@@ -1200,11 +1314,36 @@ export const projectTemplate: PageTemplate = {
         gap: 20,
         imageHeight: 100,
         data: [
-          { title: 'Alex', description: '产品经理', image: 'https://ui-avatars.com/api/?name=Alex&background=random', tags: ['PM', '需求'] },
-          { title: 'Sarah', description: 'UI设计师', image: 'https://ui-avatars.com/api/?name=Sarah&background=random', tags: ['Design', 'Figma'] },
-          { title: 'Mike', description: '前端负责人', image: 'https://ui-avatars.com/api/?name=Mike&background=random', tags: ['Vue', 'TS'] },
-          { title: 'John', description: '后端架构师', image: 'https://ui-avatars.com/api/?name=John&background=random', tags: ['Java', 'Go'] },
-          { title: 'Emily', description: '测试工程师', image: 'https://ui-avatars.com/api/?name=Emily&background=random', tags: ['QA', 'Auto'] },
+          {
+            title: 'Alex',
+            description: '产品经理',
+            image: 'https://ui-avatars.com/api/?name=Alex&background=random',
+            tags: ['PM', '需求'],
+          },
+          {
+            title: 'Sarah',
+            description: 'UI设计师',
+            image: 'https://ui-avatars.com/api/?name=Sarah&background=random',
+            tags: ['Design', 'Figma'],
+          },
+          {
+            title: 'Mike',
+            description: '前端负责人',
+            image: 'https://ui-avatars.com/api/?name=Mike&background=random',
+            tags: ['Vue', 'TS'],
+          },
+          {
+            title: 'John',
+            description: '后端架构师',
+            image: 'https://ui-avatars.com/api/?name=John&background=random',
+            tags: ['Java', 'Go'],
+          },
+          {
+            title: 'Emily',
+            description: '测试工程师',
+            image: 'https://ui-avatars.com/api/?name=Emily&background=random',
+            tags: ['QA', 'Auto'],
+          },
         ],
       },
     },
@@ -1235,7 +1374,8 @@ export const projectTemplate: PageTemplate = {
       zindex: 5,
       style: { ...baseStyle, backgroundColor: '#fff5f5', borderRadius: 8, borderColor: '#feb2b2' },
       props: {
-        content: '⚠️ 风险提示：\n\n后端联调进度略有滞后，请相关人员关注。\n下周二将进行阶段性演示汇报。',
+        content:
+          '⚠️ 风险提示：\n\n后端联调进度略有滞后，请相关人员关注。\n下周二将进行阶段性演示汇报。',
         textAlign: 'left',
         textColor: '#c53030',
       },

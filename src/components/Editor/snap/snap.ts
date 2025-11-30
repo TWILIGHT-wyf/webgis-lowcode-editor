@@ -1,23 +1,7 @@
 import { useComponent } from '@/stores/component'
 import { computed } from 'vue'
 import { storeToRefs } from 'pinia'
-
-export type Box = {
-  minx: number
-  miny: number
-  maxx: number
-  maxy: number
-  cx: number
-  cy: number
-  corners: { x: number; y: number }[]
-}
-
-export interface SnapComp {
-  id: string
-  position: { x: number; y: number }
-  size: { width: number; height: number }
-  rotation?: number
-}
+import type { Box, SnapComp } from '@/types/snap'
 
 type SnapResult = {
   position: { x: number; y: number }

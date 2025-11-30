@@ -53,7 +53,19 @@ const tabs = computed(() => {
 
   // 使用 props 中的 tabs
   if (comp.value?.props?.tabs && Array.isArray(comp.value.props.tabs)) {
-    return comp.value.props.tabs
+    // normalize to objects with label/name/content
+    return comp.value.props.tabs.map((item: unknown) => {
+      if (typeof item === 'object' && item !== null) {
+        const itemObj = item as Record<string, unknown>
+        return {
+          label: String(itemObj.label ?? itemObj.name ?? ''),
+          name: String(itemObj.name ?? itemObj.value ?? ''),
+          content: String(itemObj.content ?? '')
+        }
+      }
+      // if primitive, use as both label and name
+      return { label: String(item), name: String(item), content: String(item) }
+    })
   }
 
   // 默认 tabs
@@ -72,9 +84,7 @@ function getChildComponent(childId: string) {
 watch(
   tabs,
   (newTabs) => {
-    if (!activeTab.value && newTabs.length > 0) {
-      activeTab.value = String(newTabs[0].name)
-    }
+    if (newTabs?.length) activeTab.value = String(newTabs[0]?.name ?? '')
   },
   { immediate: true },
 )

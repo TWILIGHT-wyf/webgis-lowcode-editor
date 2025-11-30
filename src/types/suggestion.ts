@@ -1,8 +1,8 @@
+import type { Component } from './components'
+
 /**
  * AI 建议面板类型定义
  */
-
-import type { Component } from './component'
 
 /**
  * 建议请求

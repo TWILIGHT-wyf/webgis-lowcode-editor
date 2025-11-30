@@ -75,7 +75,7 @@
 <script setup lang="ts">
 import { ref } from 'vue'
 import { Files, Right, WarningFilled } from '@element-plus/icons-vue'
-import type { DiffItem, DiffActionType } from '@/type/suggestion'
+import type { DiffItem, DiffActionType } from '@/types/suggestion'
 
 interface Props {
   diff: DiffItem

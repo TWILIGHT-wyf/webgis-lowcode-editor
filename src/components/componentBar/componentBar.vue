@@ -1,14 +1,9 @@
 <template>
   <div class="component-bar-root">
-
     <div class="panel-header">
       <span class="title">组件库</span>
       <el-tooltip content="查看组件关系图" placement="bottom">
-        <el-button
-          link
-          class="icon-btn"
-          @click="openGraphModal"
-        >
+        <el-button link class="icon-btn" @click="openGraphModal">
           <el-icon :size="18"><Connection /></el-icon>
         </el-button>
       </el-tooltip>
@@ -16,7 +11,6 @@
 
     <el-scrollbar class="panel-body">
       <el-tabs v-model="activeTab" class="modern-tabs" stretch>
-
         <el-tab-pane label="基础组件" name="components">
           <div class="component-list">
             <el-collapse v-model="activeNames" class="clean-collapse">
@@ -73,6 +67,36 @@
             </div>
           </div>
         </el-tab-pane>
+        <el-tab-pane label="页面" name="pages">
+          <div class="page-manager">
+            <div class="page-list">
+              <div
+                v-for="page in currentProject?.pages"
+                :key="page.id"
+                class="page-item"
+                :class="{ active: activePageId === page.id }"
+                @click="handleSwitchPage(page.id)"
+              >
+                <el-icon><Document /></el-icon>
+                <span class="page-name">{{ page.name }}</span>
+
+                <el-dropdown trigger="click" @command="(cmd) => handlePageCmd(cmd, page.id)" class="page-ops">
+                  <el-icon><More /></el-icon>
+                  <template #dropdown>
+                    <el-dropdown-menu>
+                      <el-dropdown-item command="rename">重命名</el-dropdown-item>
+                      <el-dropdown-item command="delete" style="color: red">删除</el-dropdown-item>
+                    </el-dropdown-menu>
+                  </template>
+                </el-dropdown>
+              </div>
+            </div>
+
+            <div class="add-page-btn">
+              <el-button type="primary" plain block icon="Plus" @click="handleAddPage">新建页面</el-button>
+            </div>
+          </div>
+        </el-tab-pane>
       </el-tabs>
     </el-scrollbar>
 
@@ -100,7 +124,6 @@
 
       <div ref="graphContainer" class="graph-container"></div>
     </el-dialog>
-
   </div>
 </template>
 
@@ -108,12 +131,40 @@
 import { ref } from 'vue'
 import type { Component } from 'vue'
 import { useComponent } from '@/stores/component'
-import { templates, type PageTemplate } from '@/templates'
+import { templates } from '@/templates'
+import type { PageTemplate } from '@/types/page'
 import { ElMessageBox, ElMessage } from 'element-plus'
 import { DocumentCopy, Connection } from '@element-plus/icons-vue'
 import * as echarts from 'echarts'
 import { storeToRefs } from 'pinia'
+import { useProjectStore } from '@/stores/project'
+import { Document, More } from '@element-plus/icons-vue'
 
+const projectStore = useProjectStore()
+const { currentProject, activePageId } = storeToRefs(projectStore)
+
+// 切换页面
+const handleSwitchPage = (id: string) => {
+  projectStore.switchPage(id)
+}
+
+// 新增页面
+const handleAddPage = () => {
+  projectStore.addPage(`页面 ${currentProject.value?.pages.length + 1}`)
+}
+
+// 页面操作
+const handlePageCmd = (cmd: string, id: string) => {
+  if (cmd === 'delete') {
+    ElMessageBox.confirm('确定删除该页面吗？', '提示').then(() => {
+      projectStore.removePage(id)
+    })
+  } else if (cmd === 'rename') {
+    ElMessageBox.prompt('请输入新名称', '重命名').then(({ value }) => {
+      if(value) projectStore.renamePage(id, value)
+    })
+  }
+}
 // --- 类型定义 ---
 type Category = {
   key: string
@@ -161,22 +212,32 @@ function onDrag(e: DragEvent, item: Item) {
 
 const handleLoadTemplate = async (template: PageTemplate) => {
   try {
-    await ElMessageBox.confirm(
-      `确定要加载"${template.name}"吗？当前画布将被清空。`,
-      '加载模板',
-      { type: 'warning', confirmButtonText: '确定', cancelButtonText: '取消' }
-    )
+    await ElMessageBox.confirm(`确定要加载"${template.name}"吗？当前画布将被清空。`, '加载模板', {
+      type: 'warning',
+      confirmButtonText: '确定',
+      cancelButtonText: '取消',
+    })
     componentStore.loadTemplate(template.components)
     ElMessage.success(`已加载模板: ${template.name}`)
   } catch {}
 }
 
 const getCategoryTagType = (category: PageTemplate['category']) => {
-  const map: Record<string, string> = { dashboard: 'success', gis: 'primary', chart: 'warning', form: 'info' }
+  const map: Record<string, string> = {
+    dashboard: 'success',
+    gis: 'primary',
+    chart: 'warning',
+    form: 'info',
+  }
   return map[category] || ''
 }
 const getCategoryLabel = (category: PageTemplate['category']) => {
-  const map: Record<string, string> = { dashboard: '大屏', gis: '地图', chart: '图表', form: '表单' }
+  const map: Record<string, string> = {
+    dashboard: '大屏',
+    gis: '地图',
+    chart: '图表',
+    form: '表单',
+  }
   return map[category] || '其他'
 }
 
@@ -229,8 +290,6 @@ function buildGraphData() {
     })
   }
 
-
-
   return { nodes, links }
 }
 
@@ -240,16 +299,18 @@ function updateGraph() {
 
   const option: echarts.EChartsOption = {
     tooltip: { trigger: 'item' },
-    series: [{
-      type: 'graph',
-      layout: 'force',
-      data: nodes,
-      links: links,
-      roam: true,
-      label: { show: true, position: 'bottom', fontSize: 11, color: '#333' },
-      force: { repulsion: 200, edgeLength: 80, gravity: 0.1 },
-      lineStyle: { curveness: 0.2, opacity: 0.7 }
-    }]
+    series: [
+      {
+        type: 'graph',
+        layout: 'force',
+        data: nodes,
+        links: links,
+        roam: true,
+        label: { show: true, position: 'bottom', fontSize: 11, color: '#333' },
+        force: { repulsion: 200, edgeLength: 80, gravity: 0.1 },
+        lineStyle: { curveness: 0.2, opacity: 0.7 },
+      },
+    ],
   }
   chartInstance.setOption(option)
 }
@@ -689,7 +750,6 @@ const categories = ref<Category[]>([
     ],
   },
 ])
-
 </script>
 
 <style scoped>
@@ -723,7 +783,7 @@ const categories = ref<Category[]>([
   transition: color 0.2s;
 }
 .icon-btn:hover {
-  color: #4285F4;
+  color: #4285f4;
 }
 
 /* 滚动区域 */
@@ -747,7 +807,7 @@ const categories = ref<Category[]>([
   color: var(--text-secondary);
 }
 .modern-tabs :deep(.el-tabs__item.is-active) {
-  color: #1967D2;
+  color: #1967d2;
   font-weight: 600;
 }
 
@@ -793,17 +853,17 @@ const categories = ref<Category[]>([
 }
 
 .grid-item:hover {
-  background-color: #E8F0FE;
-  border-color: #D2E3FC;
-  color: #1967D2;
+  background-color: #e8f0fe;
+  border-color: #d2e3fc;
+  color: #1967d2;
   transform: translateY(-2px);
-  box-shadow: 0 4px 8px rgba(0,0,0,0.05);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.05);
 }
 
 .item-icon {
   width: 32px;
   height: 32px;
-  background: rgba(255,255,255,0.8);
+  background: rgba(255, 255, 255, 0.8);
   border-radius: 8px;
   display: flex;
   align-items: center;
@@ -840,8 +900,8 @@ const categories = ref<Category[]>([
 }
 
 .template-item:hover {
-  border-color: #1967D2;
-  background-color: #E8F0FE;
+  border-color: #1967d2;
+  background-color: #e8f0fe;
 }
 
 .tpl-preview {
@@ -852,7 +912,7 @@ const categories = ref<Category[]>([
   display: flex;
   align-items: center;
   justify-content: center;
-  color: #1967D2;
+  color: #1967d2;
   border: 1px solid var(--border-light);
 }
 
@@ -909,10 +969,24 @@ const categories = ref<Category[]>([
   gap: 4px;
 }
 
-.dot { width: 10px; height: 10px; border-radius: 50%; display: inline-block; }
-.dot.blue { background: #4285F4; }
-.dot.green { background: #34A853; }
-.line { width: 20px; height: 2px; background: #9AA0A6; display: inline-block; }
+.dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  display: inline-block;
+}
+.dot.blue {
+  background: #4285f4;
+}
+.dot.green {
+  background: #34a853;
+}
+.line {
+  width: 20px;
+  height: 2px;
+  background: #9aa0a6;
+  display: inline-block;
+}
 
 /* 深度选择样式覆盖 */
 :deep(.el-dialog) {
@@ -926,5 +1000,50 @@ const categories = ref<Category[]>([
 }
 :deep(.el-dialog__body) {
   padding: 20px;
+}
+
+.page-manager {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  padding: 10px;
+}
+.page-list {
+  flex: 1;
+  overflow-y: auto;
+}
+.page-item {
+  display: flex;
+  align-items: center;
+  padding: 10px 12px;
+  cursor: pointer;
+  border-radius: 6px;
+  margin-bottom: 4px;
+  color: var(--text-primary);
+  transition: all 0.2s;
+}
+.page-item:hover {
+  background-color: var(--bg-hover);
+}
+.page-item.active {
+  background-color: var(--el-color-primary-light-9);
+  color: var(--el-color-primary);
+}
+.page-name {
+  flex: 1;
+  margin-left: 8px;
+  font-size: 14px;
+}
+.page-ops {
+  opacity: 0;
+  transition: opacity 0.2s;
+}
+.page-item:hover .page-ops {
+  opacity: 1;
+}
+.add-page-btn {
+  margin-top: 10px;
+  padding-top: 10px;
+  border-top: 1px solid var(--border-light);
 }
 </style>

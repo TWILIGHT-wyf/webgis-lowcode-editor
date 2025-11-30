@@ -1,5 +1,6 @@
 import { provide, inject, type InjectionKey, computed } from 'vue'
-import { useComponent, type EventAction, type component } from '@/stores/component'
+import { useComponent } from '@/stores/component'
+import type { EventAction, Component } from '@/types/components'
 import { storeToRefs } from 'pinia'
 import { nanoid } from 'nanoid'
 
@@ -11,7 +12,7 @@ export interface ComponentEventsContext {
   // 触发组件事件
   emitComponentEvent: (componentId: string, eventName: string, params?: unknown) => void
   // 执行事件动作
-  executeAction: (action: EventAction, sourceComponent?: component) => Promise<void>
+  executeAction: (action: EventAction, sourceComponent?: Component) => Promise<void>
   // 注册组件事件监听器
   registerListener: (componentId: string, eventName: string, handler: EventHandler) => void
   // 取消注册事件监听器
@@ -93,7 +94,7 @@ export function useEventConfiguration() {
   })
 
   // 获取组件显示标签
-  function getComponentLabel(comp: component) {
+  function getComponentLabel(comp: Component) {
     if (comp.name) {
       return `${comp.name} (${comp.type})`
     }
@@ -314,7 +315,7 @@ export function provideComponentEvents() {
   /**
    * 执行事件动作
    */
-  async function executeAction(action: EventAction, sourceComponent?: component): Promise<void> {
+  async function executeAction(action: EventAction, sourceComponent?: Component): Promise<void> {
     // 检查条件
     if (action.condition?.enabled && action.condition.expression) {
       try {
@@ -464,10 +465,10 @@ export function provideComponentEvents() {
   /**
    * 简单的条件评估
    */
-  function evaluateCondition(expression: string, component?: component): boolean {
+  function evaluateCondition(expression: string, comp?: Component): boolean {
     try {
       const fn = new Function('component', `return ${expression}`)
-      return !!fn(component)
+      return !!fn(comp)
     } catch (error) {
       console.error('Error evaluating condition:', error)
       return false

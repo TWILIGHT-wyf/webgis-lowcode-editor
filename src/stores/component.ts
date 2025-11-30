@@ -2,104 +2,11 @@ import { defineStore } from 'pinia'
 import { ref } from 'vue'
 import { nanoid } from 'nanoid'
 import { createHistory, createClipboard, createGrouping, createZOrder } from '@/stores/componentOps'
-
-export interface DataSource {
-  enabled: boolean
-  url: string
-  method: 'GET' | 'POST' | 'PUT' | 'DELETE'
-  headers?: Record<string, string>
-  body?: string
-  interval?: number
-  // 通用路径
-  dataPath?: string // 通用数据路径（text, 图表数据等）
-  valuePath?: string // KPI 组件数值路径（countUp, progress, badge）
-  // 图表专用路径
-  xAxisPath?: string // 图表 X 轴标签路径
-  labelsPath?: string // 饼图/环形图标签路径
-  seriesNamePath?: string // 图表系列名称路径
-  seriesNamesPath?: string // 堆叠图表多系列名称路径
-  seriesDataPath?: string // 堆叠图表多系列数据路径
-  // KPI 专用路径
-  titlePath?: string // stat 组件标题路径
-  changePath?: string // stat 组件变化值路径
-  // 扩展字段
-  [key: string]: unknown
-}
-
-// 事件动作接口
-export interface EventAction {
-  id: string // 动作唯一ID
-  type: string // 动作类型
-  targetId?: string // 目标组件ID
-  eventName?: string // 自定义事件名称
-  eventParams?: string // 自定义事件参数（JSON字符串）
-  content?: string // 内容（如提示文本）
-  // 条件触发
-  condition?: {
-    enabled: boolean // 是否启用条件
-    expression: string // 条件表达式
-  }
-  // 延迟执行
-  delay?: number // 延迟毫秒数
-}
-
-// 组件事件系统
-export interface ComponentEvents {
-  click?: EventAction[] // 点击事件动作列表
-  hover?: EventAction[] // 悬停事件动作列表
-  doubleClick?: EventAction[] // 双击事件动作列表
-  // 自定义事件
-  custom?: {
-    [eventName: string]: EventAction[]
-  }
-}
-
-export interface component {
-  id: string
-  name?: string // 自定义组件名称，用于区分同类型组件
-  type: string
-  position: { x: number; y: number }
-  size: { width: number; height: number }
-  rotation: number
-  zindex: number
-  style: {
-    opacity?: number
-    visible?: boolean
-    locked?: boolean
-    [key: string]: unknown
-  }
-  props: Record<string, unknown>
-  dataSource?: DataSource
-  animation?: {
-    name: string
-    class: string
-    duration?: number
-    delay?: number
-    iterationCount?: number | 'infinite'
-    timingFunction?: string
-    trigger?: 'load' | 'hover' | 'click'
-  }
-  groupId?: string // 所属组合的ID（如果是组合成员）
-  children?: string[] // 子组件ID列表（如果是组合容器）
-  layout?: {
-    // 布局模式
-    mode: 'absolute' | 'horizontal' | 'vertical' | 'grid'
-    // 子组件间距
-    gap?: number
-    // 网格布局列数
-    columns?: number
-    // 对齐方式
-    align?: 'start' | 'center' | 'end' | 'stretch'
-    // 子组件内边距
-    padding?: number
-  }
-  // 事件系统
-  events?: ComponentEvents
-}
+import type { Component, DataSource, PropValue } from '@/types/components'
 
 export const useComponent = defineStore('component', () => {
-  const componentStore = ref<component[]>([])
-  const selectComponent = ref<component | null>(null)
+  const componentStore = ref<Component[]>([])
+  const selectComponent = ref<Component | null>(null)
   const selectedIds = ref<string[]>([])
   const isDragging = ref<boolean>(false)
 
@@ -113,7 +20,7 @@ export const useComponent = defineStore('component', () => {
     commitDebounced,
     commitThrottled,
     init: initHistory,
-  } = createHistory<component>(componentStore)
+  } = createHistory<Component>(componentStore)
 
   function undo() {
     _undo()
@@ -125,8 +32,8 @@ export const useComponent = defineStore('component', () => {
   }
 
   // 不同类型组件的默认样式
-  function defaultStyleByType(type: string): component['style'] {
-    const base: component['style'] = {
+  function defaultStyleByType(type: string): Component['style'] {
+    const base: Component['style'] = {
       opacity: 100,
       visible: true,
       locked: false,
@@ -651,7 +558,7 @@ export const useComponent = defineStore('component', () => {
   }
 
   // 不同类型组件的默认非样式属性
-  function defaultPropsByType(type: string): Record<string, unknown> {
+  function defaultPropsByType(type: string): Record<string, PropValue> | undefined {
     switch (type) {
       case 'Text':
         return {
@@ -1885,19 +1792,19 @@ export const useComponent = defineStore('component', () => {
   }
 
   // 不同类型组件的默认动画配置（默认无动画）
-  function defaultAnimationByType(): component['animation'] | undefined {
+  function defaultAnimationByType(): Component['animation'] | undefined {
     return undefined
   }
 
   // 添加组件
   function addComponent(
-    component: Omit<component, 'id' | 'zindex' | 'style' | 'props'> & {
-      style?: component['style']
-      props?: Record<string, unknown>
+    component: Omit<Component, 'id' | 'zindex' | 'style' | 'props'> & {
+      style?: Component['style']
+      props?: Record<string, PropValue>
     },
   ) {
     const maxZ = componentStore.value.reduce((max, c) => Math.max(max, c.zindex ?? 0), 0)
-    const newComponent: component = {
+    const newComponent: Component = {
       ...component,
       id: nanoid(),
       zindex: maxZ + 1,
@@ -2026,19 +1933,19 @@ export const useComponent = defineStore('component', () => {
   }
 
   // 复制/剪切/粘贴模块化
-  const { clipboard, copy, cut, copyMultiple, cutMultiple, paste } = createClipboard<component>(
+  const { clipboard, copy, cut, copyMultiple, cutMultiple, paste } = createClipboard<Component>(
     componentStore,
     { selectedId, selectMultiple, commit },
   )
 
   // —— 图层（z-index）操作模块 ——
-  const { bringForward, sendBackward, bringToFront, sendToBack } = createZOrder<component>(
+  const { bringForward, sendBackward, bringToFront, sendToBack } = createZOrder<Component>(
     componentStore,
     { commit },
   )
 
   // 组合/取消组合模块化
-  const { groupComponents, ungroupComponents } = createGrouping<component>(componentStore, {
+  const { groupComponents, ungroupComponents } = createGrouping<Component>(componentStore, {
     selectedId,
     selectMultiple,
     commit,
@@ -2055,7 +1962,7 @@ export const useComponent = defineStore('component', () => {
   }
 
   // 加载模板
-  function loadTemplate(templateComponents: component[]) {
+  function loadTemplate(templateComponents: Component[]) {
     // 清空当前画布
     reset()
     // 加载模板组件(使用深拷贝避免引用问题)

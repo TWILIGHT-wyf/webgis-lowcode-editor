@@ -63,8 +63,8 @@ import { useComponent } from '@/stores/component'
 import { storeToRefs } from 'pinia'
 import { generateVueCode, componentsToJSON } from '@/utils/toCode'
 import { ElMessage } from 'element-plus'
-import RuntimeComponent from '@/pages/RuntimeComponent.vue'
-import type { component, EventAction } from '@/stores/component'
+import RuntimeComponent from '@/views/RuntimeComponent.vue'
+import type { Component, EventAction } from '@/types/components'
 
 const router = useRouter()
 
@@ -97,7 +97,7 @@ async function handleComponentEvent(payload: {
 }
 
 // 执行事件动作
-async function executeAction(action: EventAction, sourceComponent?: component): Promise<void> {
+async function executeAction(action: EventAction, sourceComponent?: Component): Promise<void> {
   // 延迟执行
   if (action.delay && action.delay > 0) {
     await new Promise((resolve) => setTimeout(resolve, action.delay))

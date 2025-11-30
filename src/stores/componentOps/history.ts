@@ -1,25 +1,15 @@
 import { ref } from 'vue'
 import type { Ref } from 'vue'
 import { throttle, debounce } from '@/utils/throttleDebounce'
-
-export interface HistoryApi {
-  commit: (force?: boolean) => void
-  undo: () => void
-  redo: () => void
-  canUndo: () => boolean
-  canRedo: () => boolean
-  commitDebounced: () => void
-  commitThrottled: () => void
-  init: () => void
-}
+import type { HistoryApi } from '@/types/store'
 
 function deepClone<T>(v: T): T {
   return JSON.parse(JSON.stringify(v)) as T
 }
 
 export function createHistory<T extends object>(source: Ref<T[]>): HistoryApi {
-  const history = ref<T[][]>([]) as unknown as Ref<T[][]>
-  const future = ref<T[][]>([]) as unknown as Ref<T[][]>
+  const history = ref<T[][]>([]) as Ref<T[][]>
+  const future = ref<T[][]>([]) as Ref<T[][]>
   let lastSerialized = ''
 
   function createSnapshot(): T[] {

@@ -1,5 +1,3 @@
-
-
 /**
  * 节流函数：确保函数在指定时间内最多执行一次
  * @param func 要节流的函数
@@ -8,14 +6,14 @@
  */
 export function throttle<T extends (...args: unknown[]) => unknown>(
   func: T,
-  delay: number,
-): (...args: Parameters<T>) => void {
+  delay: number
+): (this: ThisParameterType<T>, ...args: Parameters<T>) => ReturnType<T> | void {
   let lastCall = 0
-  return (...args: Parameters<T>) => {
+  return function (this: ThisParameterType<T>, ...args: Parameters<T>): ReturnType<T> | void {
     const now = Date.now()
     if (now - lastCall >= delay) {
       lastCall = now
-      func(...args)
+      return func.apply(this, args) as ReturnType<T>
     }
   }
 }
@@ -28,11 +26,13 @@ export function throttle<T extends (...args: unknown[]) => unknown>(
  */
 export function debounce<T extends (...args: unknown[]) => unknown>(
   func: T,
-  delay: number,
-): (...args: Parameters<T>) => void {
+  delay: number
+): (this: ThisParameterType<T>, ...args: Parameters<T>) => void {
   let timeoutId: ReturnType<typeof setTimeout> | null = null
-  return (...args: Parameters<T>) => {
+  return function (this: ThisParameterType<T>, ...args: Parameters<T>): void {
+    // eslint-disable-next-line @typescript-eslint/no-this-alias
+    const context = this
     if (timeoutId) clearTimeout(timeoutId)
-    timeoutId = setTimeout(() => func(...args), delay)
+    timeoutId = setTimeout(() => func.apply(context, args), delay)
   }
 }

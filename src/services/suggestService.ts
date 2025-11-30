@@ -8,8 +8,8 @@ import type {
   SuggestionResult,
   DiffItem,
   WhitelistConfig,
-} from '@/type/suggestion'
-import type { component as Component } from '@/stores/component'
+} from '@/types/suggestion'
+import type { Component } from '@/types/components'
 import { nanoid } from 'nanoid'
 import http from '@/services/http'
 
@@ -154,7 +154,7 @@ function isPropertyAllowed(path: string): boolean {
 /**
  * 沙箱隔离 - 检查危险脚本
  */
-function sanitizeValue(value: unknown): unknown {
+function sanitizeValue(value: unknown): string | number | boolean | Record<string, unknown> | null {
   if (typeof value === 'string') {
     // 移除潜在危险的脚本标签和事件处理器
     const dangerous = /<script|javascript:|onerror|onload|eval\(/gi
@@ -162,6 +162,11 @@ function sanitizeValue(value: unknown): unknown {
       console.warn('[SuggestService] 检测到危险内容，已清理:', value)
       return value.replace(dangerous, '')
     }
+    return value
+  }
+
+  if (typeof value === 'number' || typeof value === 'boolean') {
+    return value
   }
 
   if (typeof value === 'object' && value !== null) {
@@ -169,13 +174,14 @@ function sanitizeValue(value: unknown): unknown {
     const cleaned: Record<string, unknown> = {}
     for (const [key, val] of Object.entries(value)) {
       if (!DEFAULT_WHITELIST.forbiddenProps.includes(key)) {
+        // 递归调用并收窄结果
         cleaned[key] = sanitizeValue(val)
       }
     }
     return cleaned
   }
 
-  return value
+  return null
 }
 
 /**

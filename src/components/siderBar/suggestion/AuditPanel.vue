@@ -82,7 +82,7 @@ import { computed } from 'vue'
 import { Download, RefreshLeft } from '@element-plus/icons-vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { useSuggestion } from '@/stores/suggestion'
-import type { AuditRecord } from '@/type/suggestion'
+import type { AuditRecord } from '@/types/suggestion'
 
 const suggestionStore = useSuggestion()
 

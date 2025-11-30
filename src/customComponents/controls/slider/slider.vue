@@ -98,10 +98,10 @@ watch(
     if (newVal !== undefined) {
       sliderValue.value = range.value
         ? Array.isArray(newVal)
-          ? newVal
+          ? (newVal.map((v: unknown) => Number(v)) as number[])
           : [0, Number(newVal)]
         : Array.isArray(newVal)
-          ? Number(newVal[0])
+          ? Number((newVal as unknown[])[0])
           : Number(newVal)
     } else {
       sliderValue.value = range.value

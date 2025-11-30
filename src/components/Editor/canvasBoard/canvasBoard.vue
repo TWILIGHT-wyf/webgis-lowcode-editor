@@ -44,6 +44,7 @@
 
 <script setup lang="ts">
 import { ref, computed, provide } from 'vue'
+import type { ComponentPayload } from '@/types/components'
 import { useSizeStore } from '@/stores/size'
 import { storeToRefs } from 'pinia'
 import { useComponent } from '@/stores/component'
@@ -160,12 +161,18 @@ const { panX, panY, isPanning } = useCanvasInteraction(wrap, scale, {
   enablePan: true,
   enableZoom: true,
   enableDrop: true,
-  onDrop: (item: unknown, position) => {
-    const payload = item as { type: string; width: number; height: number }
+  onDrop: (item: ComponentPayload, position) => {
+    // runtime safety: validate required fields
+    if (!item || typeof item.type !== 'string') {
+      console.warn('Invalid drop payload', item)
+      return
+    }
+    const width = typeof item.width === 'number' ? item.width : 100
+    const height = typeof item.height === 'number' ? item.height : 100
     addComponent({
-      type: payload.type,
+      type: item.type,
       position,
-      size: { width: payload.width, height: payload.height },
+      size: { width, height },
       rotation: 0,
     })
   },

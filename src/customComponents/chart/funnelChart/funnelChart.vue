@@ -12,7 +12,7 @@ import { CanvasRenderer } from 'echarts/renderers'
 import { FunnelChart } from 'echarts/charts'
 import { TitleComponent, TooltipComponent, LegendComponent } from 'echarts/components'
 import { useComponent } from '@/stores/component'
-import type { component } from '@/stores/component'
+import type { Component } from '@/types/components'
 import { useDataSource } from '@/datasource/useDataSource'
 import {
   parseNumberInput,
@@ -29,7 +29,7 @@ const props = defineProps<{
 }>()
 
 const componentStore = useComponent()
-const comp = computed(() => componentStore.componentStore.find((c: component) => c.id === props.id))
+const comp = computed(() => componentStore.componentStore.find((c: Component) => c.id === props.id))
 
 // 使用数据源 hook
 const { data: remoteData } = useDataSource(computed(() => comp.value?.dataSource))

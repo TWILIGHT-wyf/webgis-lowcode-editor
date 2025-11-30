@@ -32,11 +32,8 @@ export function useShape(id: string) {
   const wrapperRef = ref<HTMLDivElement | null>(null)
   const canvasWrapRef = inject<Ref<HTMLDivElement | null>>('canvasWrapRef')
 
-  // 防抖更新位置
-  const debouncedUpdatePosition = debounce(
-    updateComponentPosition as (...args: unknown[]) => unknown,
-    10,
-  ) as (pos: { x: number; y: number }) => void
+  // 防抖更新位置（让 debounce 推断参数类型）
+  const debouncedUpdatePosition = debounce(updateComponentPosition, 10)
 
   const { snapToNeighbors, snapToGrid, boxCache, meComp } = useSnap()
 
@@ -49,7 +46,7 @@ export function useShape(id: string) {
     enableDrag: true,
     preventBubble: true,
     dragThreshold: 5,
-    rootRefForAbs: canvasWrapRef as any, // eslint-disable-line @typescript-eslint/no-explicit-any
+    rootRefForAbs: canvasWrapRef,
     dragCallback: (x, y, ctrlPressed) => {
       ;(setSelected as (id: string) => void)(id)
       const comp = currentComponent.value
@@ -447,7 +444,7 @@ export function useShape(id: string) {
       })
     }
   }
-  const throttledHandleMouseMove = throttle(onHandleMouseMove as any, 16) // eslint-disable-line @typescript-eslint/no-explicit-any
+  const throttledHandleMouseMove = throttle(onHandleMouseMove, 16)
   const onHandleMouseUp = () => {
     isDragging.value = false
     window.removeEventListener('mousemove', throttledHandleMouseMove)
@@ -481,7 +478,7 @@ export function useShape(id: string) {
     const deg = (angle * 180) / Math.PI
     updateComponentRotation(deg)
   }
-  const throttledRotateMouseMove = throttle(onRotateMouseMove as any, 16) // eslint-disable-line @typescript-eslint/no-explicit-any
+  const throttledRotateMouseMove = throttle(onRotateMouseMove, 16)
   const onRotateMouseUp = () => {
     isDragging.value = false
     window.removeEventListener('mousemove', throttledRotateMouseMove)

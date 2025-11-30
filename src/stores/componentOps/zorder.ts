@@ -1,11 +1,5 @@
 import type { Ref } from 'vue'
-
-export interface ZOrderApi {
-  bringForward: (id: string) => void
-  sendBackward: (id: string) => void
-  bringToFront: (id: string) => void
-  sendToBack: (id: string) => void
-}
+import type { ZOrderApi } from '@/types/store'
 
 export function createZOrder<
   C extends {
