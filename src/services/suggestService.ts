@@ -222,18 +222,10 @@ function validateDiff(diff: DiffItem): { valid: boolean; errors: string[] } {
 
 /**
  * Agent API 配置
- * 使用本地代理服务器转发请求，保护 API 密钥安全
- *
- * 启动代理: cd server && npm install && npm start
+ * 通过 http 实例调用后端 AI 代理服务
  */
 const AGENT_CONFIG = {
-  // 本地代理服务器地址
-  endpoint: 'http://localhost:3001/api/ai/generate',
-  // 代理模式下不需要在前端配置密钥，密钥存储在服务器端
-  apiKey: 'proxy-mode', // 占位符，实际密钥在 server/.env 中配置
-  // 模型名称（用于显示，实际模型在 server/.env 中配置）
-  model: 'gemini-via-proxy',
-  // 请求超时时间（毫秒）
+  endpoint: '/api/ai/generate',
   timeout: 60000,
 }
 
@@ -361,7 +353,7 @@ function parseAgentResponse(
       diffs: parsed.diffs || [],
       summary: parsed.summary || `生成了 ${parsed.diffs?.length || 0} 个组件`,
       confidence: 0.9,
-      agentVersion: AGENT_CONFIG.model || 'unknown',
+      agentVersion: 'backend-proxy',
       timestamp: Date.now(),
       validated: false,
     }
@@ -391,7 +383,7 @@ function parseAgentResponse(
       ],
       summary: 'Agent 响应解析失败',
       confidence: 0,
-      agentVersion: AGENT_CONFIG.model || 'unknown',
+      agentVersion: 'backend-proxy',
       timestamp: Date.now(),
       validated: false,
     }
@@ -403,7 +395,7 @@ function parseAgentResponse(
  */
 async function callAgent(request: SuggestionRequest): Promise<Omit<SuggestionResult, 'id'>> {
   // 检查 API 配置
-  if (!AGENT_CONFIG.endpoint || !AGENT_CONFIG.apiKey) {
+  if (!AGENT_CONFIG.endpoint) {
     console.warn('[SuggestService] Agent API 未配置，请设置 AGENT_CONFIG')
     return {
       request,
@@ -420,8 +412,7 @@ async function callAgent(request: SuggestionRequest): Promise<Omit<SuggestionRes
             zindex: 1,
             style: { visible: true, locked: false },
             props: {
-              content:
-                '⚠️ Agent API 未配置。请在 suggestService.ts 中设置 AGENT_CONFIG 的 endpoint、apiKey 和 model。',
+              content: '⚠️ Agent API 未配置。请确保后端服务器运行并配置 AI API 密钥。',
             },
           },
           description: 'API 配置提示',
@@ -509,7 +500,7 @@ async function callAgent(request: SuggestionRequest): Promise<Omit<SuggestionRes
       ],
       summary: `调用失败: ${errorMessage}`,
       confidence: 0,
-      agentVersion: AGENT_CONFIG.model || 'unknown',
+      agentVersion: 'backend-proxy',
       timestamp: Date.now(),
       validated: false,
     }
