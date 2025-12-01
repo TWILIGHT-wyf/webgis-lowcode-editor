@@ -3,11 +3,11 @@
   "version": "1.0.0",
   "description": "WebGIS 低代码平台后端服务 - 集成 MongoDB、AI 代理和测试数据源",
   "type": "module",
-  "main": "index.ts",
+  "main": "dist/index.js",
   "scripts": {
     "dev": "tsx watch index.ts",
-    "start": "tsx index.ts",
     "build": "tsc",
+    "start": "node dist/index.js",
     "clean": "rm -rf dist"
   },
   "dependencies": {
