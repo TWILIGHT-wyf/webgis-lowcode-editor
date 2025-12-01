@@ -10,25 +10,19 @@
 
 一款基于 Vue 3 + TypeScript 的**数据可视化大屏低代码搭建平台**，支持拖拽式组件编排、实时预览、AI 智能生成等功能。
 ### 预览地址：https://webgis-lowcode-editor.vercel.app/  （要翻墙）
-<img width="2560" height="1356" alt="屏幕截图 2025-11-28 212428" src="https://github.com/user-attachments/assets/bce9519e-088e-4de6-bd12-9d132e478f2c" />
+### 后端地址：https://webgis-lowcode-editor.onrender.com
+<img width="2514" height="1275" alt="屏幕截图 2025-12-01 203042" src="https://github.com/user-attachments/assets/e99440b5-081d-4909-a040-f8331a123782" />
 
-ai功能暂时还未部署上线
 ## ✨ 特性
 
 - 🎨 **可视化拖拽编辑** - 拖拽组件到画布，所见即所得
 - 📊 **丰富的组件库** - 图表、KPI、地图、表格、控件等 50+ 组件
-- 🤖 **AI 智能助手** - 支持 Gemini、OpenAI、Claude、通义千问、DeepSeek 等多模型
+- 🤖 **AI 智能助手** - 支持 Gemini、OpenAI、Claude、通义千问、DeepSeek 等多模型（预览地址目前用的是Gemini的免费api）
 - 🗺️ **WebGIS 支持** - 集成地图组件，支持瓦片、矢量、热力图等图层
 - 🎯 **事件联动系统** - 组件间数据联动与交互
 - 📱 **响应式设计** - 支持多种屏幕尺寸适配
 - 🌙 **深色模式** - 内置明暗主题切换
 - 💾 **模板系统** - 预设模板快速创建大屏
-
-## 📸 预览
-
-| 编辑模式 | 预览模式   |
-| -------- | ---------- |
-| `/`      | `/runtime` |
 
 ## 🚀 快速开始
 
@@ -122,7 +116,6 @@ npm install
 npm start -- --key=你的API密钥 --provider=gemini
 ```
 
-详见 [AI 助手集成文档](./docs/AIAssistIntegration.md)
 
 ## 🧪 测试
 
@@ -154,7 +147,7 @@ webgis/
 │   │   └── layout/        # 布局组件
 │   ├── stores/            # Pinia 状态管理
 │   ├── services/          # 服务层（AI、HTTP）
-│   └── pages/             # 页面（编辑态/运行态）
+│   └── views/             # 页面管理
 ├── server/                # AI 代理服务器
 ├── docs/                  # 文档
 └── test/                  # 测试文件
@@ -170,17 +163,6 @@ webgis/
 - **图表**: ECharts
 - **地图**: Leaflet
 - **测试**: Vitest + Playwright
-
-## 📝 开发计划
-
-- [x] 核心拖拽编辑功能
-- [x] 组件属性面板
-- [x] 事件联动系统
-- [x] AI 智能生成
-- [ ] 数据源管理
-- [ ] 协作编辑
-- [ ] 更多图表类型
-- [ ] 移动端适配
 
 ## 🤝 贡献
 
