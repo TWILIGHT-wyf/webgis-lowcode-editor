@@ -119,21 +119,22 @@ const rowHeaders = computed(() => {
 
 const dataColumns = computed(() => {
   const columns = comp.value?.props.dataColumns
-  if (
-    Array.isArray(columns) &&
-    columns.every(
-      (c): c is Record<string, unknown> =>
-        typeof c === 'object' && c !== null && 'prop' in c && 'label' in c
-    )
-  ) {
-    // 将任意形状项映射为 Column，避免直接将 PropValue[] 断言为 Column[] 导致的类型不安全
-    return columns.map((c) => ({
-      prop: String(c.prop),
-      label: String(c.label),
-      width: typeof c.width === 'number' ? c.width : undefined,
-      align: typeof c.align === 'string' ? String(c.align) : undefined,
-      sortable: Boolean(c.sortable)
-    })) as Column[]
+  if (Array.isArray(columns)) {
+    // 过滤并映射列配置，使用运行时类型检查
+    const result: Column[] = []
+    for (const item of columns) {
+      if (typeof item === 'object' && item !== null && 'prop' in item && 'label' in item) {
+        const col = item as Record<string, unknown>
+        result.push({
+          prop: String(col.prop),
+          label: String(col.label),
+          width: typeof col.width === 'number' ? col.width : undefined,
+          align: typeof col.align === 'string' ? String(col.align) : undefined,
+          sortable: Boolean(col.sortable),
+        })
+      }
+    }
+    if (result.length > 0) return result
   }
 
   // 从第一行数据推断列
