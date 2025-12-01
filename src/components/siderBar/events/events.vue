@@ -1,5 +1,5 @@
 <template>
-  <div class="events-panel">
+  <div class="events-panel" data-testid="events-panel">
     <el-scrollbar class="events-scrollbar">
       <div v-if="!selectComponent" class="empty-state">
         <el-empty description="请先选择一个组件" :image-size="120" />
@@ -11,7 +11,13 @@
           <div class="card-header">
             <span class="title">点击事件</span>
             <div class="header-actions">
-              <el-button type="primary" size="small" @click="addClickAction" icon="Plus">
+              <el-button
+                type="primary"
+                size="small"
+                data-testid="add-click-event"
+                @click="addClickAction"
+                icon="Plus"
+              >
                 添加
               </el-button>
             </div>
