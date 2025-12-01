@@ -153,7 +153,7 @@ const AI_CONFIG = {
   apiKey: process.env.AI_API_KEY || '',
   provider: (process.env.AI_PROVIDER || 'gemini') as ProviderName,
   model: process.env.AI_MODEL || '',
-  proxy: process.env.HTTPS_PROXY || 'http://127.0.0.1:7897',
+  proxy: process.env.HTTPS_PROXY,
 }
 
 function buildUrl(
