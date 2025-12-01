@@ -225,7 +225,7 @@ function validateDiff(diff: DiffItem): { valid: boolean; errors: string[] } {
  * 通过 http 实例调用后端 AI 代理服务
  */
 const AGENT_CONFIG = {
-  endpoint: '/ai',
+  endpoint: '/ai/generate',
   timeout: 60000,
 }
 
@@ -430,7 +430,7 @@ async function callAgent(request: SuggestionRequest): Promise<Omit<SuggestionRes
 
   try {
     const controller = new AbortController()
-    // 使用 window.setTimeout 以获得 number 类型（前端环境）
+
     timeoutId = window.setTimeout(() => controller.abort(), AGENT_CONFIG.timeout)
 
     const resp = await http.post(
