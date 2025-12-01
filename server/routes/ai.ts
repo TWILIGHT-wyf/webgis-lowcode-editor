@@ -235,23 +235,15 @@ router.post('/generate', async (req: Request, res: Response): Promise<void> => {
       maxTokens: max_tokens,
     })
 
-    let response: Response
+    const dispatcher =
+      providerConfig.needsProxy && AI_CONFIG.proxy ? new ProxyAgent(AI_CONFIG.proxy) : undefined
 
-    if (providerConfig.needsProxy && AI_CONFIG.proxy) {
-      const proxyAgent = new ProxyAgent(AI_CONFIG.proxy)
-      response = (await undiciFetch(url, {
-        method: 'POST',
-        headers,
-        body: JSON.stringify(body),
-        dispatcher: proxyAgent,
-      })) as unknown as Response
-    } else {
-      response = await fetch(url, {
-        method: 'POST',
-        headers,
-        body: JSON.stringify(body),
-      })
-    }
+    const response = await undiciFetch(url, {
+      method: 'POST',
+      headers,
+      body: JSON.stringify(body),
+      dispatcher,
+    })
 
     if (!response.ok) {
       const errorText = await response.text()
