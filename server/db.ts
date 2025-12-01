@@ -11,7 +11,6 @@ export async function connectDB() {
   try {
     await mongoose.connect(MONGO_URI)
     console.log('✅ MongoDB 连接成功')
-    console.log(`📦 数据库: ${MONGO_URI}`)
   } catch (error) {
     console.error('❌ MongoDB 连接失败:', error)
     // 不退出进程，让 AI 代理和测试接口继续可用

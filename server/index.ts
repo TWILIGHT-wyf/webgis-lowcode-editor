@@ -83,7 +83,6 @@ async function startServer() {
     console.log('🚀 WebGIS 后端服务已启动')
     console.log('═'.repeat(60))
     console.log(`📍 地址: http://localhost:${PORT}`)
-    console.log(`📦 MongoDB: ${process.env.MONGO_URI || 'mongodb://127.0.0.1:27017/webgis'}`)
     console.log(`🤖 AI Provider: ${process.env.AI_PROVIDER || 'gemini'}`)
     console.log('═'.repeat(60))
     console.log('📝 API 端点:')
