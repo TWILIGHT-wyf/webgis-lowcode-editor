@@ -1,11 +1,34 @@
 <script setup lang="ts">
-import { ref, onMounted } from 'vue'
+import { ref, computed, onMounted } from 'vue'
+import { useRoute, useRouter } from 'vue-router'
+import { storeToRefs } from 'pinia'
+import { useSizeStore } from '@/stores/size'
+import { useProjectStore } from '@/stores/project'
 import headerNav from '../components/header/header.vue'
 import SiderBar from '../components/siderBar/siderBar.vue'
 import componentBar from '../components/componentBar/componentBar.vue'
 import CanvasBoard from '../components/Editor/canvasBoard/canvasBoard.vue'
 import AIAssistDialog from '@/components/AIAssist/AIAssistDialog.vue'
 import { provideComponentEvents } from '@/components/siderBar/events/events'
+import { ElMessage } from 'element-plus'
+import { Loading } from '@element-plus/icons-vue'
+import * as projectService from '@/services/projects'
+
+// 初始化事件系统
+provideComponentEvents()
+
+// 路由相关
+const route = useRoute()
+const router = useRouter()
+const projectStore = useProjectStore()
+
+// 加载状态
+const isLoading = ref(true)
+
+// 获取画布缩放状态
+const sizeStore = useSizeStore()
+const { scale } = storeToRefs(sizeStore)
+const zoomPercentage = computed(() => Math.round((scale.value || 1) * 100))
 
 // 侧边栏宽度状态
 const leftSidebarWidth = ref(300)
@@ -18,9 +41,58 @@ const aiVisible = ref(false)
 const isResizingLeft = ref(false)
 const isResizingRight = ref(false)
 
-// 初始化事件系统
-onMounted(() => {
-  provideComponentEvents()
+// 加载项目数据
+onMounted(async () => {
+  const projectId = route.params.id as string
+  if (!projectId) {
+    ElMessage.error('项目ID无效')
+    router.push('/')
+    return
+  }
+
+  isLoading.value = true
+
+  try {
+    // 先尝试从后端获取项目数据
+    const serverProject = await projectService.getProject(projectId)
+
+    if (serverProject) {
+      // 查找或创建本地项目
+      let localProject = projectStore.projectList.find((p) => p.id === projectId)
+
+      if (!localProject) {
+        // 本地没有，从服务器数据创建
+        localProject = {
+          id: projectId,
+          name: serverProject.name,
+          description: serverProject.description,
+          cover: serverProject.cover,
+          createdAt: new Date(serverProject.createdAt).getTime(),
+          updatedAt: new Date(serverProject.updatedAt).getTime(),
+          pages: serverProject.pages || [],
+        }
+        projectStore.projectList.push(localProject)
+      } else {
+        // 本地有，更新服务器数据
+        localProject.pages = serverProject.pages || localProject.pages
+        localProject.updatedAt = new Date(serverProject.updatedAt).getTime()
+      }
+    }
+
+    // 加载项目到编辑器
+    projectStore.loadProject(projectId)
+  } catch (error) {
+    console.warn('从服务器加载失败，尝试本地加载:', error)
+
+    // 降级到本地加载
+    if (!projectStore.loadProject(projectId)) {
+      ElMessage.error('项目不存在')
+      router.push('/')
+      return
+    }
+  } finally {
+    isLoading.value = false
+  }
 })
 
 // 打开 AI 助手
@@ -78,14 +150,18 @@ function startResizeRight(e: MouseEvent) {
     <component :is="Component" v-if="Component" />
   </router-view>
 
-  <div v-else class="app-layout">
+  <!-- 加载状态 -->
+  <div v-else-if="isLoading" class="loading-container">
+    <el-icon class="loading-icon" :size="48"><Loading /></el-icon>
+    <p class="loading-text">正在加载项目...</p>
+  </div>
 
+  <div v-else class="app-layout">
     <header class="header-card">
       <headerNav @open-ai-assist="handleOpenAIAssist" />
     </header>
 
     <div class="main-content">
-
       <aside class="floating-card sidebar-card" :style="{ width: leftSidebarWidth + 'px' }">
         <componentBar />
       </aside>
@@ -94,6 +170,10 @@ function startResizeRight(e: MouseEvent) {
 
       <main class="floating-card canvas-card">
         <CanvasBoard />
+        <div class="zoom-indicator">
+          <span class="zoom-label">缩放:</span>
+          <span class="zoom-value">{{ zoomPercentage }}%</span>
+        </div>
       </main>
 
       <div class="resize-handle" @mousedown="startResizeRight"></div>
@@ -101,7 +181,6 @@ function startResizeRight(e: MouseEvent) {
       <aside class="floating-card sidebar-card" :style="{ width: rightSidebarWidth + 'px' }">
         <SiderBar />
       </aside>
-
     </div>
 
     <AIAssistDialog v-model:visible="aiVisible" />
@@ -116,7 +195,7 @@ function startResizeRight(e: MouseEvent) {
   background-color: var(--bg-app); /* 使用主题定义的应用底色 */
   padding: 12px; /* 给整个页面四周留出空隙 */
   box-sizing: border-box;
-  gap: 12px;     /* 顶部栏和主体之间的间距 */
+  gap: 12px; /* 顶部栏和主体之间的间距 */
   overflow: hidden;
 }
 
@@ -135,7 +214,7 @@ function startResizeRight(e: MouseEvent) {
   flex: 1;
   display: flex;
   overflow: hidden; /* 防止内容溢出 */
-  min-height: 0;    /* 关键：允许 Flex 子项在高度上收缩 */
+  min-height: 0; /* 关键：允许 Flex 子项在高度上收缩 */
 }
 
 /* 通用悬浮卡片样式 */
@@ -184,5 +263,68 @@ function startResizeRight(e: MouseEvent) {
 
 .resize-handle:hover::after {
   opacity: 1;
+}
+
+/* 缩放比率显示 */
+.zoom-indicator {
+  position: absolute;
+  bottom: 12px;
+  right: 12px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  background-color: var(--el-bg-color);
+  border: 1px solid var(--el-border-color);
+  border-radius: 6px;
+  box-shadow: var(--el-box-shadow-light);
+  font-size: 13px;
+  color: var(--el-text-color-regular);
+  pointer-events: none;
+  z-index: 100;
+}
+
+.zoom-label {
+  color: var(--el-text-color-secondary);
+  font-weight: 500;
+}
+
+.zoom-value {
+  font-weight: 600;
+  color: var(--el-color-primary);
+  font-variant-numeric: tabular-nums;
+  min-width: 40px;
+  text-align: right;
+}
+
+/* 加载状态样式 */
+.loading-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 100vh;
+  background-color: var(--bg-app, #f5f7fa);
+  gap: 16px;
+}
+
+.loading-icon {
+  color: var(--el-color-primary);
+  animation: rotating 1.5s linear infinite;
+}
+
+@keyframes rotating {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.loading-text {
+  color: var(--el-text-color-secondary);
+  font-size: 14px;
+  margin: 0;
 }
 </style>

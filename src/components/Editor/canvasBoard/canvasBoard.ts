@@ -1,5 +1,5 @@
 import { ref, onMounted, onBeforeUnmount, type Ref } from 'vue'
-import { throttle } from '@/utils/throttleDebounce'
+import { throttle } from 'lodash-es'
 import type { ComponentPayload } from '@/types/components'
 
 export function useCanvasInteraction(

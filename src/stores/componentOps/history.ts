@@ -1,6 +1,6 @@
 import { ref } from 'vue'
 import type { Ref } from 'vue'
-import { throttle, debounce } from '@/utils/throttleDebounce'
+import { debounce, throttle } from 'lodash-es'
 import type { HistoryApi } from '@/types/store'
 
 function deepClone<T>(v: T): T {

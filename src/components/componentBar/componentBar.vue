@@ -67,36 +67,6 @@
             </div>
           </div>
         </el-tab-pane>
-        <el-tab-pane label="页面" name="pages">
-          <div class="page-manager">
-            <div class="page-list">
-              <div
-                v-for="page in currentProject?.pages"
-                :key="page.id"
-                class="page-item"
-                :class="{ active: activePageId === page.id }"
-                @click="handleSwitchPage(page.id)"
-              >
-                <el-icon><Document /></el-icon>
-                <span class="page-name">{{ page.name }}</span>
-
-                <el-dropdown trigger="click" @command="(cmd) => handlePageCmd(cmd, page.id)" class="page-ops">
-                  <el-icon><More /></el-icon>
-                  <template #dropdown>
-                    <el-dropdown-menu>
-                      <el-dropdown-item command="rename">重命名</el-dropdown-item>
-                      <el-dropdown-item command="delete" style="color: red">删除</el-dropdown-item>
-                    </el-dropdown-menu>
-                  </template>
-                </el-dropdown>
-              </div>
-            </div>
-
-            <div class="add-page-btn">
-              <el-button type="primary" plain block icon="Plus" @click="handleAddPage">新建页面</el-button>
-            </div>
-          </div>
-        </el-tab-pane>
       </el-tabs>
     </el-scrollbar>
 
@@ -137,34 +107,7 @@ import { ElMessageBox, ElMessage } from 'element-plus'
 import { DocumentCopy, Connection } from '@element-plus/icons-vue'
 import * as echarts from 'echarts'
 import { storeToRefs } from 'pinia'
-import { useProjectStore } from '@/stores/project'
-import { Document, More } from '@element-plus/icons-vue'
 
-const projectStore = useProjectStore()
-const { currentProject, activePageId } = storeToRefs(projectStore)
-
-// 切换页面
-const handleSwitchPage = (id: string) => {
-  projectStore.switchPage(id)
-}
-
-// 新增页面
-const handleAddPage = () => {
-  projectStore.addPage(`页面 ${currentProject.value?.pages.length + 1}`)
-}
-
-// 页面操作
-const handlePageCmd = (cmd: string, id: string) => {
-  if (cmd === 'delete') {
-    ElMessageBox.confirm('确定删除该页面吗？', '提示').then(() => {
-      projectStore.removePage(id)
-    })
-  } else if (cmd === 'rename') {
-    ElMessageBox.prompt('请输入新名称', '重命名').then(({ value }) => {
-      if(value) projectStore.renamePage(id, value)
-    })
-  }
-}
 // --- 类型定义 ---
 type Category = {
   key: string
@@ -223,13 +166,13 @@ const handleLoadTemplate = async (template: PageTemplate) => {
 }
 
 const getCategoryTagType = (category: PageTemplate['category']) => {
-  const map: Record<string, string> = {
+  const map: Record<string, 'primary' | 'success' | 'info' | 'warning' | 'danger'> = {
     dashboard: 'success',
     gis: 'primary',
     chart: 'warning',
     form: 'info',
   }
-  return map[category] || ''
+  return map[category] || 'info'
 }
 const getCategoryLabel = (category: PageTemplate['category']) => {
   const map: Record<string, string> = {
@@ -1000,50 +943,5 @@ const categories = ref<Category[]>([
 }
 :deep(.el-dialog__body) {
   padding: 20px;
-}
-
-.page-manager {
-  height: 100%;
-  display: flex;
-  flex-direction: column;
-  padding: 10px;
-}
-.page-list {
-  flex: 1;
-  overflow-y: auto;
-}
-.page-item {
-  display: flex;
-  align-items: center;
-  padding: 10px 12px;
-  cursor: pointer;
-  border-radius: 6px;
-  margin-bottom: 4px;
-  color: var(--text-primary);
-  transition: all 0.2s;
-}
-.page-item:hover {
-  background-color: var(--bg-hover);
-}
-.page-item.active {
-  background-color: var(--el-color-primary-light-9);
-  color: var(--el-color-primary);
-}
-.page-name {
-  flex: 1;
-  margin-left: 8px;
-  font-size: 14px;
-}
-.page-ops {
-  opacity: 0;
-  transition: opacity 0.2s;
-}
-.page-item:hover .page-ops {
-  opacity: 1;
-}
-.add-page-btn {
-  margin-top: 10px;
-  padding-top: 10px;
-  border-top: 1px solid var(--border-light);
 }
 </style>

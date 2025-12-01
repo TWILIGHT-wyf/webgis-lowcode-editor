@@ -1,34 +1,34 @@
 import http from './http'
+import type { ServerProject, ProjectInput } from '@/types/api'
 
-export interface ProjectPayload {
-  name: string
-  description?: string
-  data?: Record<string, unknown>
-}
+// API 响应类型
+export type { ServerProject, ProjectInput }
 
-export async function listProjects() {
+export async function listProjects(): Promise<ServerProject[]> {
   const res = await http.get('/projects')
-  return res.data?.projects || []
+  return res.data?.data || []
 }
 
-export async function getProject(id: string) {
+export async function getProject(id: string): Promise<ServerProject | null> {
   const res = await http.get(`/projects/${id}`)
-  return res.data?.project
+  return res.data?.data || null
 }
 
-export async function createProject(payload: ProjectPayload) {
+export async function createProject(payload: ProjectInput): Promise<ServerProject> {
   const res = await http.post('/projects', payload)
-  return res.data?.project
+  return res.data?.data
 }
 
-export async function updateProject(id: string, payload: Partial<ProjectPayload>) {
+export async function updateProject(
+  id: string,
+  payload: Partial<ProjectInput>,
+): Promise<ServerProject> {
   const res = await http.put(`/projects/${id}`, payload)
-  return res.data?.project
+  return res.data?.data
 }
 
-export async function deleteProject(id: string) {
-  const res = await http.delete(`/projects/${id}`)
-  return res.data
+export async function deleteProject(id: string): Promise<void> {
+  await http.delete(`/projects/${id}`)
 }
 
 export default {

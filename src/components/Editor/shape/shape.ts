@@ -3,7 +3,7 @@ import { useComponent } from '@/stores/component'
 import { useSizeStore } from '@/stores/size'
 import { storeToRefs } from 'pinia'
 import { useCanvasInteraction } from '@/components/Editor/canvasBoard/canvasBoard'
-import { throttle, debounce } from '@/utils/throttleDebounce'
+import { debounce, throttle } from 'lodash-es'
 import { useSnap } from '../snap/snap'
 
 export function useShape(id: string) {

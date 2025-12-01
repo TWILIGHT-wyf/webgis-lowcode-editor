@@ -89,7 +89,6 @@ export interface Component {
   events?: ComponentEvents
 }
 
-
 export interface ComponentPayload {
   type: string
   width?: number
@@ -98,8 +97,23 @@ export interface ComponentPayload {
   [key: string]: unknown
 }
 
+// TreeNode 组件的 props 类型
+export interface TreeNodeProps {
+  node: {
+    id: string
+    name: string
+    type: 'page' | 'folder'
+    path?: string
+    expanded?: boolean
+    children?: TreeNodeProps['node'][]
+    isHome?: boolean
+  }
+  activeId?: string
+  depth?: number
+}
+
 // 组件相关的其它轻量类型通过 re-export
-export type { Action, DataBinding, TreeNode } from '@/components/siderBar/relations/relations'
+export type { Action, DataBinding } from '@/components/siderBar/relations/relations'
 export type { AnimationOption } from '@/components/siderBar/animation/animation'
 export type { ComponentEventsContext, EventHandler } from '@/components/siderBar/events/events'
 export type { SnapComp, Box } from '@/types/snap'
