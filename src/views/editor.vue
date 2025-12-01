@@ -73,9 +73,16 @@ onMounted(async () => {
         }
         projectStore.projectList.push(localProject)
       } else {
-        // 本地有，更新服务器数据
-        localProject.pages = serverProject.pages || localProject.pages
-        localProject.updatedAt = new Date(serverProject.updatedAt).getTime()
+        // 本地有，比较更新时间，避免用旧服务器数据覆盖本地最新更改
+        const serverUpdatedAt = new Date(serverProject.updatedAt).getTime()
+        if (localProject.updatedAt >= serverUpdatedAt) {
+          // 本地数据更新，保留本地数据
+          console.log('本地数据更新，保留本地更改')
+        } else {
+          // 服务器数据更新，同步到本地
+          localProject.pages = serverProject.pages || localProject.pages
+          localProject.updatedAt = serverUpdatedAt
+        }
       }
     }
 

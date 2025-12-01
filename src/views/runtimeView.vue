@@ -172,29 +172,26 @@ onMounted(async () => {
   isLoading.value = true
 
   try {
-    // 尝试从服务器获取项目
-    const serverProject = await projectService.getProject(projectId.value)
-
-    if (serverProject) {
-      projectName.value = serverProject.name
-      allPages.value = serverProject.pages || []
-    } else {
-      // 服务器返回空，尝试本地
-      throw new Error('Server returned null')
-    }
-  } catch (error) {
-    console.warn('从服务器加载失败，尝试本地加载:', error)
-
-    // 降级到本地 Store 数据
-    const localProject = projectStore.projectList.find((p) => p.id === projectId.value)
+    // 优先使用本地store中的最新项目数据，避免服务器延迟导致的数据不一致
+    const localProject = projectStore.currentProject
     if (localProject) {
       projectName.value = localProject.name
       allPages.value = localProject.pages || []
     } else {
-      ElMessage.error('项目不存在')
-      router.push('/')
-      return
+      // 本地没有，尝试从服务器获取
+      const serverProject = await projectService.getProject(projectId.value)
+      if (serverProject) {
+        projectName.value = serverProject.name
+        allPages.value = serverProject.pages || []
+      } else {
+        throw new Error('Server returned null')
+      }
     }
+  } catch (error) {
+    console.warn('加载项目失败:', error)
+    ElMessage.error('加载项目失败')
+    router.push('/')
+    return
   }
 
   // 确定要加载的页面

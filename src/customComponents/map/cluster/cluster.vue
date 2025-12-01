@@ -1,7 +1,7 @@
 <template>
   <div ref="mapContainer" class="cluster-map" :style="containerStyle">
     <div v-if="!markers || markers.length === 0" class="map-placeholder">
-      <icon class="placeholder-icon"><Connection /></icon>
+      <el-icon class="placeholder-icon"><Connection /></el-icon>
       <div class="placeholder-text">{{ placeholder || '配置标记点数据以显示聚合' }}</div>
     </div>
   </div>

@@ -1,7 +1,7 @@
 <template>
   <div ref="mapContainer" class="heat-map" :style="containerStyle">
     <div v-if="!heatData || heatData.length === 0" class="map-placeholder">
-      <icon class="placeholder-icon"><Histogram /></icon>
+      <el-icon class="placeholder-icon"><Histogram /></el-icon>
       <div class="placeholder-text">{{ placeholder || '配置热力数据以显示热力图' }}</div>
     </div>
   </div>

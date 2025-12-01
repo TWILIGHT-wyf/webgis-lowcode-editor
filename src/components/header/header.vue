@@ -419,12 +419,10 @@ function openPreview(mode: 'page' | 'project' = 'page') {
 
   if (mode === 'project') {
     // 项目级预览 - 不传 pageId，预览整个项目（从首页开始）
-    const url = `/runtime?projectId=${projectStore.currentProjectId}&mode=project`
-    window.open(url, '_blank')
+    router.push(`/runtime?projectId=${projectStore.currentProjectId}&mode=project`)
   } else {
     // 单页面预览 - 传递当前正在编辑的 pageId
-    const url = `/runtime?projectId=${projectStore.currentProjectId}&pageId=${activePageId.value}`
-    window.open(url, '_blank')
+    router.push(`/runtime?projectId=${projectStore.currentProjectId}&pageId=${activePageId.value}`)
   }
 }
 
