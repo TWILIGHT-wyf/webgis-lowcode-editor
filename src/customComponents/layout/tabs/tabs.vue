@@ -4,6 +4,8 @@ import { storeToRefs } from 'pinia'
 import { useComponent } from '@/stores/component'
 import { useDataSource } from '@/datasource/useDataSource'
 import { extractWithFallback } from '@/datasource/dataUtils'
+import Shape from '@/components/Editor/shape/shape.vue'
+import { getComponent } from '@/customComponents/registry'
 
 const props = defineProps<{
   id: string
@@ -51,7 +53,19 @@ const tabs = computed(() => {
 
   // 使用 props 中的 tabs
   if (comp.value?.props?.tabs && Array.isArray(comp.value.props.tabs)) {
-    return comp.value.props.tabs
+    // normalize to objects with label/name/content
+    return comp.value.props.tabs.map((item: unknown) => {
+      if (typeof item === 'object' && item !== null) {
+        const itemObj = item as Record<string, unknown>
+        return {
+          label: String(itemObj.label ?? itemObj.name ?? ''),
+          name: String(itemObj.name ?? itemObj.value ?? ''),
+          content: String(itemObj.content ?? '')
+        }
+      }
+      // if primitive, use as both label and name
+      return { label: String(item), name: String(item), content: String(item) }
+    })
   }
 
   // 默认 tabs
@@ -62,13 +76,15 @@ const tabs = computed(() => {
   ]
 })
 
+function getChildComponent(childId: string) {
+  return componentStore.value.find((c) => c.id === childId)
+}
+
 // 初始化 activeTab
 watch(
   tabs,
   (newTabs) => {
-    if (!activeTab.value && newTabs.length > 0) {
-      activeTab.value = String(newTabs[0].name)
-    }
+    if (newTabs?.length) activeTab.value = String(newTabs[0]?.name ?? '')
   },
   { immediate: true },
 )
@@ -93,8 +109,24 @@ const containerStyle = computed(() => {
       :closable="comp?.props?.closable || false"
       :addable="comp?.props?.addable || false"
     >
-      <el-tab-pane v-for="tab in tabs" :key="tab.name" :label="tab.label" :name="String(tab.name)">
-        {{ tab.content }}
+      <el-tab-pane
+        v-for="(tab, idx) in tabs"
+        :key="tab.name"
+        :label="tab.label"
+        :name="String(tab.name)"
+      >
+        <template v-if="comp?.children && comp.children.length > 0 && idx === 0">
+          <Shape v-for="childId in comp.children" :key="childId" :id="childId">
+            <component
+              :is="getComponent(getChildComponent(childId)?.type || '')"
+              :id="childId"
+              :style="{ width: '100%', height: '100%' }"
+            />
+          </Shape>
+        </template>
+        <template v-else>
+          {{ tab.content }}
+        </template>
       </el-tab-pane>
     </el-tabs>
   </div>

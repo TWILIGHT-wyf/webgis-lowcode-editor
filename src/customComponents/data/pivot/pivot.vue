@@ -119,7 +119,23 @@ const rowHeaders = computed(() => {
 
 const dataColumns = computed(() => {
   const columns = comp.value?.props.dataColumns
-  if (Array.isArray(columns)) return columns as Column[]
+  if (Array.isArray(columns)) {
+    // 过滤并映射列配置，使用运行时类型检查
+    const result: Column[] = []
+    for (const item of columns) {
+      if (typeof item === 'object' && item !== null && 'prop' in item && 'label' in item) {
+        const col = item as Record<string, unknown>
+        result.push({
+          prop: String(col.prop),
+          label: String(col.label),
+          width: typeof col.width === 'number' ? col.width : undefined,
+          align: typeof col.align === 'string' ? String(col.align) : undefined,
+          sortable: Boolean(col.sortable),
+        })
+      }
+    }
+    if (result.length > 0) return result
+  }
 
   // 从第一行数据推断列
   if (pivotData.value.length > 0) {

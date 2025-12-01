@@ -127,7 +127,11 @@ watch(
       if (typeof newVal === 'string') {
         checkboxValue.value = newVal.split(',').map((s) => s.trim())
       } else if (Array.isArray(newVal)) {
-        checkboxValue.value = newVal
+        // normalize elements to string|number
+        checkboxValue.value = newVal.map((v) => (typeof v === 'number' ? v : String(v))) as (
+          | string
+          | number
+        )[]
       }
     }
   },

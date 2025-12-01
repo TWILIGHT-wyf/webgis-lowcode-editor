@@ -33,7 +33,7 @@
 <script setup lang="ts">
 import { ref, computed, onMounted, nextTick, watch } from 'vue'
 import { componentRegistry } from '@/customComponents/registry'
-import type { component as Component, EventAction } from '@/stores/component'
+import type { Component, EventAction } from '@/types/components'
 
 const props = defineProps<{
   component: Component

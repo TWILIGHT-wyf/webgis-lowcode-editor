@@ -16,11 +16,7 @@
           :hollow="hollow"
           :icon="getItemIcon(item)"
         >
-          <el-card
-            v-if="showCard"
-            :shadow="cardShadow"
-            :style="cardStyle"
-          >
+          <el-card v-if="showCard" :shadow="cardShadow" :style="cardStyle">
             <template #header>
               <div class="card-header" :style="headerStyle">
                 <span class="card-title">{{ getTitle(item) }}</span>
@@ -84,7 +80,12 @@ const timelineData = computed(() => {
 
   // 默认示例数据
   return [
-    { title: '活动开始', content: '这是活动的开始阶段', timestamp: '2024-01-01 10:00', type: 'primary' },
+    {
+      title: '活动开始',
+      content: '这是活动的开始阶段',
+      timestamp: '2024-01-01 10:00',
+      type: 'primary',
+    },
     { title: '进行中', content: '活动正在进行中', timestamp: '2024-01-02 14:30', type: 'success' },
     { title: '活动结束', content: '活动已经顺利结束', timestamp: '2024-01-03 18:00', type: 'info' },
   ]
@@ -95,10 +96,14 @@ const showCard = computed(() => (comp.value?.props.showCard as boolean) ?? true)
 const showTitle = computed(() => (comp.value?.props.showTitle as boolean) ?? true)
 const showTimestamp = computed(() => (comp.value?.props.showTimestamp as boolean) ?? true)
 const showExtra = computed(() => (comp.value?.props.showExtra as boolean) ?? false)
-const timestampPlacement = computed(() => (comp.value?.props.timestampPlacement as 'top' | 'bottom') ?? 'top')
+const timestampPlacement = computed(
+  () => (comp.value?.props.timestampPlacement as 'top' | 'bottom') ?? 'top',
+)
 const itemSize = computed(() => (comp.value?.props.itemSize as 'normal' | 'large') ?? 'normal')
 const hollow = computed(() => (comp.value?.props.hollow as boolean) ?? false)
-const cardShadow = computed(() => (comp.value?.props.cardShadow as 'always' | 'hover' | 'never') ?? 'hover')
+const cardShadow = computed(
+  () => (comp.value?.props.cardShadow as 'always' | 'hover' | 'never') ?? 'hover',
+)
 const emptyText = computed(() => (comp.value?.props.emptyText as string) ?? '暂无数据')
 const scrollHeight = computed(() => (comp.value?.props.scrollHeight as string) ?? '100%')
 
@@ -127,13 +132,22 @@ function getExtra(item: Record<string, unknown>): string {
   return String(item[extraField.value] ?? '')
 }
 
-function getItemType(item: Record<string, unknown>, index: number): 'primary' | 'success' | 'warning' | 'danger' | 'info' {
+function getItemType(
+  item: Record<string, unknown>,
+  index: number,
+): 'primary' | 'success' | 'warning' | 'danger' | 'info' {
   const type = item[typeField.value] as string | undefined
   if (type && ['primary', 'success', 'warning', 'danger', 'info'].includes(type)) {
     return type as 'primary' | 'success' | 'warning' | 'danger' | 'info'
   }
   // 默认根据索引自动分配颜色
-  const types: ('primary' | 'success' | 'warning' | 'danger' | 'info')[] = ['primary', 'success', 'info', 'warning', 'danger']
+  const types: ('primary' | 'success' | 'warning' | 'danger' | 'info')[] = [
+    'primary',
+    'success',
+    'info',
+    'warning',
+    'danger',
+  ]
   return types[index % types.length] as 'primary' | 'success' | 'warning' | 'danger' | 'info'
 }
 

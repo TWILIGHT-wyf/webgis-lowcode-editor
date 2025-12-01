@@ -10,8 +10,8 @@ import type {
   SuggestionResult,
   SuggestionItem,
   AuditRecord,
-} from '@/type/suggestion'
-import type { component as Component } from '@/stores/component'
+} from '@/types/suggestion'
+import type { Component } from '@/types/components'
 import { generateSuggestion, applyDiffs } from '@/services/suggestService'
 import { useComponent } from '@/stores/component'
 import { nanoid } from 'nanoid'

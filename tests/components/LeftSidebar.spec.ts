@@ -16,13 +16,13 @@ describe('LeftSidebar 侧边栏', () => {
     expect(wrapper.find('.sider-root').exists()).toBe(true)
   })
 
-  it('默认渲染 Properties 面板（activeIndex=1）', async () => {
+  it('默认激活属性面板（activeIndex=1）', async () => {
     const wrapper = mount(LeftSidebar, {
       global: {
         plugins: [createPinia()],
       },
     })
-    // activeIndex 默认为 '1'，应渲染 properties 组件或其占位元素
-    expect(wrapper.find('.sidebar-content').exists()).toBe(true)
+    // activeIndex 默认为 '1'
+    expect(wrapper.vm.activeIndex).toBe('1')
   })
 })

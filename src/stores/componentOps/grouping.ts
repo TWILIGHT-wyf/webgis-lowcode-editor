@@ -1,10 +1,6 @@
 import type { Ref } from 'vue'
 import { nanoid } from 'nanoid'
-
-export interface GroupingApi {
-  groupComponents: (ids: string[]) => void
-  ungroupComponents: (groupId: string) => void
-}
+import type { GroupingApi } from '@/types/store'
 
 export function createGrouping<
   C extends {

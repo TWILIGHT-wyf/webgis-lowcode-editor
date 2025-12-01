@@ -1,6 +1,6 @@
 import { ref, watch, onUnmounted, type Ref } from 'vue'
 import axios, { type AxiosRequestConfig } from 'axios'
-import type { DataSource } from '@/stores/component'
+import type { DataSource } from '@/types/components'
 
 /**
  * 数据源 Hook

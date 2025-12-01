@@ -1,9 +1,11 @@
-import type { component } from '@/stores/component'
+import type { Component } from '@/types/components'
+
+
 
 /**
  * 将componentStore转换为Vue代码
  */
-export function generateVueCode(components: component[]): string {
+export function generateVueCode(components: Component[]): string {
   const topLevelComponents = components.filter((c) => !c.groupId)
 
   const template = generateTemplate(topLevelComponents, components)
@@ -26,8 +28,8 @@ ${style}
  * 生成模板代码
  */
 function generateTemplate(
-  topLevelComponents: component[],
-  allComponents: component[],
+  topLevelComponents: Component[],
+  allComponents: Component[],
   indent = 4,
 ): string {
   let html = ''
@@ -43,8 +45,8 @@ function generateTemplate(
  * 生成单个组件的模板
  */
 function generateComponentTemplate(
-  comp: component,
-  allComponents: component[],
+  comp: Component,
+  allComponents: Component[],
   indent: number,
 ): string {
   const indentStr = ' '.repeat(indent)
@@ -117,7 +119,7 @@ function generateComponentTemplate(
 /**
  * 生成动画信息
  */
-function generateAnimationInfo(comp: component):
+function generateAnimationInfo(comp: Component):
   | {
       class: string
       trigger: string
@@ -196,7 +198,7 @@ function getComponentTagName(type: string): string {
 /**
  * 生成组件样式对象字符串
  */
-function generateComponentStyle(comp: component): string {
+function generateComponentStyle(comp: Component): string {
   const styleObj: Record<string, string | number> = {
     position: 'absolute',
     left: `${comp.position.x}px`,
@@ -248,7 +250,7 @@ function generateComponentStyle(comp: component): string {
 /**
  * 生成组件Props
  */
-function generateComponentProps(comp: component): string {
+function generateComponentProps(comp: Component): string {
   let propsStr = ''
   const indentStr = ' '.repeat(6)
 
@@ -269,7 +271,7 @@ function generateComponentProps(comp: component): string {
 /**
  * 生成组件事件绑定
  */
-function generateComponentEvents(comp: component): string {
+function generateComponentEvents(comp: Component): string {
   let eventsStr = ''
   const indentStr = ' '.repeat(6)
 
@@ -291,7 +293,7 @@ function generateComponentEvents(comp: component): string {
 /**
  * 生成Script代码
  */
-function generateScript(components: component[]): string {
+function generateScript(components: Component[]): string {
   const imports = generateImports(components)
   const animationHandlers = generateAnimationHandlers(components)
   const eventHandlers = generateEventHandlers(components)
@@ -300,8 +302,8 @@ function generateScript(components: component[]): string {
 import { ref, onMounted, nextTick } from 'vue'
 ${imports}
 
-// 组件ref引用
-const componentRefs = ref<Record<string, any>>({})
+// 组件ref引用（精确化类型以便后续操作不使用 unknown）
+const componentRefs = ref<Record<string, ComponentRef>>({})
 
 // 组件数据
 ${generateComponentData(components)}
@@ -327,7 +329,7 @@ ${eventHandlers}
 /**
  * 生成导入语句
  */
-function generateImports(components: component[]): string {
+function generateImports(components: Component[]): string {
   const types = new Set(components.map((c) => c.type))
   let imports = ''
 
@@ -346,7 +348,7 @@ function generateImports(components: component[]): string {
 /**
  * 生成组件数据
  */
-function generateComponentData(components: component[]): string {
+function generateComponentData(components: Component[]): string {
   let dataStr = ''
 
   for (const comp of components) {
@@ -361,7 +363,7 @@ function generateComponentData(components: component[]): string {
 /**
  * 生成动画样式对象
  */
-function generateAnimationStyles(components: component[]): string {
+function generateAnimationStyles(components: Component[]): string {
   let stylesStr = ''
 
   for (const comp of components) {
@@ -386,7 +388,7 @@ function generateAnimationStyles(components: component[]): string {
 /**
  * 生成动画处理函数
  */
-function generateAnimationHandlers(components: component[]): string {
+function generateAnimationHandlers(components: Component[]): string {
   let handlersStr = ''
 
   for (const comp of components) {
@@ -441,7 +443,7 @@ function playAnimation_${comp.id}() {
 /**
  * 生成onMounted中的动画触发
  */
-function generateOnMountAnimations(components: component[]): string {
+function generateOnMountAnimations(components: Component[]): string {
   let animStr = ''
 
   for (const comp of components) {
@@ -456,7 +458,7 @@ function generateOnMountAnimations(components: component[]): string {
 /**
  * 生成事件处理函数
  */
-function generateEventHandlers(components: component[]): string {
+function generateEventHandlers(components: Component[]): string {
   let handlersStr = ''
 
   for (const comp of components) {
@@ -735,14 +737,14 @@ function generateStyle(): string {
 /**
  * 将组件数据转换为JSON字符串
  */
-export function componentsToJSON(components: component[]): string {
+export function componentsToJSON(components: Component[]): string {
   return JSON.stringify(components, null, 2)
 }
 
 /**
  * 从JSON字符串恢复组件数据
  */
-export function JSONToComponents(json: string): component[] {
+export function JSONToComponents(json: string): Component[] {
   try {
     return JSON.parse(json)
   } catch (error) {

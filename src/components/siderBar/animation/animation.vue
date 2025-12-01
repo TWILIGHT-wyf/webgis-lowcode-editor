@@ -1,258 +1,331 @@
 <template>
   <div class="animation-panel">
-    <div class="preview-area">
-      <div class="preview-box" :key="replayKey" :class="previewClass">预览</div>
-    </div>
+    <el-scrollbar class="panel-scrollbar">
+      <div class="panel-content">
+        <div class="preview-stage">
+          <div class="stage-content">
+            <div class="preview-target" :key="replayKey" :class="previewClass">Preview</div>
+          </div>
+          <div class="stage-hint">鼠标悬停下方列表预览效果</div>
+        </div>
 
-    <ul class="animation-list">
-      <li
-        v-for="a in animations"
-        :key="a.name"
-        class="animation-item"
-        @mouseenter="triggerPreview(a.class)"
-        @mouseleave="cancelPreview()"
-        @click="selectAnimation(a)"
-      >
-        <span class="animation-label">{{ a.label }}</span>
-        <span class="animation-desc">{{ a.desc }}</span>
-        <span class="mini-demo" :class="a.class"></span>
-      </li>
-    </ul>
+        <div class="section-title">动画预设</div>
+        <div class="animation-grid">
+          <div
+            v-for="a in animations"
+            :key="a.name"
+            class="anim-card"
+            :class="{ active: currentAnimation?.name === a.name }"
+            @mouseenter="triggerPreview(a.class)"
+            @mouseleave="cancelPreview()"
+            @click="selectAnimation(a)"
+          >
+            <div class="anim-icon">{{ a.label[0] }}</div>
+            <div class="anim-info">
+              <div class="anim-label">{{ a.label }}</div>
+              <div class="anim-desc">{{ a.desc }}</div>
+            </div>
+            <div v-if="currentAnimation?.name === a.name" class="active-indicator"></div>
+          </div>
+        </div>
 
-    <!-- 动画配置面板 -->
-    <div v-if="currentAnimation" class="animation-config">
-      <div class="config-title">动画配置</div>
+        <div v-if="currentAnimation" class="config-card">
+          <div class="card-header">参数配置</div>
 
-      <div class="config-item">
-        <label>触发方式</label>
-        <el-select v-model="currentAnimation.trigger" placeholder="选择触发方式" size="small">
-          <el-option label="页面加载时" value="load" />
-          <el-option label="鼠标悬停时" value="hover" />
-          <el-option label="点击时" value="click" />
-        </el-select>
+          <el-form label-position="top" size="small" class="modern-form">
+            <el-form-item label="触发方式">
+              <el-select
+                v-model="currentAnimation.trigger"
+                placeholder="选择触发方式"
+                class="modern-select"
+              >
+                <el-option label="页面加载时 (Load)" value="load" />
+                <el-option label="鼠标悬停时 (Hover)" value="hover" />
+                <el-option label="点击时 (Click)" value="click" />
+              </el-select>
+            </el-form-item>
+
+            <div class="form-row">
+              <el-form-item label="时长 (s)">
+                <el-input-number
+                  v-model="currentAnimation.duration"
+                  :min="0.1"
+                  :max="10"
+                  :step="0.1"
+                  :controls="false"
+                  class="modern-input"
+                />
+              </el-form-item>
+              <el-form-item label="延迟 (s)">
+                <el-input-number
+                  v-model="currentAnimation.delay"
+                  :min="0"
+                  :max="10"
+                  :step="0.1"
+                  :controls="false"
+                  class="modern-input"
+                />
+              </el-form-item>
+            </div>
+
+            <el-form-item label="重复次数">
+              <div class="radio-group-wrapper">
+                <el-radio-group v-model="currentAnimation.iterationCount" size="small">
+                  <el-radio-button :label="1">1次</el-radio-button>
+                  <el-radio-button :label="2">2次</el-radio-button>
+                  <el-radio-button :label="3">3次</el-radio-button>
+                  <el-radio-button label="infinite">循环</el-radio-button>
+                </el-radio-group>
+              </div>
+            </el-form-item>
+
+            <el-form-item label="缓动函数 (Easing)">
+              <el-select v-model="currentAnimation.timingFunction" class="modern-select">
+                <el-option label="平滑 (Ease)" value="ease" />
+                <el-option label="匀速 (Linear)" value="linear" />
+                <el-option label="渐入 (Ease-In)" value="ease-in" />
+                <el-option label="渐出 (Ease-Out)" value="ease-out" />
+                <el-option label="弹跳 (Bounce)" value="cubic-bezier(0.68, -0.55, 0.27, 1.55)" />
+              </el-select>
+            </el-form-item>
+          </el-form>
+        </div>
       </div>
-
-      <div class="config-item">
-        <label>持续时间 (秒)</label>
-        <el-input-number
-          v-model="currentAnimation.duration"
-          :min="0.1"
-          :max="10"
-          :step="0.1"
-          size="small"
-        />
-      </div>
-
-      <div class="config-item">
-        <label>延迟时间 (秒)</label>
-        <el-input-number
-          v-model="currentAnimation.delay"
-          :min="0"
-          :max="10"
-          :step="0.1"
-          size="small"
-        />
-      </div>
-
-      <div class="config-item">
-        <label>重复次数</label>
-        <el-select
-          v-model="currentAnimation.iterationCount"
-          placeholder="选择重复次数"
-          size="small"
-        >
-          <el-option label="1次" :value="1" />
-          <el-option label="2次" :value="2" />
-          <el-option label="3次" :value="3" />
-          <el-option label="5次" :value="5" />
-          <el-option label="无限循环" value="infinite" />
-        </el-select>
-      </div>
-
-      <div class="config-item">
-        <label>缓动函数</label>
-        <el-select
-          v-model="currentAnimation.timingFunction"
-          placeholder="选择缓动函数"
-          size="small"
-        >
-          <el-option label="ease" value="ease" />
-          <el-option label="linear" value="linear" />
-          <el-option label="ease-in" value="ease-in" />
-          <el-option label="ease-out" value="ease-out" />
-          <el-option label="ease-in-out" value="ease-in-out" />
-        </el-select>
-      </div>
-    </div>
+    </el-scrollbar>
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref, computed, nextTick } from 'vue'
-import { animations } from './animation'
-import { useComponent } from '@/stores/component'
-// 预览当前使用的动画 class
-const currentClass = ref<string | null>(null)
-// 用于强制重新渲染触发动画
-const replayKey = ref(0)
+import { animations, useAnimationPreview, useAnimationSelection } from './animation'
 
-const store = useComponent()
+// Animation preview
+const { replayKey, triggerPreview, cancelPreview, previewClass } = useAnimationPreview()
 
-// 当前选中组件的动画配置
-const currentAnimation = computed(() => {
-  return store.selectComponent?.animation
-})
-
-function triggerPreview(cls: string) {
-  // 通过清空再设置的方式强制浏览器重新计算动画
-  currentClass.value = null
-  nextTick(() => {
-    currentClass.value = cls
-    replayKey.value++
-  })
-}
-
-function cancelPreview() {
-  // 悬停移出后保留最后一次效果或清空，这里选择保留
-}
-
-// 写入当前选中组件的 animation 配置
-function selectAnimation(a: { name: string; class: string }) {
-  const target = store.selectComponent
-  if (target) {
-    target.animation = {
-      name: a.name,
-      class: a.class,
-      duration: 0.7,
-      delay: 0,
-      iterationCount: 1,
-      timingFunction: 'ease',
-      trigger: 'load',
-    }
-  }
-}
-
-const previewClass = computed(() => {
-  return ['preview-box', currentClass.value].filter(Boolean)
-})
+// Animation selection
+const { currentAnimation, selectAnimation } = useAnimationSelection()
 </script>
 
 <style scoped>
+/* 根容器布局 */
 .animation-panel {
+  height: 100%;
+  width: 100%;
+  background: transparent;
   display: flex;
   flex-direction: column;
-  gap: 12px;
-  padding: 0 28px 0 16px;
-  box-sizing: border-box;
 }
 
-.animation-config {
-  background: #f9fafc;
-  border: 1px solid #e4e7ed;
-  border-radius: 8px;
+.panel-scrollbar {
+  flex: 1;
+  height: 100%;
+}
+
+.panel-content {
   padding: 16px;
-  margin-top: 12px;
-}
-
-.config-title {
-  font-size: 14px;
-  font-weight: 600;
-  color: #303133;
-  margin-bottom: 16px;
-  padding-bottom: 8px;
-  border-bottom: 1px solid #e4e7ed;
-}
-
-.config-item {
   display: flex;
   flex-direction: column;
-  gap: 8px;
-  margin-bottom: 16px;
+  gap: 20px;
 }
 
-.config-item:last-child {
-  margin-bottom: 0;
-}
-
-.config-item label {
-  font-size: 13px;
-  color: #606266;
-  font-weight: 500;
-}
-.preview-area {
+/* 预览舞台 */
+.preview-stage {
+  background: var(--bg-hover);
+  border-radius: 12px;
+  padding: 20px;
   display: flex;
+  flex-direction: column;
+  align-items: center;
   justify-content: center;
+  min-height: 120px;
+  position: relative;
+  overflow: hidden;
+  border: 1px solid var(--border-light);
 }
-.preview-box {
-  width: 140px;
-  height: 70px;
-  background: #fff;
-  border: 1px solid #e4e7ed;
-  border-radius: 8px;
+
+.stage-content {
+  flex: 1;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 16px;
-  font-weight: 500;
-  color: #303133;
-  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
-  overflow: hidden;
 }
-.animation-list {
-  list-style: none;
-  margin: 0;
-  padding: 0 8px 0 0; /* 给网格一点右内边距，避免最后一列紧贴 */
+
+.preview-target {
+  padding: 10px 24px;
+  background: linear-gradient(135deg, #4285f4, #34a853);
+  color: white;
+  border-radius: 8px;
+  font-weight: 600;
+  font-size: 14px;
+  box-shadow: 0 4px 12px rgba(66, 133, 244, 0.3);
+}
+
+.stage-hint {
+  margin-top: 16px;
+  font-size: 11px;
+  color: var(--text-tertiary);
+}
+
+/* 标题样式 */
+.section-title {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  padding-left: 4px;
+}
+
+/* 动画列表网格 */
+.animation-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+  grid-template-columns: 1fr 1fr;
   gap: 10px;
 }
-.animation-item {
+
+.anim-card {
   position: relative;
-  background: #fafafa;
-  border: 1px solid #e4e7ed;
-  border-radius: 6px;
-  padding: 8px 10px 26px;
-  cursor: pointer;
-  transition:
-    border-color 0.2s,
-    box-shadow 0.2s,
-    transform 0.25s;
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-}
-.animation-item:hover {
-  border-color: #409eff;
-  box-shadow: 0 2px 8px rgba(64, 158, 255, 0.2);
-  transform: translateY(-2px);
-}
-.animation-label {
-  font-size: 14px;
-  font-weight: 600;
-  color: #303133;
-}
-.animation-desc {
-  font-size: 12px;
-  color: #909399;
-}
-.mini-demo {
-  position: absolute;
-  right: 6px;
-  bottom: 6px;
-  width: 30px;
-  height: 18px;
   background: #fff;
-  border: 1px solid #dcdfe6;
-  border-radius: 4px;
+  border: 1px solid var(--border-light);
+  border-radius: 8px;
+  padding: 10px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  cursor: pointer;
+  transition: all 0.2s cubic-bezier(0.25, 0.8, 0.25, 1);
+}
+
+.anim-card:hover {
+  border-color: #4285f4;
+  background-color: #f0f9ff;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.05);
+}
+
+.anim-card.active {
+  border-color: #4285f4;
+  background-color: #e8f0fe;
+}
+
+.anim-icon {
+  width: 32px;
+  height: 32px;
+  background-color: var(--bg-hover);
+  border-radius: 6px;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 10px;
-  color: #606266;
+  font-weight: 700;
+  color: var(--text-secondary);
+  font-size: 14px;
+}
+
+.anim-card.active .anim-icon {
+  background-color: #fff;
+  color: #4285f4;
+}
+
+.anim-info {
+  flex: 1;
   overflow: hidden;
 }
 
-/* 动画定义 */
+.anim-label {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--text-primary);
+  margin-bottom: 2px;
+}
+
+.anim-desc {
+  font-size: 10px;
+  color: var(--text-tertiary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.active-indicator {
+  position: absolute;
+  top: 6px;
+  right: 6px;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background-color: #4285f4;
+}
+
+/* 配置卡片 */
+.config-card {
+  background: var(--bg-hover);
+  border-radius: 12px;
+  padding: 16px;
+  border: 1px solid transparent;
+}
+
+.card-header {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-primary);
+  margin-bottom: 16px;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+  padding-bottom: 8px;
+}
+
+/* 现代表单样式 (复用 Properties 面板风格) */
+.modern-form .el-form-item {
+  margin-bottom: 16px;
+}
+
+.modern-form :deep(.el-form-item__label) {
+  font-size: 12px;
+  color: var(--text-secondary);
+  padding-bottom: 6px;
+  line-height: 1.2;
+}
+
+.modern-input :deep(.el-input__wrapper),
+.modern-select :deep(.el-input__wrapper) {
+  background-color: #fff;
+  box-shadow: none !important;
+  border-radius: 8px;
+  padding: 4px 11px;
+}
+
+.modern-input :deep(.el-input__wrapper.is-focus),
+.modern-select :deep(.el-input__wrapper.is-focus) {
+  box-shadow: 0 0 0 1px #1967d2 !important;
+}
+
+.form-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+
+.radio-group-wrapper {
+  width: 100%;
+}
+.radio-group-wrapper :deep(.el-radio-group) {
+  width: 100%;
+  display: flex;
+}
+.radio-group-wrapper :deep(.el-radio-button) {
+  flex: 1;
+}
+.radio-group-wrapper :deep(.el-radio-button__inner) {
+  width: 100%;
+  padding: 8px 0;
+  border-radius: 0;
+}
+.radio-group-wrapper :deep(.el-radio-button:first-child .el-radio-button__inner) {
+  border-radius: 8px 0 0 8px;
+}
+.radio-group-wrapper :deep(.el-radio-button:last-child .el-radio-button__inner) {
+  border-radius: 0 8px 8px 0;
+}
+
+/* 动画定义 (保留原有逻辑) */
 @keyframes fadeIn {
   from {
     opacity: 0;

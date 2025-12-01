@@ -1,477 +1,425 @@
 <template>
   <div class="properties-panel">
-    <el-scrollbar class="properties-scrollbar">
-      <!-- 未选中任何组件时显示画布配置 -->
-      <div v-if="!selectComponent" class="canvas-config">
-        <el-form label-position="top" size="small">
-          <el-form-item label="画布宽度">
-            <el-input-number
-              :model-value="canvasWidth"
-              @update:model-value="setCanvasSize($event, canvasHeight)"
-              :min="100"
-              :max="10000"
-              :step="10"
-              style="width: 100%"
-            />
-          </el-form-item>
-          <el-form-item label="画布高度">
-            <el-input-number
-              :model-value="canvasHeight"
-              @update:model-value="setCanvasSize(canvasWidth, $event)"
-              :min="100"
-              :max="10000"
-              :step="10"
-              style="width: 100%"
-            />
-          </el-form-item>
-          <el-form-item label="背景颜色">
-            <el-color-picker v-model="canvasConfig.backgroundColor" show-alpha />
-          </el-form-item>
-          <el-form-item label="显示网格">
-            <el-switch v-model="canvasConfig.showGrid" active-text="显示" inactive-text="隐藏" />
-          </el-form-item>
-          <template v-if="canvasConfig.showGrid">
-            <el-form-item label="网格大小(px)">
-              <el-input-number
-                v-model="canvasConfig.gridSize"
-                :min="5"
-                :max="100"
-                :step="5"
-                style="width: 100%"
-              />
-            </el-form-item>
-            <el-form-item label="主网格大小(px)">
-              <el-input-number
-                v-model="canvasConfig.gridMajorSize"
-                :min="20"
-                :max="500"
-                :step="10"
-                style="width: 100%"
-              />
-            </el-form-item>
-            <el-form-item label="网格颜色">
-              <el-color-picker v-model="canvasConfig.gridColor" />
-            </el-form-item>
-            <el-form-item label="主网格颜色">
-              <el-color-picker v-model="canvasConfig.gridMajorColor" />
-            </el-form-item>
-          </template>
-          <el-form-item label="背景图片URL">
-            <el-input
-              v-model="canvasConfig.backgroundImage"
-              placeholder="https://example.com/bg.jpg"
-              clearable
-            />
-          </el-form-item>
-        </el-form>
+    <el-scrollbar class="properties-scrollbar" view-class="scrollbar-view">
+      <div class="scroll-content">
+        <div v-if="!selectComponent" class="config-group">
+          <div class="panel-header">画布设置</div>
 
-        <div class="shortcuts-section">
-          <h4 class="shortcuts-title">快捷键指南</h4>
-          <el-space direction="vertical" :size="8" style="width: 100%">
-            <el-alert type="info" :closable="false">
-              <template #title> <strong>拖动</strong>：自动吸附邻近组件 </template>
-            </el-alert>
-            <el-alert type="info" :closable="false">
-              <template #title> <strong>Ctrl + 拖动/缩放</strong>：吸附到背景网格 </template>
-            </el-alert>
-            <el-alert type="warning" :closable="false">
-              <template #title> <strong>Alt + 拖动</strong>：将组件拖入容器建立父子关系 </template>
-            </el-alert>
-            <el-alert type="info" :closable="false">
-              <template #title> <strong>Alt + 点击</strong>：选中锁定的组件 </template>
-            </el-alert>
-            <el-alert type="success" :closable="false">
-              <template #title> <strong>Ctrl + C / V</strong>：复制/粘贴组件 </template>
-            </el-alert>
-            <el-alert type="success" :closable="false">
-              <template #title> <strong>Delete</strong>：删除选中组件 </template>
-            </el-alert>
-          </el-space>
-        </div>
-      </div>
-
-      <!-- 选中组件时显示属性表单 -->
-      <div v-else class="properties-form">
-        <!-- 多选提示 -->
-        <el-alert
-          v-if="isMultiSelect"
-          type="info"
-          :closable="false"
-          show-icon
-          style="margin-bottom: 16px"
-        >
-          <template #title>
-            已选中 {{ selectedIds.length }} 个组件，修改属性将应用到所有选中组件
-          </template>
-        </el-alert>
-        <!-- 组件基本信息 -->
-        <el-collapse v-model="activeCollapse" accordion>
-          <!-- 基础信息 -->
-          <el-collapse-item title="基础" name="basic">
-            <el-form label-position="top" size="small">
-              <el-form-item label="组件名称">
-                <el-input
-                  v-model="selectComponent.name"
-                  placeholder="输入自定义名称"
-                  clearable
-                  @change="storeComponent.commitDebounced()"
-                  @blur="storeComponent.commitDebounced()"
-                />
-                <template #extra>
-                  <span style="font-size: 12px; color: #909399">
-                    用于在组件树中区分同类型组件
-                  </span>
-                </template>
-              </el-form-item>
-              <el-form-item label="组件ID">
-                <el-input v-model="selectComponent.id" disabled />
-              </el-form-item>
-              <el-form-item label="组件类型">
-                <el-input v-model="selectComponent.type" disabled />
-              </el-form-item>
-              <el-row :gutter="12">
-                <el-col :span="12">
-                  <el-form-item label="X">
-                    <el-input-number
-                      v-model="selectComponent.position.x"
-                      :controls="true"
-                      :step="1"
-                      style="width: 100%"
-                    />
-                  </el-form-item>
-                </el-col>
-                <el-col :span="12">
-                  <el-form-item label="Y">
-                    <el-input-number
-                      v-model="selectComponent.position.y"
-                      :controls="true"
-                      :step="1"
-                      style="width: 100%"
-                    />
-                  </el-form-item>
-                </el-col>
-              </el-row>
-              <el-row :gutter="12">
-                <el-col :span="12">
-                  <el-form-item label="宽">
-                    <el-input-number
-                      v-model="selectComponent.size.width"
-                      :controls="true"
-                      :step="1"
-                      :min="10"
-                      style="width: 100%"
-                    />
-                  </el-form-item>
-                </el-col>
-                <el-col :span="12">
-                  <el-form-item label="高">
-                    <el-input-number
-                      v-model="selectComponent.size.height"
-                      :controls="true"
-                      :step="1"
-                      :min="10"
-                      style="width: 100%"
-                    />
-                  </el-form-item>
-                </el-col>
-              </el-row>
-              <el-form-item label="旋转">
-                <el-slider v-model="rotationForUi" :min="0" :max="360" :step="1" show-input />
-              </el-form-item>
-              <el-form-item label="Z-Index">
+          <el-form label-position="top" size="small" class="modern-form">
+            <div class="form-grid-2">
+              <el-form-item label="宽度">
                 <el-input-number
-                  v-model="selectComponent.zindex"
-                  :controls="true"
-                  :step="1"
-                  style="width: 100%"
+                  :model-value="canvasWidth"
+                  @update:model-value="setCanvasSize($event, canvasHeight)"
+                  :min="100"
+                  :max="10000"
+                  :controls="false"
+                  class="modern-input"
                 />
               </el-form-item>
-              <el-form-item label="层级操作">
-                <el-space wrap>
-                  <el-button size="small" @click="handleBringToFront">
-                    <el-icon><Top /></el-icon>
-                    置顶
-                  </el-button>
-                  <el-button size="small" @click="handleBringForward">
-                    <el-icon><CaretTop /></el-icon>
-                    上移
-                  </el-button>
-                  <el-button size="small" @click="handleSendBackward">
-                    <el-icon><CaretBottom /></el-icon>
-                    下移
-                  </el-button>
-                  <el-button size="small" @click="handleSendToBack">
-                    <el-icon><Bottom /></el-icon>
-                    置底
-                  </el-button>
-                </el-space>
+              <el-form-item label="高度">
+                <el-input-number
+                  :model-value="canvasHeight"
+                  @update:model-value="setCanvasSize(canvasWidth, $event)"
+                  :min="100"
+                  :max="10000"
+                  :controls="false"
+                  class="modern-input"
+                />
               </el-form-item>
-            </el-form>
-          </el-collapse-item>
+            </div>
 
-          <!-- 样式 -->
-          <el-collapse-item title="样式" name="style">
-            <el-form label-position="top" size="small">
-              <el-form-item label="不透明度">
-                <el-slider
-                  v-model="selectComponent.style.opacity"
-                  :min="0"
-                  :max="100"
-                  :step="1"
-                  show-input
-                />
-              </el-form-item>
-              <el-form-item label="可见性">
-                <el-switch
-                  v-model="selectComponent.style.visible"
-                  active-text="显示"
-                  inactive-text="隐藏"
-                />
-              </el-form-item>
-              <el-form-item label="锁定">
-                <el-switch
-                  v-model="selectComponent.style.locked"
-                  active-text="已锁定"
-                  inactive-text="未锁定"
-                />
-              </el-form-item>
-            </el-form>
-            <el-form label-position="top" size="small">
-              <template v-if="styleSchema.length">
-                <!-- Row 类型：样式字段写入 props，其他类型写入 style -->
-                <template v-if="isRow">
-                  <template v-for="field in styleSchema" :key="field.key">
-                    <el-form-item :label="field.label">
-                      <el-input
-                        v-if="field.type === 'text'"
-                        v-model="selectComponent.props[field.key]"
-                        :placeholder="field.placeholder"
-                      />
-                      <el-input-number
-                        v-else-if="field.type === 'number'"
-                        v-model="selectComponent.props[field.key]"
-                        :min="field.min"
-                        :max="field.max"
-                        :step="field.step ?? 1"
-                        style="width: 100%"
-                      />
-                      <el-color-picker
-                        v-else-if="field.type === 'color'"
-                        v-model="selectComponent.props[field.key]"
-                      />
-                      <el-select
-                        v-else-if="field.type === 'select'"
-                        v-model="selectComponent.props[field.key]"
-                        style="width: 100%"
-                      >
-                        <el-option
-                          v-for="opt in field.options"
-                          :key="opt.value"
-                          :label="opt.label"
-                          :value="opt.value"
-                        />
-                      </el-select>
-                      <el-switch
-                        v-else-if="field.type === 'switch'"
-                        v-model="selectComponent.props[field.key]"
-                      />
-                    </el-form-item>
-                  </template>
-                </template>
-                <template v-else>
-                  <template v-for="field in styleSchema" :key="field.key">
-                    <el-form-item :label="field.label">
-                      <el-input
-                        v-if="field.type === 'text'"
-                        v-model="selectComponent.style[field.key]"
-                        :placeholder="field.placeholder"
-                      />
-                      <el-input-number
-                        v-else-if="field.type === 'number'"
-                        v-model="selectComponent.style[field.key]"
-                        :min="field.min"
-                        :max="field.max"
-                        :step="field.step ?? 1"
-                        style="width: 100%"
-                      />
-                      <el-color-picker
-                        v-else-if="field.type === 'color'"
-                        v-model="selectComponent.style[field.key]"
-                      />
-                      <el-select
-                        v-else-if="field.type === 'select'"
-                        v-model="selectComponent.style[field.key]"
-                        style="width: 100%"
-                      >
-                        <el-option
-                          v-for="opt in field.options"
-                          :key="opt.value"
-                          :label="opt.label"
-                          :value="opt.value"
-                        />
-                      </el-select>
-                      <el-switch
-                        v-else-if="field.type === 'switch'"
-                        v-model="selectComponent.style[field.key]"
-                      />
-                    </el-form-item>
-                  </template>
-                </template>
-              </template>
-            </el-form>
-          </el-collapse-item>
+            <el-form-item label="背景颜色">
+              <div class="color-picker-row">
+                <el-color-picker v-model="canvasConfig.backgroundColor" show-alpha />
+                <span class="color-text">{{ canvasConfig.backgroundColor || '透明' }}</span>
+              </div>
+            </el-form-item>
 
-          <!-- 数据来源 -->
-          <el-collapse-item v-if="dataSourceSchema.length" title="数据来源" name="dataSource">
-            <el-form label-position="top" size="small">
-              <template v-for="field in dataSourceSchema" :key="field.key">
-                <el-form-item :label="field.label">
-                  <template v-if="field.type === 'text' && selectComponent.dataSource">
-                    <el-input
-                      v-if="field.key === 'headers'"
-                      v-model="headersInput"
-                      :placeholder="field.placeholder"
-                      type="textarea"
-                      :rows="3"
-                      @change="applyHeadersFromInput"
-                      @blur="applyHeadersFromInput"
-                    />
-                    <el-input
-                      v-else
-                      v-model="selectComponent.dataSource[field.key]"
-                      :placeholder="field.placeholder"
-                      @change="storeComponent.commitDebounced()"
-                      @blur="storeComponent.commitDebounced()"
-                    />
-                  </template>
+            <el-form-item label="背景图片">
+              <el-input
+                v-model="canvasConfig.backgroundImage"
+                placeholder="输入图片 URL"
+                clearable
+                class="modern-input"
+              >
+                <template #prefix>
+                  <el-icon><Picture /></el-icon>
+                </template>
+              </el-input>
+            </el-form-item>
+
+            <div class="divider"></div>
+
+            <div class="switch-row">
+              <span>显示网格</span>
+              <el-switch v-model="canvasConfig.showGrid" size="small" />
+            </div>
+
+            <template v-if="canvasConfig.showGrid">
+              <div class="form-grid-2">
+                <el-form-item label="网格大小">
                   <el-input-number
-                    v-else-if="field.type === 'number' && selectComponent.dataSource"
-                    v-model="selectComponent.dataSource[field.key]"
-                    :min="field.min"
-                    :max="field.max"
-                    :step="field.step ?? 1"
-                    style="width: 100%"
+                    v-model="canvasConfig.gridSize"
+                    :min="5"
+                    :max="100"
+                    :step="5"
+                    :controls="false"
+                    class="modern-input"
+                  />
+                </el-form-item>
+                <el-form-item label="主网格">
+                  <el-input-number
+                    v-model="canvasConfig.gridMajorSize"
+                    :min="20"
+                    :max="500"
+                    :step="10"
+                    :controls="false"
+                    class="modern-input"
+                  />
+                </el-form-item>
+              </div>
+              <div class="form-grid-2">
+                <el-form-item label="网格颜色">
+                  <div class="color-picker-row small">
+                    <el-color-picker v-model="canvasConfig.gridColor" show-alpha size="small" />
+                  </div>
+                </el-form-item>
+                <el-form-item label="主网格颜色">
+                  <div class="color-picker-row small">
+                    <el-color-picker
+                      v-model="canvasConfig.gridMajorColor"
+                      show-alpha
+                      size="small"
+                    />
+                  </div>
+                </el-form-item>
+              </div>
+            </template>
+          </el-form>
+
+          <div class="shortcuts-section">
+            <div class="section-title">快捷键</div>
+            <div class="shortcut-grid">
+              <div class="shortcut-card">
+                <span class="key">Space + 拖拽</span><span class="desc">平移画布</span>
+              </div>
+              <div class="shortcut-card">
+                <span class="key">Ctrl + 拖拽</span><span class="desc">网格吸附</span>
+              </div>
+              <div class="shortcut-card">
+                <span class="key">Alt + 拖拽</span><span class="desc">放入容器</span>
+              </div>
+              <div class="shortcut-card">
+                <span class="key">Ctrl + C/V</span><span class="desc">复制粘贴</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div v-else class="config-group">
+          <div v-if="isMultiSelect" class="multi-select-banner">
+            <el-icon><CopyDocument /></el-icon>
+            <span>已选中 {{ selectedIds.length }} 个组件</span>
+          </div>
+
+          <el-collapse v-model="activeCollapse" class="clean-collapse">
+            <el-collapse-item name="basic" title="基础属性">
+              <el-form label-position="top" size="small" class="modern-form">
+                <el-form-item label="组件名称">
+                  <el-input
+                    v-model="selectComponent.name"
+                    placeholder="未命名组件"
+                    class="modern-input"
                     @change="storeComponent.commitDebounced()"
                     @blur="storeComponent.commitDebounced()"
                   />
-                  <el-select
-                    v-else-if="field.type === 'select' && selectComponent.dataSource"
-                    v-model="selectComponent.dataSource[field.key]"
-                    style="width: 100%"
-                    @change="storeComponent.commitDebounced()"
-                  >
-                    <el-option
-                      v-for="opt in field.options"
-                      :key="opt.value"
-                      :label="opt.label"
-                      :value="opt.value"
+                </el-form-item>
+
+                <div class="form-grid-2">
+                  <el-form-item label="X">
+                    <el-input-number
+                      v-model="selectComponent.position.x"
+                      :controls="false"
+                      class="modern-input"
                     />
-                  </el-select>
-                  <el-switch
-                    v-else-if="field.type === 'switch' && selectComponent.dataSource"
-                    v-model="selectComponent.dataSource[field.key]"
-                    @change="storeComponent.commitDebounced()"
+                  </el-form-item>
+                  <el-form-item label="Y">
+                    <el-input-number
+                      v-model="selectComponent.position.y"
+                      :controls="false"
+                      class="modern-input"
+                    />
+                  </el-form-item>
+                  <el-form-item label="宽">
+                    <el-input-number
+                      v-model="selectComponent.size.width"
+                      :controls="false"
+                      :min="10"
+                      class="modern-input"
+                    />
+                  </el-form-item>
+                  <el-form-item label="高">
+                    <el-input-number
+                      v-model="selectComponent.size.height"
+                      :controls="false"
+                      :min="10"
+                      class="modern-input"
+                    />
+                  </el-form-item>
+                </div>
+
+                <el-form-item label="旋转">
+                  <el-slider
+                    v-model="rotationForUi"
+                    :min="0"
+                    :max="360"
+                    :step="1"
+                    show-input
+                    input-size="small"
                   />
                 </el-form-item>
-              </template>
-            </el-form>
 
-            <!-- 数据源预览 -->
-            <el-divider v-if="selectComponent.dataSource?.enabled" content-position="left">
-              <el-text size="small" type="info">数据预览</el-text>
-            </el-divider>
-            <div v-if="selectComponent.dataSource?.enabled" style="margin-top: 12px">
-              <el-alert v-if="previewLoading" type="info" :closable="false" show-icon>
-                <template #title>正在加载数据...</template>
-              </el-alert>
-              <el-alert v-else-if="previewError" type="error" :closable="false" show-icon>
-                <template #title>{{ previewError }}</template>
-              </el-alert>
-              <div v-else-if="previewData" style="max-height: 300px; overflow: auto">
-                <el-input
-                  :model-value="JSON.stringify(previewData, null, 2)"
-                  type="textarea"
-                  :rows="10"
-                  readonly
-                  style="font-family: 'Consolas', monospace; font-size: 12px"
-                />
-              </div>
-              <el-empty v-else description="暂无数据" :image-size="60" />
-            </div>
-          </el-collapse-item>
-
-          <!-- 组件自定义配置 -->
-          <el-collapse-item v-if="componentSchema.length" title="组件配置" name="component">
-            <el-form label-position="top" size="small">
-              <template v-for="field in componentSchema" :key="field.key">
-                <el-form-item :label="field.label">
-                  <template v-if="field.type === 'text'">
+                <div class="form-grid-2">
+                  <el-form-item label="Z-Index">
+                    <el-input-number
+                      v-model="selectComponent.zindex"
+                      :controls="false"
+                      class="modern-input"
+                    />
+                  </el-form-item>
+                  <el-form-item label="ID">
                     <el-input
-                      v-model="componentFieldInput[field.key]"
-                      type="textarea"
-                      :rows="4"
-                      :placeholder="field.placeholder"
-                      @blur="applyComponentField(field.key)"
+                      :model-value="selectComponent.id.slice(0, 8)"
+                      disabled
+                      class="modern-input disabled"
                     />
-                  </template>
-                  <el-color-picker
-                    v-else-if="field.type === 'color'"
-                    v-model="selectComponent.props[field.key]"
-                    show-alpha
-                    @change="storeComponent.commitDebounced()"
-                  />
-                  <el-input-number
-                    v-else-if="field.type === 'number'"
-                    v-model="selectComponent.props[field.key]"
-                    :min="field.min"
-                    :max="field.max"
-                    :step="field.step ?? 1"
-                    style="width: 100%"
-                    @change="storeComponent.commitDebounced()"
-                  />
-                  <el-select
-                    v-else-if="field.type === 'select'"
-                    v-model="selectComponent.props[field.key]"
-                    style="width: 100%"
-                    @change="storeComponent.commitDebounced()"
-                  >
-                    <el-option
-                      v-for="opt in field.options"
-                      :key="opt.value"
-                      :label="opt.label"
-                      :value="opt.value"
-                    />
-                  </el-select>
-                  <el-switch
-                    v-else-if="field.type === 'switch'"
-                    v-model="selectComponent.props[field.key]"
-                    @change="storeComponent.commitDebounced()"
-                  />
+                  </el-form-item>
+                </div>
+
+                <el-form-item label="层级操作">
+                  <div class="layer-actions">
+                    <el-tooltip content="置顶"
+                      ><el-button size="small" circle @click="handleBringToFront"
+                        ><el-icon><Top /></el-icon></el-button
+                    ></el-tooltip>
+                    <el-tooltip content="上移"
+                      ><el-button size="small" circle @click="handleBringForward"
+                        ><el-icon><CaretTop /></el-icon></el-button
+                    ></el-tooltip>
+                    <el-tooltip content="下移"
+                      ><el-button size="small" circle @click="handleSendBackward"
+                        ><el-icon><CaretBottom /></el-icon></el-button
+                    ></el-tooltip>
+                    <el-tooltip content="置底"
+                      ><el-button size="small" circle @click="handleSendToBack"
+                        ><el-icon><Bottom /></el-icon></el-button
+                    ></el-tooltip>
+                  </div>
                 </el-form-item>
-              </template>
-            </el-form>
-          </el-collapse-item>
-        </el-collapse>
+              </el-form>
+            </el-collapse-item>
 
-        <!-- 文本内容 -->
-        <div v-if="selectComponent.type === 'Text'" class="text-content-section">
-          <el-form label-position="top" size="small">
-            <el-form-item label="文本内容">
-              <el-input
-                v-model="selectComponent.props.text"
-                type="textarea"
-                :rows="4"
-                placeholder="请输入文本内容"
-              />
-            </el-form-item>
-          </el-form>
-        </div>
+            <el-collapse-item name="style" title="外观样式">
+              <el-form label-position="top" size="small" class="modern-form">
+                <div class="switch-group">
+                  <div class="switch-row">
+                    <span>可见性</span>
+                    <el-switch v-model="selectComponent.style.visible" size="small" />
+                  </div>
+                  <div class="switch-row">
+                    <span>锁定位置</span>
+                    <el-switch v-model="selectComponent.style.locked" size="small" />
+                  </div>
+                </div>
 
-        <!-- 操作按钮 -->
-        <div class="action-buttons">
-          <el-button type="danger" size="small" style="width: 100%" @click="handleDelete">
-            删除组件
-          </el-button>
+                <el-form-item label="不透明度">
+                  <el-slider v-model="selectComponent.style.opacity" :min="0" :max="100" />
+                </el-form-item>
+
+                <template v-if="styleSchema.length">
+                  <template v-for="field in styleSchema" :key="field.key">
+                    <el-form-item :label="field.label">
+                      <el-input
+                        v-if="field.type === 'text'"
+                        v-model="getStyleValue(field.key).value"
+                        :placeholder="field.placeholder"
+                        class="modern-input"
+                      />
+                      <el-input-number
+                        v-else-if="field.type === 'number'"
+                        v-model="getStyleValue(field.key).value"
+                        :min="field.min"
+                        :max="field.max"
+                        :step="field.step ?? 1"
+                        :controls="false"
+                        class="modern-input"
+                      />
+                      <div v-else-if="field.type === 'color'" class="color-picker-row">
+                        <el-color-picker v-model="getStyleValue(field.key).value" show-alpha />
+                        <span class="color-text">{{ getStyleValue(field.key).value }}</span>
+                      </div>
+                      <el-select
+                        v-else-if="field.type === 'select'"
+                        v-model="getStyleValue(field.key).value"
+                        class="modern-select"
+                      >
+                        <el-option
+                          v-for="opt in field.options"
+                          :key="opt.value"
+                          :label="opt.label"
+                          :value="opt.value"
+                        />
+                      </el-select>
+                      <el-switch
+                        v-else-if="field.type === 'switch'"
+                        v-model="getStyleValue(field.key).value"
+                      />
+                    </el-form-item>
+                  </template>
+                </template>
+              </el-form>
+            </el-collapse-item>
+
+            <el-collapse-item v-if="dataSourceSchema.length" title="数据来源" name="dataSource">
+              <el-form label-position="top" size="small" class="modern-form">
+                <template v-for="field in dataSourceSchema" :key="field.key">
+                  <el-form-item :label="field.label">
+                    <template v-if="field.type === 'text' && selectComponent.dataSource">
+                      <el-input
+                        v-if="field.key === 'headers'"
+                        v-model="headersInput"
+                        :placeholder="field.placeholder"
+                        type="textarea"
+                        :rows="3"
+                        class="modern-input"
+                        @change="applyHeadersFromInput"
+                        @blur="applyHeadersFromInput"
+                      />
+                      <el-input
+                        v-else
+                        v-model="selectComponent.dataSource[field.key]"
+                        :placeholder="field.placeholder"
+                        class="modern-input"
+                        @change="storeComponent.commitDebounced()"
+                        @blur="storeComponent.commitDebounced()"
+                      />
+                    </template>
+                    <el-input-number
+                      v-else-if="field.type === 'number' && selectComponent.dataSource"
+                      v-model="selectComponent.dataSource[field.key]"
+                      :min="field.min"
+                      :max="field.max"
+                      :step="field.step ?? 1"
+                      :controls="false"
+                      class="modern-input"
+                      @change="storeComponent.commitDebounced()"
+                      @blur="storeComponent.commitDebounced()"
+                    />
+                    <el-select
+                      v-else-if="field.type === 'select' && selectComponent.dataSource"
+                      v-model="selectComponent.dataSource[field.key]"
+                      class="modern-select"
+                      @change="storeComponent.commitDebounced()"
+                    >
+                      <el-option
+                        v-for="opt in field.options"
+                        :key="opt.value"
+                        :label="opt.label"
+                        :value="opt.value"
+                      />
+                    </el-select>
+                    <el-switch
+                      v-else-if="field.type === 'switch' && selectComponent.dataSource"
+                      v-model="selectComponent.dataSource[field.key]"
+                      @change="storeComponent.commitDebounced()"
+                    />
+                  </el-form-item>
+                </template>
+              </el-form>
+
+              <div v-if="selectComponent.dataSource?.enabled" class="preview-card">
+                <div class="preview-header">数据预览</div>
+                <div v-if="previewLoading" class="preview-status">加载中...</div>
+                <div v-else-if="previewError" class="preview-status error">{{ previewError }}</div>
+                <div v-else-if="previewData" class="code-wrapper">
+                  <pre class="code-block">{{ JSON.stringify(previewData, null, 2) }}</pre>
+                </div>
+                <div v-else class="preview-status">暂无数据</div>
+              </div>
+            </el-collapse-item>
+
+            <el-collapse-item v-if="componentSchema.length" title="组件配置" name="component">
+              <el-form label-position="top" size="small" class="modern-form">
+                <template v-for="field in componentSchema" :key="field.key">
+                  <el-form-item :label="field.label">
+                    <template v-if="field.type === 'text'">
+                      <el-input
+                        v-model="componentFieldInput[field.key]"
+                        type="textarea"
+                        :rows="4"
+                        :placeholder="field.placeholder"
+                        class="modern-input"
+                        @blur="applyComponentField(field.key)"
+                      />
+                    </template>
+                    <div v-else-if="field.type === 'color'" class="color-picker-row">
+                      <el-color-picker
+                        v-model="selectComponent.props[field.key]"
+                        show-alpha
+                        @change="storeComponent.commitDebounced()"
+                      />
+                    </div>
+                    <el-input-number
+                      v-else-if="field.type === 'number'"
+                      v-model="selectComponent.props[field.key]"
+                      :min="field.min"
+                      :max="field.max"
+                      :step="field.step ?? 1"
+                      :controls="false"
+                      class="modern-input"
+                      @change="storeComponent.commitDebounced()"
+                    />
+                    <el-select
+                      v-else-if="field.type === 'select'"
+                      v-model="selectComponent.props[field.key]"
+                      class="modern-select"
+                      @change="storeComponent.commitDebounced()"
+                    >
+                      <el-option
+                        v-for="opt in field.options"
+                        :key="opt.value"
+                        :label="opt.label"
+                        :value="opt.value"
+                      />
+                    </el-select>
+                    <el-switch
+                      v-else-if="field.type === 'switch'"
+                      v-model="selectComponent.props[field.key]"
+                      @change="storeComponent.commitDebounced()"
+                    />
+                  </el-form-item>
+                </template>
+              </el-form>
+            </el-collapse-item>
+          </el-collapse>
+
+          <div v-if="selectComponent.type === 'Text'" class="text-content-section">
+            <div class="section-title">文本内容</div>
+            <el-input
+              v-model="selectComponent.props.text"
+              type="textarea"
+              :rows="4"
+              placeholder="请输入文本内容"
+              class="modern-input"
+            />
+          </div>
+
+          <div class="action-buttons">
+            <el-button type="danger" plain class="delete-btn" @click="handleDeleteComponent">
+              <el-icon class="icon-margin"><Delete /></el-icon> 删除组件
+            </el-button>
+          </div>
         </div>
       </div>
     </el-scrollbar>
@@ -479,369 +427,341 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, watch } from 'vue'
-import { Top, Bottom, CaretTop, CaretBottom } from '@element-plus/icons-vue'
+import {
+  Top,
+  Bottom,
+  CaretTop,
+  CaretBottom,
+  Picture,
+  CopyDocument,
+  Delete,
+} from '@element-plus/icons-vue'
 import { useComponent } from '@/stores/component'
-import { useSizeStore } from '@/stores/size'
-import { storeToRefs } from 'pinia'
-import { customProperties } from './properties'
-import { useDataSource } from '@/datasource/useDataSource'
-// 状态管理
+import {
+  customProperties,
+  useCanvasSettings,
+  useComponentProperties,
+  useDataPreview,
+  useComponentFields,
+  useLayerActions,
+  useMultiSelect,
+  useComponentInitialization,
+} from './properties'
+
 const storeComponent = useComponent()
-const { selectComponent, selectedIds } = storeToRefs(storeComponent)
-const sizeStore = useSizeStore()
-const { width: canvasWidth, height: canvasHeight, canvasConfig } = storeToRefs(sizeStore)
-const { setSize: setCanvasSize } = sizeStore
 
-const activeCollapse = ref(['basic'])
-const { styleSchema, dataSourceSchema, componentSchema } = customProperties()
-const isRow = computed(() => {
-  const t = selectComponent.value?.type
-  return t === 'Row' || t === 'layout.row'
-})
+// Canvas settings
+const { canvasWidth, canvasHeight, canvasConfig, setCanvasSize } = useCanvasSettings()
 
-// 数据源预览
+// Component properties
 const {
-  data: previewData,
-  loading: previewLoading,
-  error: previewError,
-} = useDataSource(computed(() => selectComponent.value?.dataSource))
+  selectComponent,
+  selectedIds,
+  activeCollapse,
+  isMultiSelect,
+  getStyleValue,
+  rotationForUi,
+} = useComponentProperties()
 
-// DataSource.headers 使用字符串输入并在提交时解析为对象，避免类型不匹配
-const headersInput = ref('')
+// Data preview
+const { previewData, previewLoading, previewError } = useDataPreview()
 
-function applyHeadersFromInput() {
-  const ds = selectComponent.value?.dataSource
-  if (!ds) return
-  try {
-    const text = headersInput.value.trim()
-    ds.headers = text ? (JSON.parse(text) as Record<string, string>) : {}
-    storeComponent.commitDebounced()
-  } catch {
-    // 非法 JSON 时，不落库，仅保持输入框文本
-  }
-}
+// Component fields
+const { headersInput, applyHeadersFromInput, componentFieldInput, applyComponentField } =
+  useComponentFields()
 
-// 切换组件或数据源变更时，同步输入框展示
-watch(
-  () => selectComponent.value?.dataSource,
-  (ds) => {
-    if (!ds) return
-    const raw = ds.headers
-    if (typeof raw === 'string') {
-      headersInput.value = raw
-    } else {
-      headersInput.value = JSON.stringify(raw ?? {}, null, 2)
-    }
-  },
-  { immediate: true, deep: true },
-)
+// Layer actions
+const {
+  handleBringToFront,
+  handleBringForward,
+  handleSendBackward,
+  handleSendToBack,
+  handleDelete,
+} = useLayerActions()
 
-// 组件字段输入缓存（用于 JSON 文本输入 -> props 值）
-const componentFieldInput = ref<Record<string, string>>({})
+// Multi select
+const { handleDeleteMulti } = useMultiSelect()
 
-function applyComponentField(key: string) {
-  const comp = selectComponent.value
-  if (!comp) return
-  const text = componentFieldInput.value[key]?.trim() ?? ''
-  if (!text) {
-    // 设置为空值
-    Reflect.set(comp.props as Record<string, unknown>, key, undefined)
-    storeComponent.commitDebounced()
-    return
-  }
-  // 尝试解析 JSON，否则当作普通字符串
-  try {
-    const parsed = JSON.parse(text)
-    Reflect.set(comp.props as Record<string, unknown>, key, parsed)
-  } catch {
-    Reflect.set(comp.props as Record<string, unknown>, key, text)
-  }
-  storeComponent.commitDebounced()
-}
+// Component initialization
+useComponentInitialization()
 
-// 当切换组件或组件 props 改变时，同步 componentFieldInput
-watch(
-  () => selectComponent.value,
-  (comp) => {
-    if (!comp) {
-      componentFieldInput.value = {}
-      return
-    }
-    // 初始化 componentSchema 字段默认值（若 props 缺失）
-    for (const f of componentSchema.value) {
-      if (!('props' in comp) || !comp.props) comp.props = {}
-      if (comp.props[f.key] === undefined) {
-        Reflect.set(comp.props as Record<string, unknown>, f.key, f.default ?? undefined)
-      }
-      // 同步到输入缓存（JSON 格式化）
-      const v = comp.props[f.key]
-      componentFieldInput.value[f.key] =
-        v === undefined ? '' : typeof v === 'string' ? v : JSON.stringify(v, null, 2)
-    }
-  },
-  { immediate: true, deep: true },
-)
+const { styleSchema, dataSourceSchema, componentSchema } = customProperties()
 
-// 多选提示
-const isMultiSelect = computed(() => selectedIds.value.length > 1)
-
-// 旋转
-const rotationForUi = computed({
-  get: () => {
-    const rot = selectComponent.value?.rotation ?? 0
-    const n = rot % 360
-    return n < 0 ? n + 360 : n
-  },
-  set: (val: number) => {
-    const comp = selectComponent.value
-    if (!comp) return
-    const current = comp.rotation ?? 0
-    const k = Math.round((current - val) / 360)
-    const target = val + 360 * k
-    storeComponent.updateComponentRotation(target)
-  },
-})
-
-// 事件处理函数
-const handleBringToFront = () => {
-  const id = selectComponent.value?.id
-  if (id) storeComponent.bringToFront(id)
-}
-
-const handleBringForward = () => {
-  const id = selectComponent.value?.id
-  if (id) storeComponent.bringForward(id)
-}
-
-const handleSendBackward = () => {
-  const id = selectComponent.value?.id
-  if (id) storeComponent.sendBackward(id)
-}
-
-const handleSendToBack = () => {
-  const id = selectComponent.value?.id
-  if (id) storeComponent.sendToBack(id)
-}
-
-const handleDelete = () => {
-  if (isMultiSelect.value) {
-    storeComponent.removeMultipleComponents([...selectedIds.value])
-  } else {
-    const id = selectComponent.value?.id
-    if (id) storeComponent.removeComponent(id)
-  }
-}
-
-// 监听属性变化，批量同步到所有选中组件
-watch(
-  () => selectComponent.value?.position,
-  (newPos) => {
-    if (!isMultiSelect.value || !newPos) return
-    selectedIds.value.forEach((id) => {
-      const comp = storeComponent.componentStore.find((c) => c.id === id)
-      if (comp && comp.id !== selectComponent.value?.id) {
-        comp.position.x = newPos.x
-        comp.position.y = newPos.y
-      }
-    })
-    // 记录批量修改历史
-    storeComponent.commitDebounced()
-  },
-  { deep: true },
-)
-
-watch(
-  () => selectComponent.value?.size,
-  (newSize) => {
-    if (!isMultiSelect.value || !newSize) return
-    selectedIds.value.forEach((id) => {
-      const comp = storeComponent.componentStore.find((c) => c.id === id)
-      if (comp && comp.id !== selectComponent.value?.id) {
-        comp.size.width = newSize.width
-        comp.size.height = newSize.height
-      }
-    })
-    // 记录批量修改历史
-    storeComponent.commitDebounced()
-  },
-  { deep: true },
-)
-
-watch(
-  () => selectComponent.value?.rotation,
-  (newRotation) => {
-    if (!isMultiSelect.value || newRotation === undefined) return
-    selectedIds.value.forEach((id) => {
-      const comp = storeComponent.componentStore.find((c) => c.id === id)
-      if (comp && comp.id !== selectComponent.value?.id) {
-        comp.rotation = newRotation
-      }
-    })
-    // 记录批量修改历史
-    storeComponent.commitDebounced()
-  },
-)
-
-watch(
-  () => selectComponent.value?.style,
-  (newStyle) => {
-    if (!isMultiSelect.value || !newStyle) return
-    selectedIds.value.forEach((id) => {
-      const comp = storeComponent.componentStore.find((c) => c.id === id)
-      if (comp && comp.id !== selectComponent.value?.id && comp.style) {
-        // 同步样式属性
-        Object.assign(comp.style, { ...newStyle })
-      }
-    })
-    // 记录批量修改历史
-    storeComponent.commitDebounced()
-  },
-  { deep: true },
-)
-
-watch(
-  () => selectComponent.value,
-  (comp) => {
-    if (!comp) return
-    if (!('style' in comp) || !comp.style) {
-      comp.style = {}
-    }
-    if (comp.style.opacity === undefined) comp.style.opacity = 100
-    if (comp.style.visible === undefined) comp.style.visible = true
-    if (comp.style.locked === undefined) comp.style.locked = false
-    // 初始化样式字段默认值
-    for (const f of styleSchema.value) {
-      if (isRow.value) {
-        if (comp.props[f.key] === undefined) {
-          Reflect.set(comp.props as Record<string, unknown>, f.key, f.default)
-        }
-      } else {
-        if (comp.style[f.key] === undefined) {
-          Reflect.set(comp.style as Record<string, unknown>, f.key, f.default)
-        }
-      }
-    }
-    // 初始化 props
-    if (!('props' in comp) || !comp.props) comp.props = {}
-    if (!comp.props.text) comp.props.text = '示例文本'
-    // 初始化 dataSource
-    if (!('dataSource' in comp) || !comp.dataSource) {
-      comp.dataSource = {
-        enabled: false,
-        url: '',
-        method: 'GET',
-        headers: {},
-        body: '',
-        interval: 0,
-        dataPath: '',
-      }
-    }
-    for (const f of dataSourceSchema.value) {
-      if (comp.dataSource[f.key] === undefined) {
-        comp.dataSource[f.key] = f.default as never
-      }
-    }
-  },
-  { immediate: true },
-)
+// Multi-select delete handler
+const handleDeleteComponent = () => (isMultiSelect.value ? handleDeleteMulti() : handleDelete())
 </script>
 
 <style scoped>
+/* 根容器：Flex 布局，填满高度 */
 .properties-panel {
+  width: 100%;
   height: 100%;
-  background: #fff;
-  border-left: 1px solid #e4e7ed;
-}
-
-.properties-scrollbar {
-  height: 100%;
-}
-
-.empty-state {
   display: flex;
-  align-items: center;
-  justify-content: center;
-  height: 100%;
-  padding: 40px 20px;
+  flex-direction: column;
+  overflow: hidden; /* 防止出现双重滚动条 */
+  background: transparent;
 }
 
-.properties-form {
+/* 滚动组件：flex: 1 自动占据剩余空间，height: 0 强制 Flex 容器收缩 */
+.properties-scrollbar {
+  flex: 1;
+  height: 0;
+  width: 100%;
+}
+
+/* 内容容器：提供内边距，解决左右贴边问题 */
+.scroll-content {
   padding: 16px;
+  box-sizing: border-box;
 }
 
-.canvas-config {
-  padding: 16px;
-}
-
-.shortcuts-section {
-  margin-top: 20px;
-  padding-top: 20px;
-  border-top: 1px solid #e4e7ed;
-}
-
-.shortcuts-title {
-  margin: 0 0 12px 0;
+/* 标题样式 */
+.panel-header {
   font-size: 14px;
   font-weight: 600;
-  color: #303133;
+  color: var(--text-primary);
+  margin-bottom: 16px;
+  padding-left: 4px;
 }
 
-.properties-form :deep(.el-collapse) {
-  border: none;
-}
-
-.properties-form :deep(.el-collapse-item__header) {
+.section-title {
+  font-size: 12px;
   font-weight: 600;
-  font-size: 14px;
-  color: #303133;
-  background: #f5f7fa;
-  padding: 0 12px;
-  border-radius: 4px;
-  margin-bottom: 8px;
+  color: var(--text-secondary);
+  margin: 24px 0 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
 }
 
-.properties-form :deep(.el-collapse-item__wrap) {
-  border: none;
-}
-
-.properties-form :deep(.el-collapse-item__content) {
-  padding-bottom: 16px;
-}
-
-.properties-form :deep(.el-form-item) {
+/* 现代表单样式 */
+.modern-form .el-form-item {
   margin-bottom: 16px;
 }
 
-.properties-form :deep(.el-form-item__label) {
-  font-size: 13px;
-  color: #606266;
-  font-weight: 500;
-  padding-bottom: 4px;
+.modern-form :deep(.el-form-item__label) {
+  font-size: 12px;
+  color: var(--text-secondary);
+  padding-bottom: 6px;
+  line-height: 1.2;
 }
 
-.text-content-section {
-  margin-top: 16px;
-  padding-top: 16px;
-  border-top: 1px solid #e4e7ed;
+/* 输入框：浅灰填充 + 无边框 */
+.modern-input :deep(.el-input__wrapper) {
+  background-color: var(--bg-hover);
+  box-shadow: none !important;
+  border-radius: 8px;
+  padding: 4px 11px;
 }
 
-.action-buttons {
-  margin-top: 20px;
-  padding-top: 20px;
-  border-top: 1px solid #e4e7ed;
+.modern-input :deep(.el-input__wrapper.is-focus) {
+  background-color: #fff;
+  box-shadow: 0 0 0 1px #1967d2 !important; /* Google Blue */
+}
+
+/* Select 特殊处理 */
+.modern-select :deep(.el-input__wrapper) {
+  background-color: var(--bg-hover);
+  box-shadow: none !important;
+  border-radius: 8px;
+}
+
+/* 禁用状态 */
+.modern-input.disabled :deep(.el-input__wrapper) {
+  background-color: rgba(0, 0, 0, 0.04);
+  color: var(--text-tertiary);
+}
+
+/* 网格布局工具 */
+.form-grid-2 {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+
+/* 颜色选择器 */
+.color-picker-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: var(--bg-hover);
+  padding: 6px 10px;
+  border-radius: 8px;
+  width: fit-content;
+}
+
+.color-picker-row.small {
+  padding: 4px;
+  background: transparent;
+}
+
+.color-text {
+  font-size: 12px;
+  color: var(--text-secondary);
+  font-family: monospace;
+}
+
+/* 开关组 */
+.switch-group {
+  background: var(--bg-hover);
+  padding: 12px;
+  border-radius: 8px;
   display: flex;
   flex-direction: column;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.switch-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 12px;
+  color: var(--text-secondary);
+}
+
+.divider {
+  height: 1px;
+  background: var(--border-light);
+  margin: 20px 0;
+}
+
+/* 快捷键卡片网格 */
+.shortcut-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
   gap: 8px;
 }
 
-:deep(.properties-scrollbar > .el-scrollbar__wrap) {
-  overflow-x: hidden;
+.shortcut-card {
+  background: var(--bg-hover);
+  padding: 12px;
+  border-radius: 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
 }
 
-.properties-panel,
-.properties-form,
-.properties-form * {
-  box-sizing: border-box;
+.shortcut-card .key {
+  font-weight: 600;
+  font-size: 12px;
+  color: var(--text-primary);
+}
+
+.shortcut-card .desc {
+  font-size: 11px;
+  color: var(--text-tertiary);
+}
+
+/* 多选横幅 */
+.multi-select-banner {
+  background: #e8f0fe;
+  color: #1967d2;
+  padding: 12px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 12px;
+  font-weight: 600;
+  margin-bottom: 16px;
+}
+
+/* 现代化折叠面板 (Clean Collapse) */
+.clean-collapse {
+  border: none;
+  --el-collapse-header-bg-color: transparent;
+  --el-collapse-content-bg-color: transparent;
+  --el-collapse-border-color: transparent;
+}
+
+:deep(.el-collapse-item__header) {
+  border-bottom: none;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-primary);
+  height: 48px;
+  padding-left: 0;
+}
+
+:deep(.el-collapse-item__content) {
+  padding-bottom: 24px;
+}
+
+:deep(.el-collapse-item__wrap) {
+  border-bottom: 1px solid var(--border-light);
+}
+
+:deep(.el-collapse-item:last-child .el-collapse-item__wrap) {
+  border-bottom: none;
+}
+
+/* 层级操作按钮 */
+.layer-actions {
+  display: flex;
+  gap: 8px;
+}
+
+/* 预览卡片 */
+.preview-card {
+  background: #1e1e1e;
+  border-radius: 8px;
+  padding: 12px;
+  margin-top: 8px;
+}
+
+.preview-header {
+  color: #999;
+  font-size: 11px;
+  margin-bottom: 8px;
+}
+
+.code-wrapper {
+  max-height: 200px;
+  overflow-y: auto;
+}
+
+.code-block {
+  margin: 0;
+  font-family: 'SFMono-Regular', Consolas, monospace;
+  font-size: 11px;
+  color: #d4d4d4;
+  white-space: pre-wrap;
+  word-break: break-all;
+}
+
+.preview-status {
+  color: #666;
+  font-size: 12px;
+  text-align: center;
+  padding: 10px;
+}
+
+.preview-status.error {
+  color: #f56c6c;
+}
+
+/* 底部按钮 */
+.action-buttons {
+  margin-top: 32px;
+  padding-top: 20px;
+  border-top: 1px solid var(--border-light);
+}
+
+.delete-btn {
+  width: 100%;
+  border-radius: 8px;
+  height: 36px;
+  background-color: #fef0f0;
+  border-color: #fde2e2;
+  color: #f56c6c;
+}
+
+.delete-btn:hover {
+  background-color: #f56c6c;
+  color: white;
+}
+
+.icon-margin {
+  margin-right: 4px;
 }
 </style>

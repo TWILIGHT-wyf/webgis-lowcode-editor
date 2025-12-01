@@ -1,15 +1,7 @@
 import { ref } from 'vue'
 import { nanoid } from 'nanoid'
 import type { Ref } from 'vue'
-
-export interface ClipboardApi<C> {
-  clipboard: Ref<C[]>
-  copy: (id: string) => void
-  cut: (id: string) => void
-  copyMultiple: (ids: string[]) => void
-  cutMultiple: (ids: string[]) => void
-  paste: (position: { x: number; y: number }) => void
-}
+import type { ClipboardApi } from '@/types/store'
 
 function deepClone<T>(v: T): T {
   return JSON.parse(JSON.stringify(v)) as T
@@ -36,7 +28,7 @@ export function createClipboard<
     commit: (force?: boolean) => void
   },
 ): ClipboardApi<C> {
-  const clipboard = ref<C[]>([]) as unknown as Ref<C[]>
+  const clipboard = ref<C[]>([]) as Ref<C[]>
 
   function snapshotWithoutGrouping(comp: C): C {
     const snap = deepClone(comp) as C & { groupId?: string; children?: string[] }
@@ -107,7 +99,7 @@ export function createClipboard<
 
     if (clipboard.value.length === 1) {
       const lastComp = clipboard.value[0]!
-      const base = snapshotWithoutGrouping(lastComp as unknown as C)
+      const base = snapshotWithoutGrouping(lastComp as C)
       const newComp = {
         ...base,
         id: nanoid(),
@@ -118,7 +110,7 @@ export function createClipboard<
       deps.selectedId(newComp.id)
       deps.commit()
     } else {
-      const snaps = clipboard.value.map((c) => snapshotWithoutGrouping(c as unknown as C))
+      const snaps = clipboard.value.map((c) => snapshotWithoutGrouping(c as C))
       const anchor = snaps[0]!
       const newIds: string[] = []
       const timestamp = nanoid()

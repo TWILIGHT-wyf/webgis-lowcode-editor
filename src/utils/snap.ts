@@ -1,16 +1,6 @@
 // 简单的吸附（snap）工具函数
 // 提供一个纯函数接口，便于单元测试与独立计算吸附位置，不依赖于 Pinia 或 Vue 的响应式系统
-export interface Rect {
-  x: number
-  y: number
-  width: number
-  height: number
-}
-
-export interface SnapOptions {
-  // 吸附阈值（像素），小于等于该距离会触发吸附
-  threshold?: number
-}
+import type { Rect, SnapOptions } from '@/types/snap'
 
 /**
  * 计算吸附后的位置（纯函数）

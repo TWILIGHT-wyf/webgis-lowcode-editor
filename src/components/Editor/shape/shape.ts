@@ -3,7 +3,7 @@ import { useComponent } from '@/stores/component'
 import { useSizeStore } from '@/stores/size'
 import { storeToRefs } from 'pinia'
 import { useCanvasInteraction } from '@/components/Editor/canvasBoard/canvasBoard'
-import { throttle, debounce } from '@/utils/throttleDebounce'
+import { debounce, throttle } from 'lodash-es'
 import { useSnap } from '../snap/snap'
 
 export function useShape(id: string) {
@@ -32,11 +32,8 @@ export function useShape(id: string) {
   const wrapperRef = ref<HTMLDivElement | null>(null)
   const canvasWrapRef = inject<Ref<HTMLDivElement | null>>('canvasWrapRef')
 
-  // 防抖更新位置
-  const debouncedUpdatePosition = debounce(
-    updateComponentPosition as (...args: unknown[]) => unknown,
-    10,
-  ) as (pos: { x: number; y: number }) => void
+  // 防抖更新位置（让 debounce 推断参数类型）
+  const debouncedUpdatePosition = debounce(updateComponentPosition, 10)
 
   const { snapToNeighbors, snapToGrid, boxCache, meComp } = useSnap()
 
@@ -49,7 +46,7 @@ export function useShape(id: string) {
     enableDrag: true,
     preventBubble: true,
     dragThreshold: 5,
-    rootRefForAbs: canvasWrapRef as any, // eslint-disable-line @typescript-eslint/no-explicit-any
+    rootRefForAbs: canvasWrapRef,
     dragCallback: (x, y, ctrlPressed) => {
       ;(setSelected as (id: string) => void)(id)
       const comp = currentComponent.value
@@ -115,13 +112,15 @@ export function useShape(id: string) {
       const comp = currentComponent.value
       if (!comp) return
 
-      // 容器类型列表
-      const containerTypes = ['panel', 'row', 'col', 'flex', 'grid', 'modal', 'tabs', 'Group']
+      // 容器类型列表（以小写形式列出以便不区分大小写比较）
+      const containerTypes = ['panel', 'row', 'col', 'flex', 'grid', 'modal', 'tabs', 'group']
 
-      // 查找所有容器组件
-      const containers = compStore.componentStore.filter(
-        (c) => containerTypes.includes(c.type) && c.id !== comp.id && c.id !== comp.groupId,
-      )
+      // 查找所有容器组件（类型比较不区分大小写）
+      const containers = compStore.componentStore.filter((c) => {
+        if (!c.type) return false
+        const t = String(c.type).toLowerCase()
+        return containerTypes.includes(t) && c.id !== comp.id && c.id !== comp.groupId
+      })
 
       // 计算当前组件的中心点
       const compCenterX = comp.position.x + comp.size.width / 2
@@ -445,7 +444,7 @@ export function useShape(id: string) {
       })
     }
   }
-  const throttledHandleMouseMove = throttle(onHandleMouseMove as any, 16) // eslint-disable-line @typescript-eslint/no-explicit-any
+  const throttledHandleMouseMove = throttle(onHandleMouseMove, 16)
   const onHandleMouseUp = () => {
     isDragging.value = false
     window.removeEventListener('mousemove', throttledHandleMouseMove)
@@ -479,7 +478,7 @@ export function useShape(id: string) {
     const deg = (angle * 180) / Math.PI
     updateComponentRotation(deg)
   }
-  const throttledRotateMouseMove = throttle(onRotateMouseMove as any, 16) // eslint-disable-line @typescript-eslint/no-explicit-any
+  const throttledRotateMouseMove = throttle(onRotateMouseMove, 16)
   const onRotateMouseUp = () => {
     isDragging.value = false
     window.removeEventListener('mousemove', throttledRotateMouseMove)

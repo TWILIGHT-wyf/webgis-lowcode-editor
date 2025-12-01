@@ -21,6 +21,7 @@ import cors from 'cors'
 import dotenv from 'dotenv'
 import { parseArgs } from 'node:util'
 import { ProxyAgent, fetch as undiciFetch } from 'undici'
+import mongoose from 'mongoose'
 
 // ==================== 命令行参数解析 ====================
 const { values: args } = parseArgs({
@@ -200,6 +201,9 @@ const CONFIG = {
   model: String(args.model || process.env.AI_MODEL || ''),
   port: parseInt(String(args.port || process.env.PROXY_PORT || '3001'), 10),
   proxy: String(args.proxy || process.env.HTTPS_PROXY || 'http://127.0.0.1:7897'),
+  mongoUri: String(
+    process.env.MONGO_URI || process.env.MONGODB_URI || 'mongodb://127.0.0.1:27017/webgis',
+  ),
 }
 
 // 验证 provider
@@ -230,6 +234,85 @@ const currentModel = CONFIG.model || currentProvider.defaultModel
 const app = express()
 app.use(cors())
 app.use(express.json())
+
+// ============== MongoDB (Mongoose) Setup ==============
+// Minimal, resilient connection: try to connect before server starts; if fails, log but keep AI proxy available.
+async function connectMongo(uri: string) {
+  try {
+    await mongoose.connect(uri, { dbName: 'webgis' })
+    console.log('✅ MongoDB connected')
+  } catch (err) {
+    console.error('❌ MongoDB connection error:', err)
+  }
+}
+
+// Project Schema/Model for simple project CRUD
+const ProjectSchema = new mongoose.Schema(
+  {
+    name: { type: String, required: true },
+    description: { type: String, default: '' },
+    data: { type: mongoose.Schema.Types.Mixed, default: {} },
+  },
+  { timestamps: true },
+)
+
+const Project = mongoose.models.Project || mongoose.model('Project', ProjectSchema)
+
+// Projects CRUD
+app.get('/api/projects', async (_req: Request, res: ExpressResponse) => {
+  try {
+    const projects = await Project.find().sort({ updatedAt: -1 }).lean()
+    res.json({ projects })
+  } catch (err) {
+    res.status(500).json({ error: '无法读取项目列表', message: (err as Error).message })
+  }
+})
+
+app.get('/api/projects/:id', async (req: Request, res: ExpressResponse) => {
+  try {
+    const p = await Project.findById(req.params.id).lean()
+    if (!p) return res.status(404).json({ error: '项目未找到' })
+    res.json({ project: p })
+  } catch (err) {
+    res.status(500).json({ error: '读取项目失败', message: (err as Error).message })
+  }
+})
+
+app.post('/api/projects', async (req: Request, res: ExpressResponse) => {
+  try {
+    const { name, description, data } = req.body
+    if (!name) return res.status(400).json({ error: 'name 为必填字段' })
+    const created = await Project.create({ name, description: description || '', data: data || {} })
+    res.status(201).json({ project: created })
+  } catch (err) {
+    res.status(500).json({ error: '创建项目失败', message: (err as Error).message })
+  }
+})
+
+app.put('/api/projects/:id', async (req: Request, res: ExpressResponse) => {
+  try {
+    const { name, description, data } = req.body
+    const updated = await Project.findByIdAndUpdate(
+      req.params.id,
+      { name, description, data, updatedAt: new Date() },
+      { new: true, runValidators: true },
+    )
+    if (!updated) return res.status(404).json({ error: '项目未找到' })
+    res.json({ project: updated })
+  } catch (err) {
+    res.status(500).json({ error: '更新项目失败', message: (err as Error).message })
+  }
+})
+
+app.delete('/api/projects/:id', async (req: Request, res: ExpressResponse) => {
+  try {
+    const removed = await Project.findByIdAndDelete(req.params.id)
+    if (!removed) return res.status(404).json({ error: '项目未找到' })
+    res.json({ ok: true })
+  } catch (err) {
+    res.status(500).json({ error: '删除项目失败', message: (err as Error).message })
+  }
+})
 
 function buildUrl(
   providerName: ProviderName,
@@ -385,6 +468,9 @@ app.get('/api/health', (_req: Request, res: ExpressResponse) => {
 
 // ==================== 启动服务器 ====================
 app.listen(CONFIG.port, () => {
+  // 尝试连接 MongoDB（不阻塞服务器启动）
+  if (CONFIG.mongoUri) void connectMongo(CONFIG.mongoUri)
+
   console.log('═'.repeat(55))
   console.log('🚀 AI 代理服务器已启动 (多模型版)')
   console.log('═'.repeat(55))

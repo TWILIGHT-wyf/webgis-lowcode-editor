@@ -1,5 +1,6 @@
 import { ref, onMounted, onBeforeUnmount, type Ref } from 'vue'
-import { throttle } from '@/utils/throttleDebounce'
+import { throttle } from 'lodash-es'
+import type { ComponentPayload } from '@/types/components'
 
 export function useCanvasInteraction(
   wrapRef: Ref<HTMLDivElement | null>,
@@ -10,7 +11,7 @@ export function useCanvasInteraction(
     enableDrag?: boolean
     // 开启在容器上监听 drop，并通过回调抛出落点
     enableDrop?: boolean
-    onDrop?: (data: unknown, position: { x: number; y: number }) => void
+    onDrop?: (data: ComponentPayload, position: { x: number; y: number }) => void
     dragCallback?: (x: number, y: number, ctrlPressed: boolean, altPressed: boolean) => void
     preventBubble?: boolean
     dragThreshold?: number
@@ -96,35 +97,34 @@ export function useCanvasInteraction(
     window.addEventListener('mouseup', onDragEnd)
     e.preventDefault()
   }
-  const onDragMove = throttle(
-    ((e: MouseEvent) => {
-      if (!isDragging.value) {
-        const threshold = options.dragThreshold || 0
-        if (
-          Math.abs(e.clientX - startDragMouseX) > threshold ||
-          Math.abs(e.clientY - startDragMouseY) > threshold
-        ) {
-          isDragging.value = true
-          // 通知外部拖拽开始
-          if (options.onDragStart) options.onDragStart()
-        } else {
-          return
-        }
+  const rawOnDragMove = (e: MouseEvent) => {
+    if (!isDragging.value) {
+      const threshold = options.dragThreshold || 0
+      if (
+        Math.abs(e.clientX - startDragMouseX) > threshold ||
+        Math.abs(e.clientY - startDragMouseY) > threshold
+      ) {
+        isDragging.value = true
+        // 通知外部拖拽开始
+        if (options.onDragStart) options.onDragStart()
+      } else {
+        return
       }
-      // 计算绝对位置（相对于 stage）
-      const rootEl = options.rootRefForAbs?.value ?? wrapRef.value
-      if (!rootEl) return
-      const rect = rootEl.getBoundingClientRect()
-      const mouseStageX = (e.clientX - rect.left - panX.value) / (scaleRef.value || 1)
-      const mouseStageY = (e.clientY - rect.top - panY.value) / (scaleRef.value || 1)
-      const x = mouseStageX - anchorX
-      const y = mouseStageY - anchorY
-      // 更新altKey状态
-      dragAltPressed = e.altKey
-      if (options.dragCallback) options.dragCallback(x, y, e.ctrlKey, e.altKey)
-    }) as any, // eslint-disable-line @typescript-eslint/no-explicit-any
-    16,
-  )
+    }
+    // 计算绝对位置（相对于 stage）
+    const rootEl = options.rootRefForAbs?.value ?? wrapRef.value
+    if (!rootEl) return
+    const rect = rootEl.getBoundingClientRect()
+    const mouseStageX = (e.clientX - rect.left - panX.value) / (scaleRef.value || 1)
+    const mouseStageY = (e.clientY - rect.top - panY.value) / (scaleRef.value || 1)
+    const x = mouseStageX - anchorX
+    const y = mouseStageY - anchorY
+    // 更新altKey状态
+    dragAltPressed = e.altKey
+    if (options.dragCallback) options.dragCallback(x, y, e.ctrlKey, e.altKey)
+  }
+
+  const onDragMove = throttle<(e: MouseEvent) => void>(rawOnDragMove, 16)
 
   const onDragEnd = () => {
     window.removeEventListener('mousemove', onDragMove)
@@ -137,19 +137,27 @@ export function useCanvasInteraction(
   }
 
   // 处理容器上的 Drop
+  const isComponentPayload = (v: unknown): v is ComponentPayload => {
+    return !!v && typeof v === 'object' && 'type' in (v as Record<string, unknown>)
+  }
+
   const handleDrop = (e: DragEvent) => {
     if (!options.enableDrop) return
     e.preventDefault()
     const data = e.dataTransfer?.getData('application/x-component')
     if (!data) return
     try {
-      const item = JSON.parse(data)
+      const item: unknown = JSON.parse(data)
       const el = wrapRef.value
       if (!el) return
       const rect = el.getBoundingClientRect()
       const x = (e.clientX - rect.left - panX.value) / (scaleRef.value || 1)
       const y = (e.clientY - rect.top - panY.value) / (scaleRef.value || 1)
-      if (options.onDrop) options.onDrop(item as unknown, { x, y })
+      if (isComponentPayload(item)) {
+        options.onDrop?.(item, { x, y })
+      } else {
+        console.warn('Dropped payload is not a ComponentPayload', item)
+      }
     } catch (err) {
       console.error('Drop error:', err)
     }

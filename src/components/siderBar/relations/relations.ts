@@ -1,4 +1,4 @@
-import { ref, computed } from 'vue'
+import { ref, computed, watch } from 'vue'
 import { useComponent } from '@/stores/component'
 import { storeToRefs } from 'pinia'
 
@@ -13,6 +13,15 @@ export interface DataBinding {
   sourceId: string
   sourcePath: string
   targetPath: string
+}
+
+// 树节点接口
+export interface TreeNode {
+  id: string
+  label: string
+  type: string
+  groupId?: string
+  children?: TreeNode[]
 }
 
 /**
@@ -253,5 +262,274 @@ export function useDialogState() {
     openAddChildDialog,
     closeAddChildDialog,
     resetSelectedIds,
+  }
+}
+
+/**
+ * 树形结构管理
+ */
+export function useTreeOperations() {
+  const componentStore = useComponent()
+  const { componentStore: components } = storeToRefs(componentStore)
+
+  // 构建树形数据
+  const treeData = computed<TreeNode[]>(() => {
+    // 计算同类型组件的序号
+    const typeCountMap = new Map<string, number>()
+    const typeIndexMap = new Map<string, number>()
+
+    // 统计每种类型的数量
+    components.value.forEach((c) => {
+      const count = typeCountMap.get(c.type) || 0
+      typeCountMap.set(c.type, count + 1)
+    })
+
+    const buildTree = (compId: string): TreeNode => {
+      const comp = components.value.find((c) => c.id === compId)
+      if (!comp) return { id: compId, label: 'Unknown', type: 'Unknown' }
+
+      // 优先使用自定义名称
+      let label = ''
+      if (comp.name) {
+        label = comp.name
+      } else {
+        // 获取当前类型的序号
+        const currentIndex = (typeIndexMap.get(comp.type) || 0) + 1
+        typeIndexMap.set(comp.type, currentIndex)
+
+        // 如果同类型组件多于1个，显示序号
+        const count = typeCountMap.get(comp.type) || 0
+        if (count > 1) {
+          label = `${comp.type} #${currentIndex}`
+        } else {
+          label = comp.type
+        }
+      }
+
+      const node: TreeNode = {
+        id: comp.id,
+        label: label,
+        type: comp.type,
+        groupId: comp.groupId,
+      }
+
+      if (comp.children && comp.children.length > 0) {
+        node.children = comp.children.map(buildTree)
+      }
+
+      return node
+    }
+
+    // 只显示顶层组件(无父组件的组件)
+    const topLevel = components.value.filter((c) => !c.groupId)
+    return topLevel.map((c) => buildTree(c.id))
+  })
+
+  // 树节点点击
+  function handleNodeClick(data: TreeNode) {
+    const { selectComponentById } = useComponentHierarchy()
+    selectComponentById(data.id)
+  }
+
+  // 获取所有节点的key
+  function getAllNodeKeys(nodes: TreeNode[]): string[] {
+    const keys: string[] = []
+    nodes.forEach((node) => {
+      keys.push(node.id)
+      if (node.children) {
+        keys.push(...getAllNodeKeys(node.children))
+      }
+    })
+    return keys
+  }
+
+  // 从树中移除父组件
+  function removeParentFromTree(childId: string) {
+    const child = components.value.find((c) => c.id === childId)
+    if (child && child.groupId) {
+      const parent = components.value.find((c) => c.id === child.groupId)
+      if (parent && parent.children) {
+        parent.children = parent.children.filter((id) => id !== childId)
+      }
+      child.groupId = undefined
+    }
+  }
+
+  // 树节点拖拽相关
+  interface TreeNodeInstance {
+    data: TreeNode
+  }
+
+  function allowDrop(draggingNode: TreeNodeInstance, dropNode: TreeNodeInstance, type: string) {
+    // 只允许拖入容器组件内部
+    if (type === 'inner') {
+      const dropNodeData = dropNode.data
+      const draggingNodeData = draggingNode.data
+
+      // 不能拖入自己
+      if (dropNodeData.id === draggingNodeData.id) return false
+
+      // 检查目标是否为容器组件
+      const targetComp = components.value.find((c) => c.id === dropNodeData.id)
+      if (!targetComp) return false
+
+      // Text 组件不能作为容器
+      if (targetComp.type === 'Text') return false
+
+      // 不能拖入自己的子组件
+      if (targetComp.groupId === draggingNodeData.id) return false
+
+      return true
+    }
+    return false
+  }
+
+  function allowDrag() {
+    // 所有组件都允许拖拽
+    return true
+  }
+
+  function handleNodeDrop(
+    draggingNode: TreeNodeInstance,
+    dropNode: TreeNodeInstance,
+    dropType: string,
+  ) {
+    if (dropType === 'inner') {
+      const draggingNodeData = draggingNode.data
+      const dropNodeData = dropNode.data
+
+      const child = components.value.find((c) => c.id === draggingNodeData.id)
+      const parent = components.value.find((c) => c.id === dropNodeData.id)
+
+      if (!child || !parent) return
+
+      // 移除原来的父子关系
+      if (child.groupId) {
+        const oldParent = components.value.find((c) => c.id === child.groupId)
+        if (oldParent && oldParent.children) {
+          oldParent.children = oldParent.children.filter((id) => id !== child.id)
+        }
+      }
+
+      // 建立新的父子关系
+      if (!parent.children) {
+        parent.children = []
+      }
+      if (!parent.children.includes(child.id)) {
+        parent.children.push(child.id)
+      }
+      child.groupId = parent.id
+
+      // 初始化父组件的布局配置
+      if (!parent.layout) {
+        parent.layout = {
+          mode: 'absolute',
+          gap: 8,
+          columns: 2,
+          align: 'start',
+          padding: 0,
+        }
+      }
+    }
+  }
+
+  return {
+    treeData,
+    handleNodeClick,
+    getAllNodeKeys,
+    removeParentFromTree,
+    allowDrop,
+    allowDrag,
+    handleNodeDrop,
+  }
+}
+
+/**
+ * 布局配置管理
+ */
+export function useLayoutConfig() {
+  const componentStore = useComponent()
+  const { selectComponent } = storeToRefs(componentStore)
+
+  // 是否为容器组件
+  const isContainer = computed(() => {
+    return (
+      selectComponent.value &&
+      selectComponent.value.children &&
+      selectComponent.value.children.length > 0
+    )
+  })
+
+  // 布局配置
+  const layoutMode = computed({
+    get: () => selectComponent.value?.layout?.mode || 'absolute',
+    set: (val) => {
+      if (!selectComponent.value) return
+      if (!selectComponent.value.layout) {
+        selectComponent.value.layout = {
+          mode: val as 'absolute' | 'horizontal' | 'vertical' | 'grid',
+        }
+      } else {
+        selectComponent.value.layout.mode = val as 'absolute' | 'horizontal' | 'vertical' | 'grid'
+      }
+    },
+  })
+
+  const layoutGap = computed({
+    get: () => selectComponent.value?.layout?.gap ?? 8,
+    set: (val) => {
+      if (!selectComponent.value?.layout) return
+      selectComponent.value.layout.gap = val
+    },
+  })
+
+  const layoutColumns = computed({
+    get: () => selectComponent.value?.layout?.columns ?? 2,
+    set: (val) => {
+      if (!selectComponent.value?.layout) return
+      selectComponent.value.layout.columns = val
+    },
+  })
+
+  const layoutAlign = computed({
+    get: () => selectComponent.value?.layout?.align || 'start',
+    set: (val) => {
+      if (!selectComponent.value?.layout) return
+      selectComponent.value.layout.align = val as 'start' | 'center' | 'end' | 'stretch'
+    },
+  })
+
+  const layoutPadding = computed({
+    get: () => selectComponent.value?.layout?.padding ?? 0,
+    set: (val) => {
+      if (!selectComponent.value?.layout) return
+      selectComponent.value.layout.padding = val
+    },
+  })
+
+  // 监听布局模式变化,初始化 layout 对象
+  watch(
+    () => selectComponent.value,
+    (newVal) => {
+      if (newVal && !newVal.layout && newVal.children && newVal.children.length > 0) {
+        newVal.layout = {
+          mode: 'absolute',
+          gap: 8,
+          columns: 2,
+          align: 'start',
+          padding: 0,
+        }
+      }
+    },
+    { immediate: true },
+  )
+
+  return {
+    isContainer,
+    layoutMode,
+    layoutGap,
+    layoutColumns,
+    layoutAlign,
+    layoutPadding,
   }
 }

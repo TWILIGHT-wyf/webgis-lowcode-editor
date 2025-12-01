@@ -2,6 +2,8 @@
 import { computed, ref, watch } from 'vue'
 import { storeToRefs } from 'pinia'
 import { useComponent } from '@/stores/component'
+import Shape from '@/components/Editor/shape/shape.vue'
+import { getComponent } from '@/customComponents/registry'
 
 const props = defineProps<{
   id: string
@@ -36,6 +38,10 @@ const dialogStyle = computed(() => {
     color: String(s.textColor || '#333333'),
   }
 })
+
+function getChildComponent(childId: string) {
+  return componentStore.value.find((c) => c.id === childId)
+}
 </script>
 
 <template>
@@ -50,7 +56,18 @@ const dialogStyle = computed(() => {
     @close="handleClose"
   >
     <div :style="dialogStyle">
-      {{ comp?.props?.content || '这是对话框内容' }}
+      <template v-if="comp?.children && comp.children.length > 0">
+        <Shape v-for="childId in comp.children" :key="childId" :id="childId">
+          <component
+            :is="getComponent(getChildComponent(childId)?.type || '')"
+            :id="childId"
+            :style="{ width: '100%', height: '100%' }"
+          />
+        </Shape>
+      </template>
+      <template v-else>
+        {{ comp?.props?.content || '这是对话框内容' }}
+      </template>
     </div>
     <template #footer v-if="comp?.props?.showFooter !== false">
       <span class="dialog-footer">
