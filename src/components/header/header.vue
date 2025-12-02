@@ -108,9 +108,21 @@
           </el-button>
         </el-tooltip>
 
+        <el-tooltip content="导出源码" placement="bottom">
+          <el-button
+            circle
+            type="primary"
+            plain
+            class="export-entry-button"
+            @click="openExportDialog"
+          >
+            <el-icon><Download /></el-icon>
+          </el-button>
+        </el-tooltip>
+
         <el-tooltip content="导出 JSON 文件" placement="bottom">
           <el-button text circle @click="exportJSON">
-            <el-icon><Download /></el-icon>
+            <el-icon><Document /></el-icon>
           </el-button>
         </el-tooltip>
 
@@ -204,6 +216,11 @@
         </div>
       </template>
     </el-dialog>
+
+    <ExportConfigDialog
+      v-model="exportDialogVisible"
+      :project="projectStore.currentProject || null"
+    />
   </div>
 </template>
 
@@ -218,6 +235,7 @@ import * as projectService from '@/services/projects'
 import type { PageTreeNode } from '@/types/page'
 import TreeNode from './treeNode.vue'
 import SaveStatusIndicator from './SaveStatusIndicator.vue'
+import ExportConfigDialog from '@/components/dialogs/ExportConfigDialog.vue'
 // 引入图标
 import {
   Back,
@@ -228,6 +246,7 @@ import {
   ArrowDown,
   Finished,
   Download,
+  Document,
   Delete,
   Moon,
   Sunny,
@@ -252,6 +271,7 @@ const isPageMenuOpen = ref(false)
 const managerRef = ref<HTMLElement | null>(null)
 const searchQuery = ref('')
 const saving = ref(false)
+const exportDialogVisible = ref(false)
 
 // 从 Store 获取真实页面列表并转换为树节点
 const pagesFromStore = computed(() => projectStore.currentProject?.pages || [])
@@ -429,6 +449,15 @@ function openPreview(mode: 'page' | 'project' = 'page') {
 // 处理预览下拉菜单命令
 function handlePreviewCommand(command: string) {
   openPreview(command as 'page' | 'project')
+}
+
+const openExportDialog = () => {
+  if (!projectStore.currentProject) {
+    ElMessage.warning('请先创建或加载项目')
+    return
+  }
+  projectStore.saveCurrentPageSnapshot()
+  exportDialogVisible.value = true
 }
 
 // 保存到服务器
@@ -717,6 +746,10 @@ async function handleReset() {
   display: flex;
   align-items: center;
   gap: 4px;
+}
+
+.export-entry-button {
+  box-shadow: 0 0 8px rgba(66, 133, 244, 0.25);
 }
 
 .icon-left {
