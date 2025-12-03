@@ -197,6 +197,7 @@ const getChildItemStyle = (childId: string): CSSProperties => {
 }
 
 // 子组件内部样式
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 const getChildComponentStyle = (_childId: string): CSSProperties => {
   return {
     width: '100%',

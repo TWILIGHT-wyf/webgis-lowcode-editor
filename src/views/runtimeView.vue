@@ -315,10 +315,7 @@ import {
 import type { Component, EventAction } from '@/types/components'
 import type { Page, Project } from '@/stores/project'
 import {
-  Loading,
   Document,
-  ArrowDown,
-  Check,
   CopyDocument,
   Files,
   Download,

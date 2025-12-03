@@ -27,8 +27,6 @@ const comp = computed(() => componentStore.value.find((c) => c.id === props.id))
 const { data: remoteData } = useDataSource(computed(() => comp.value?.dataSource))
 
 // 默认值
-const defaultXAxis = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun']
-const defaultSeriesNames = ['Series 1', 'Series 2', 'Series 3']
 const defaultSeriesData = [
   [120, 132, 101, 134, 90, 230, 210],
   [220, 182, 191, 234, 290, 330, 310],

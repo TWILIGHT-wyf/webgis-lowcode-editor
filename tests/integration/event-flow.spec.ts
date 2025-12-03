@@ -1,6 +1,6 @@
-import { mount, flushPromises } from '@vue/test-utils'
+import { mount } from '@vue/test-utils'
 import { describe, it, expect, beforeEach, vi, afterEach } from 'vitest'
-import { defineComponent, h, ref, nextTick } from 'vue'
+import { defineComponent } from 'vue'
 import { createPinia, setActivePinia } from 'pinia'
 import { useComponent } from '@/stores/component'
 import { provideComponentEvents } from '@/components/siderBar/events/events'
@@ -273,7 +273,7 @@ describe('集成：动作执行器 (Action Executor)', () => {
   })
 
   it('场景B: highlight 动作应触发高亮事件', async () => {
-    const { context, targetComp } = setupIntegration()
+    const { context } = setupIntegration()
 
     const highlightHandler = vi.fn()
     context.registerListener('target-1', 'highlight', highlightHandler)
@@ -293,7 +293,7 @@ describe('集成：动作执行器 (Action Executor)', () => {
   it('场景B: 延迟执行动作', async () => {
     vi.useFakeTimers()
 
-    const { componentStore, context, targetComp } = setupIntegration()
+    const { componentStore, context } = setupIntegration()
 
     const action: EventAction = {
       id: 'act-delayed',
@@ -303,7 +303,7 @@ describe('集成：动作执行器 (Action Executor)', () => {
     }
 
     // 初始状态
-    expect(targetComp.style.visible).toBe(true)
+    expect(componentStore.componentStore.find((c) => c.id === 'target-1')?.style.visible).toBe(true)
 
     const promise = context.executeAction(action)
 
@@ -370,7 +370,7 @@ describe('集成：事件冒泡与传递 (Event Bubbling)', () => {
     const wrapper = mount(TestHost)
     const context = wrapper.vm.context
 
-    return { componentStore, context, parentComp, childComp, wrapper }
+    return { componentStore, context, sourceComp, wrapper }
   }
 
   it('场景C: 子组件事件能被父组件监听', async () => {

@@ -79,12 +79,6 @@ const seriesData = computed(() => {
   const ds = comp.value?.dataSource
   const p = comp.value?.props
 
-  // 默认系列数据
-  const defaultSeriesData = [
-    { name: '预算', value: [43, 85, 70, 75, 68, 92] },
-    { name: '实际开销', value: [50, 90, 60, 82, 73, 85] },
-  ]
-
   if (ds?.enabled && remoteData.value) {
     const seriesNames = extractStringArray(remoteData.value, ds.seriesNamesPath as string)
     const seriesValues =
