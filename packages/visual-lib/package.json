@@ -11,6 +11,11 @@
       "import": "./dist/visual-lib.js",
       "default": "./dist/visual-lib.js"
     },
+    "./src": {
+      "types": "./index.ts",
+      "import": "./index.ts",
+      "default": "./index.ts"
+    },
     "./dist/style.css": "./dist/style.css"
   },
   "scripts": {

@@ -10,6 +10,9 @@ export default defineConfig({
   resolve: {
     alias: {
       '@': fileURLToPath(new URL('./src', import.meta.url)),
+      '@twi1i9ht/visual-lib': fileURLToPath(
+        new URL('./packages/visual-lib/index.ts', import.meta.url),
+      ),
     },
   },
   server: {
