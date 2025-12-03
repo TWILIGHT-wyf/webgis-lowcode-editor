@@ -1,206 +1,98 @@
 <template>
-  <div class="bar-chart" :style="{ width: '100%', height: '100%' }">
-    <v-chart :option="chartOption" autoresize class="echart" />
-  </div>
+  <BarChartBase v-bind="chartProps" />
 </template>
 
 <script setup lang="ts">
-import { ref, watch, computed } from 'vue'
-import type { EChartsOption } from 'echarts'
-import { use } from 'echarts/core'
-import { CanvasRenderer } from 'echarts/renderers'
-import { BarChart } from 'echarts/charts'
-import {
-  TitleComponent,
-  TooltipComponent,
-  GridComponent,
-  LegendComponent,
-} from 'echarts/components'
-import { useComponent } from '@/stores/component'
+import { computed } from 'vue'
 import { storeToRefs } from 'pinia'
-import { useDataSource } from '@/datasource/useDataSource'
+import { useComponent } from '@/stores/component'
+
+// 从视觉组件库导入基础组件和工具函数
 import {
-  parseNumberInput,
-  parseStringInput,
+  barChart as BarChartBase,
+  useDataSource,
   extractNumberArray,
   extractStringArray,
   extractString,
-} from '../../../datasource/dataUtils'
-
-use([TitleComponent, TooltipComponent, GridComponent, LegendComponent, BarChart, CanvasRenderer])
+  parseNumberInput,
+  parseStringInput,
+} from '@one/visual-lib'
 
 const props = defineProps<{ id: string }>()
 
+// 获取组件配置
 const { componentStore } = storeToRefs(useComponent())
 const comp = computed(() => componentStore.value.find((c) => c.id === props.id))
+
+// 获取数据源
 const { data: remoteData } = useDataSource(computed(() => comp.value?.dataSource))
 
-const chartOption = ref<EChartsOption>({})
-
-function buildOption(): EChartsOption {
-  if (!comp.value) return {}
-
-  const p = comp.value.props
-
-  if (p.option) {
-    const customOption = typeof p.option === 'string' ? JSON.parse(p.option) : p.option
-    const simpleOption = buildSimpleOption()
-    return {
-      ...customOption,
-      ...simpleOption,
-    }
-  }
-
-  return buildSimpleOption()
-}
-
-function buildSimpleOption(): EChartsOption {
-  if (!comp.value) return {}
-
-  const p = comp.value.props
-  const ds = comp.value.dataSource
-
-  const defaultData = [120, 200, 150, 180, 270, 210, 220]
-  const defaultXAxis = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun']
-
-  let data: number[] = defaultData
-  let xAxisData: string[] = defaultXAxis
-  let seriesName: string = (p.seriesName as string) || 'Series'
+// 数据适配逻辑
+const chartData = computed(() => {
+  const ds = comp.value?.dataSource
+  const p = comp.value?.props
 
   if (ds?.enabled && remoteData.value) {
-    const extractedData = extractNumberArray(remoteData.value, ds.dataPath)
-    if (extractedData) data = extractedData
-
-    const extractedXAxis = extractStringArray(remoteData.value, ds.xAxisPath)
-    if (extractedXAxis) xAxisData = extractedXAxis
-
-    const extractedName = extractString(remoteData.value, ds.seriesNamePath)
-    if (extractedName) seriesName = extractedName
-  } else {
-    if (p.dataInput) {
-      data = parseNumberInput(p.dataInput as string, defaultData)
-    } else if (p.data) {
-      data = p.data as number[]
-    }
-
-    if (p.xAxisInput) {
-      xAxisData = parseStringInput(p.xAxisInput as string, defaultXAxis)
-    } else if (p.xAxisData) {
-      xAxisData = p.xAxisData as string[]
-    }
+    return extractNumberArray(remoteData.value, ds.dataPath) || []
   }
 
-  const simpleOption: EChartsOption = {
-    title: p.title
-      ? {
-          text: p.title as string,
-          left: 'center',
-          textStyle: {
-            fontSize: 16,
-          },
-        }
-      : undefined,
+  if (p?.dataInput) return parseNumberInput(p.dataInput as string)
+  return p?.data as number[]
+})
 
-    tooltip:
-      p.showTooltip !== false
-        ? {
-            trigger: 'axis',
-            axisPointer: {
-              type: 'shadow',
-            },
-          }
-        : undefined,
+const xAxisData = computed(() => {
+  const ds = comp.value?.dataSource
+  const p = comp.value?.props
 
-    legend:
-      p.showLegend !== false
-        ? {
-            [(p.legendPosition as string) || 'top']: 10,
-            data: [seriesName],
-          }
-        : undefined,
-
-    grid: {
-      left: '6%',
-      right: '6%',
-      bottom: '8%',
-      top: p.title ? '15%' : '10%',
-      containLabel: true,
-      show: p.showGrid !== false,
-    },
-
-    xAxis: {
-      type: 'category',
-      data: xAxisData,
-      name: (p.xAxisName as string) || '',
-      nameLocation: 'middle',
-      nameGap: 30,
-      axisLine: {
-        show: p.showXAxisLine !== false,
-      },
-      axisLabel: {
-        show: p.showXAxisLabel !== false,
-      },
-      splitLine: {
-        show: false,
-      },
-    },
-
-    yAxis: {
-      type: 'value',
-      name: (p.yAxisName as string) || '',
-      nameLocation: 'middle',
-      nameGap: 50,
-      axisLine: {
-        show: p.showYAxisLine !== false,
-      },
-      axisLabel: {
-        show: p.showYAxisLabel !== false,
-      },
-      splitLine: {
-        show: p.showGrid !== false,
-      },
-    },
-
-    series: [
-      {
-        name: seriesName,
-        type: 'bar',
-        data: data,
-        barWidth: (p.barWidth as string) || '60%',
-        itemStyle: {
-          color: (p.barColor as string) || '#5470c6',
-          borderRadius: (p.borderRadius as number) || 0,
-        },
-        label: p.showLabel
-          ? {
-              show: true,
-              position: 'top',
-              fontSize: 12,
-            }
-          : undefined,
-      },
-    ],
+  if (ds?.enabled && remoteData.value) {
+    return extractStringArray(remoteData.value, ds.xAxisPath) || []
   }
+  if (p?.xAxisInput) return parseStringInput(p.xAxisInput as string)
+  return p?.xAxisData as string[]
+})
 
-  return simpleOption
-}
+const seriesName = computed(() => {
+  const ds = comp.value?.dataSource
+  const p = comp.value?.props
 
-watch(
-  [() => comp.value?.props, () => comp.value?.dataSource, remoteData],
-  () => {
-    chartOption.value = buildOption()
-  },
-  { deep: true, immediate: true },
-)
+  if (ds?.enabled && remoteData.value) {
+    return extractString(remoteData.value, ds.seriesNamePath)
+  }
+  return p?.seriesName as string
+})
+
+const customOption = computed(() => {
+  const opt = comp.value?.props?.option
+  return typeof opt === 'string' ? JSON.parse(opt) : opt
+})
+
+// 聚合要透传给库组件的 props
+const chartProps = computed((): Record<string, unknown> => {
+  const p = comp.value?.props
+  return {
+    data: chartData.value,
+    xAxisData: xAxisData.value,
+    seriesName: seriesName.value,
+
+    // 样式/选项属性
+    title: p?.title,
+    barColor: p?.barColor,
+    barWidth: p?.barWidth,
+    borderRadius: p?.borderRadius,
+    showTooltip: p?.showTooltip,
+    showLegend: p?.showLegend,
+    legendPosition: p?.legendPosition,
+    showGrid: p?.showGrid,
+    xAxisName: p?.xAxisName,
+    yAxisName: p?.yAxisName,
+    showXAxisLine: p?.showXAxisLine,
+    showXAxisLabel: p?.showXAxisLabel,
+    showYAxisLine: p?.showYAxisLine,
+    showYAxisLabel: p?.showYAxisLabel,
+    showLabel: p?.showLabel,
+
+    // 高级配置覆盖
+    option: customOption.value,
+  }
+})
 </script>
-
-<style scoped>
-.bar-chart {
-  width: 100%;
-  height: 100%;
-}
-.echart {
-  width: 100%;
-  height: 100%;
-}
-</style>

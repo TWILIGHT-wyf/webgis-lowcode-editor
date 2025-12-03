@@ -1,16 +1,12 @@
 <template>
-  <div :style="textStyle">
-    {{ content }}
-  </div>
+  <VText v-bind="textProps" />
 </template>
 
 <script setup lang="ts">
 import { computed, toRef } from 'vue'
-import type { CSSProperties } from 'vue'
 import { useComponent } from '@/stores/component'
 import { storeToRefs } from 'pinia'
-import { useDataSource } from '@/datasource/useDataSource'
-import { extractWithFallback } from '@/datasource/dataUtils'
+import { vText as VText, useDataSource, extractWithFallback } from '@one/visual-lib'
 
 const props = defineProps<{ id: string }>()
 const { componentStore } = storeToRefs(useComponent())
@@ -34,23 +30,23 @@ const content = computed(() => {
 
   return localText
 })
-const textStyle = computed<CSSProperties>(() => {
+
+// 聚合所有 Props 传递给 Dumb 组件
+const textProps = computed((): Record<string, unknown> => {
   const s = comp.value?.style || {}
   return {
-    opacity: ((s.opacity ?? 100) as number) / 100,
-    display: s.visible === false ? 'none' : 'block',
-    fontSize: (s.fontSize ?? 16) + 'px',
-    color: (s.fontColor ?? '#000000') as string,
-    fontWeight: (s.fontWeight ?? 'normal') as CSSProperties['fontWeight'],
-    textAlign: (s.textAlign ?? 'left') as CSSProperties['textAlign'],
-    letterSpacing: (s.letterSpacing ?? 0) + 'px',
-    lineHeight: (s.lineHeight ?? 1.2) as CSSProperties['lineHeight'],
-    padding: `${s.paddingY ?? 0}px ${s.paddingX ?? 0}px`,
-    width: '100%',
-    height: '100%',
-    userSelect: (s.locked ? 'none' : 'text') as CSSProperties['userSelect'],
-    pointerEvents: (s.locked ? 'none' : 'auto') as CSSProperties['pointerEvents'],
-    overflow: 'hidden',
+    content: content.value,
+    fontSize: s.fontSize ?? 16,
+    fontColor: s.fontColor ?? '#000000',
+    fontWeight: s.fontWeight ?? 'normal',
+    textAlign: s.textAlign ?? 'left',
+    letterSpacing: s.letterSpacing ?? 0,
+    lineHeight: s.lineHeight ?? 1.2,
+    paddingX: s.paddingX ?? 0,
+    paddingY: s.paddingY ?? 0,
+    opacity: s.opacity ?? 100,
+    visible: s.visible !== false,
+    locked: s.locked ?? false,
   }
 })
 </script>

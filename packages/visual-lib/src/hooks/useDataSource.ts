@@ -1,6 +1,14 @@
 import { ref, watch, onUnmounted, type Ref } from 'vue'
 import axios, { type AxiosRequestConfig } from 'axios'
-import type { DataSource } from '@/types/components'
+
+export interface DataSource {
+  enabled?: boolean
+  url?: string
+  method?: string
+  headers?: Record<string, string>
+  body?: string
+  interval?: number
+}
 
 /**
  * 数据源 Hook
@@ -38,7 +46,7 @@ export function useDataSource(dataSource: Ref<DataSource | undefined>) {
       }
 
       // 处理请求体（仅 POST/PUT/DELETE）
-      if (['POST', 'PUT', 'DELETE'].includes(ds.method) && ds.body) {
+      if (ds.method && ['POST', 'PUT', 'DELETE'].includes(ds.method) && ds.body) {
         try {
           config.data = JSON.parse(ds.body)
         } catch {
@@ -52,8 +60,6 @@ export function useDataSource(dataSource: Ref<DataSource | undefined>) {
       const response = await axios(config)
 
       // 保存完整响应数据
-      // 不做任何数据提取，由各组件使用 dataUtils 工具函数自行提取
-      // 这样每个组件可以灵活提取所需的多个字段
       rawData.value = response.data
       data.value = response.data
       error.value = null
@@ -108,8 +114,8 @@ export function useDataSource(dataSource: Ref<DataSource | undefined>) {
   })
 
   return {
-    data, // 提取后的数据（根据 valuePath/dataPath）
-    rawData, // 完整响应数据（供图表组件使用）
+    data,
+    rawData, // 完整响应数据
     loading,
     error,
     fetchData, // 手动刷新

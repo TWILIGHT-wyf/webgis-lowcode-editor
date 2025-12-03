@@ -1,18 +1,6 @@
 <template>
-  <el-col
-    :span="span"
-    :offset="offset"
-    :push="push"
-    :pull="pull"
-    :xs="xs"
-    :sm="sm"
-    :md="md"
-    :lg="lg"
-    :xl="xl"
-    :tag="tag"
-    :style="containerStyle"
-  >
-    <div v-if="hasChildren" :style="childrenContainerStyle">
+  <BaseCol v-bind="colProps">
+    <template v-if="hasChildren">
       <template v-if="comp?.layout?.mode === 'absolute'">
         <Shape v-for="childId in comp?.children" :key="childId" :id="childId">
           <component
@@ -36,17 +24,15 @@
           />
         </div>
       </template>
-    </div>
-    <div v-else class="col-content" :style="contentStyle">
-      {{ content || '列布局容器 - 可拖入其他组件' }}
-    </div>
-  </el-col>
+    </template>
+  </BaseCol>
 </template>
 
 <script setup lang="ts">
 import { computed } from 'vue'
 import { useComponent } from '@/stores/component'
 import { storeToRefs } from 'pinia'
+import { vCol as BaseCol } from '@one/visual-lib'
 import { useLayoutHelpers } from '@/customComponents/layout/layoutUtils'
 import Shape from '@/components/Editor/shape/shape.vue'
 
@@ -55,64 +41,49 @@ const { componentStore } = storeToRefs(useComponent())
 
 const comp = computed(() => componentStore.value.find((c) => c.id === props.id))
 
-// 样式
-const containerStyle = computed(() => {
+// 聚合所有 Props 传递给 Base 组件
+const colProps = computed((): Record<string, unknown> => {
   const s = comp.value?.style || {}
+  const p = comp.value?.props || {}
   return {
-    padding: `${s.padding || 0}px`,
-    backgroundColor: String(s.backgroundColor || 'transparent'),
-    borderRadius: `${s.borderRadius || 0}px`,
-    borderWidth: `${s.borderWidth || 0}px`,
-    borderStyle: s.borderWidth ? 'solid' : 'none',
-    borderColor: String(s.borderColor || '#dcdfe6'),
-    minHeight: String(s.minHeight || 'auto'),
+    // Col 属性
+    span: Number(p.span || 24),
+    offset: Number(p.offset || 0),
+    push: Number(p.push || 0),
+    pull: Number(p.pull || 0),
+    xs: p.xs || undefined,
+    sm: p.sm || undefined,
+    md: p.md || undefined,
+    lg: p.lg || undefined,
+    xl: p.xl || undefined,
+    tag: String(p.tag || 'div'),
+    content: String(p.content || ''),
+    // 容器样式
+    padding: s.padding ?? 0,
+    backgroundColor: s.backgroundColor ?? 'transparent',
+    borderRadius: s.borderRadius ?? 0,
+    borderWidth: s.borderWidth ?? 0,
+    borderColor: s.borderColor ?? '#dcdfe6',
+    minHeight: s.minHeight ?? 'auto',
+    textColor: s.textColor ?? '#909399',
+    fontSize: s.fontSize ?? 14,
+    // 子组件状态
+    hasChildren: hasChildren.value,
   }
 })
-
-const contentStyle = computed(() => {
-  const s = comp.value?.style || {}
-  return {
-    width: '100%',
-    minHeight: '50px',
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'center',
-    color: String(s.textColor || '#909399'),
-    fontSize: `${s.fontSize || 14}px`,
-  }
-})
-
-// 组件属性
-const span = computed(() => Number(comp.value?.props.span || 24))
-const offset = computed(() => Number(comp.value?.props.offset || 0))
-const push = computed(() => Number(comp.value?.props.push || 0))
-const pull = computed(() => Number(comp.value?.props.pull || 0))
-const xs = computed(() => comp.value?.props.xs || undefined)
-const sm = computed(() => comp.value?.props.sm || undefined)
-const md = computed(() => comp.value?.props.md || undefined)
-const lg = computed(() => comp.value?.props.lg || undefined)
-const xl = computed(() => comp.value?.props.xl || undefined)
-const tag = computed(() => String(comp.value?.props.tag || 'div'))
-const content = computed(() => String(comp.value?.props.content || ''))
 
 // 子组件相关（使用共享 composable）
 const {
   hasChildren,
   getChildComponent,
   getComponentByType,
-  childrenContainerStyle,
   getChildItemStyle,
   getChildComponentStyle,
 } = useLayoutHelpers(comp)
 </script>
 
 <style scoped>
-.col-content {
-  width: 100%;
-  min-height: 50px;
-}
-
-:deep(.el-col) {
-  width: 100%;
+.child-item {
+  box-sizing: border-box;
 }
 </style>

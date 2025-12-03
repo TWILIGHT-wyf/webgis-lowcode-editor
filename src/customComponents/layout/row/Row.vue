@@ -1,6 +1,6 @@
 <template>
-  <el-row :gutter="gutter" :justify="justify" :align="align" :tag="tag" :style="containerStyle">
-    <div v-if="hasChildren" :style="childrenContainerStyle">
+  <BaseRow v-bind="rowProps">
+    <template v-if="hasChildren">
       <template v-if="comp?.layout?.mode === 'absolute'">
         <Shape v-for="childId in comp?.children" :key="childId" :id="childId">
           <component
@@ -24,17 +24,15 @@
           />
         </div>
       </template>
-    </div>
-    <div v-else class="row-content" :style="contentStyle">
-      {{ content || '行布局容器 - 可拖入其他组件' }}
-    </div>
-  </el-row>
+    </template>
+  </BaseRow>
 </template>
 
 <script setup lang="ts">
 import { computed } from 'vue'
 import { useComponent } from '@/stores/component'
 import { storeToRefs } from 'pinia'
+import { vRow as BaseRow } from '@one/visual-lib'
 import { useLayoutHelpers } from '@/customComponents/layout/layoutUtils'
 import Shape from '@/components/Editor/shape/shape.vue'
 
@@ -43,58 +41,43 @@ const { componentStore } = storeToRefs(useComponent())
 
 const comp = computed(() => componentStore.value.find((c) => c.id === props.id))
 
-// 样式
-const containerStyle = computed(() => {
+// 聚合所有 Props 传递给 Base 组件
+const rowProps = computed((): Record<string, unknown> => {
   const s = comp.value?.style || {}
+  const p = comp.value?.props || {}
   return {
-    padding: `${s.padding || 0}px`,
-    backgroundColor: String(s.backgroundColor || 'transparent'),
-    borderRadius: `${s.borderRadius || 0}px`,
-    borderWidth: `${s.borderWidth || 0}px`,
-    borderStyle: s.borderWidth ? 'solid' : 'none',
-    borderColor: String(s.borderColor || '#dcdfe6'),
-    minHeight: String(s.minHeight || 'auto'),
+    // Row 属性
+    gutter: Number(p.gutter || 0),
+    justify: String(p.justify || 'start'),
+    align: String(p.align || 'top'),
+    tag: String(p.tag || 'div'),
+    content: String(p.content || ''),
+    // 容器样式
+    padding: s.padding ?? 0,
+    backgroundColor: s.backgroundColor ?? 'transparent',
+    borderRadius: s.borderRadius ?? 0,
+    borderWidth: s.borderWidth ?? 0,
+    borderColor: s.borderColor ?? '#dcdfe6',
+    minHeight: s.minHeight ?? 'auto',
+    textColor: s.textColor ?? '#909399',
+    fontSize: s.fontSize ?? 14,
+    // 子组件状态
+    hasChildren: hasChildren.value,
   }
 })
-
-const contentStyle = computed(() => {
-  const s = comp.value?.style || {}
-  return {
-    width: '100%',
-    minHeight: '50px',
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'center',
-    color: String(s.textColor || '#909399'),
-    fontSize: `${s.fontSize || 14}px`,
-  }
-})
-
-// 组件属性
-const gutter = computed(() => Number(comp.value?.props.gutter || 0))
-const justify = computed(() => String(comp.value?.props.justify || 'start'))
-const align = computed(() => String(comp.value?.props.align || 'top'))
-const tag = computed(() => String(comp.value?.props.tag || 'div'))
-const content = computed(() => String(comp.value?.props.content || ''))
 
 // 子组件相关（使用共享 composable）
 const {
   hasChildren,
   getChildComponent,
   getComponentByType,
-  childrenContainerStyle,
   getChildItemStyle,
   getChildComponentStyle,
 } = useLayoutHelpers(comp)
 </script>
 
 <style scoped>
-.row-content {
-  width: 100%;
-  min-height: 50px;
-}
-
-:deep(.el-row) {
-  width: 100%;
+.child-item {
+  box-sizing: border-box;
 }
 </style>

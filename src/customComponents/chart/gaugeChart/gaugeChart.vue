@@ -1,181 +1,138 @@
 <template>
-  <div class="gauge-chart" :style="{ width: '100%', height: '100%' }">
-    <v-chart :option="chartOption" autoresize class="echart" />
-  </div>
+  <GaugeChartBase v-bind="chartProps" />
 </template>
 
 <script setup lang="ts">
-import { ref, watch, computed } from 'vue'
-import type { EChartsOption } from 'echarts'
-import { use } from 'echarts/core'
-import { CanvasRenderer } from 'echarts/renderers'
-import { GaugeChart } from 'echarts/charts'
-import { TitleComponent, TooltipComponent } from 'echarts/components'
+import { computed } from 'vue'
 import { useComponent } from '@/stores/component'
 import type { Component } from '@/types/components'
-import { useDataSource } from '@/datasource/useDataSource'
-import { parseNumberInput, extractNumberArray, extractString } from '../../../datasource/dataUtils'
 
-// 按需引入
-use([TitleComponent, TooltipComponent, GaugeChart, CanvasRenderer])
+// 从视觉组件库导入基础组件和工具函数
+import {
+  gaugeChart as GaugeChartBase,
+  useDataSource,
+  extractNumberArray,
+  extractString,
+  parseNumberInput,
+} from '@one/visual-lib'
 
-const props = defineProps<{
-  id: string
-}>()
+const props = defineProps<{ id: string }>()
 
+// 获取组件配置
 const componentStore = useComponent()
 const comp = computed(() => componentStore.componentStore.find((c: Component) => c.id === props.id))
 
-// 使用数据源 hook
+// 获取数据源
 const { data: remoteData } = useDataSource(computed(() => comp.value?.dataSource))
 
-const chartOption = ref<EChartsOption>({})
-
-function buildOption(): EChartsOption {
-  const p = comp.value?.props || {}
+// 数据适配逻辑 - value
+const gaugeValue = computed(() => {
   const ds = comp.value?.dataSource
+  const p = comp.value?.props
 
-  // 默认数据
-  let value = 75
-  let name = 'Progress'
-  let min = 0
-  let max = 100
-
-  // 如果数据源启用且有数据
   if (ds?.enabled && remoteData.value) {
-    // 提取数值
     const extractedValue = extractNumberArray(remoteData.value, ds.dataPath as string)
     if (extractedValue && extractedValue.length > 0 && extractedValue[0] !== undefined) {
-      value = extractedValue[0]
+      return extractedValue[0]
     }
+  }
 
-    // 提取名称
+  // 使用手动输入的数据
+  if (p?.value !== undefined) {
+    return p.value as number
+  }
+  if (p?.valueInput) {
+    const parsed = parseNumberInput(p.valueInput as string)
+    if (parsed.length > 0 && parsed[0] !== undefined) {
+      return parsed[0]
+    }
+  }
+
+  return undefined
+})
+
+// 数据适配逻辑 - name
+const gaugeName = computed(() => {
+  const ds = comp.value?.dataSource
+  const p = comp.value?.props
+
+  if (ds?.enabled && remoteData.value) {
     const extractedName = extractString(remoteData.value, ds.namePath as string)
-    if (extractedName) {
-      name = extractedName
-    }
+    if (extractedName) return extractedName
+  }
 
-    // 提取最小值和最大值
+  return p?.name as string | undefined
+})
+
+// 数据适配逻辑 - min/max
+const gaugeMin = computed(() => {
+  const ds = comp.value?.dataSource
+  const p = comp.value?.props
+
+  if (ds?.enabled && remoteData.value) {
     const extractedMin = extractNumberArray(remoteData.value, ds.minPath as string)
     if (extractedMin && extractedMin.length > 0 && extractedMin[0] !== undefined) {
-      min = extractedMin[0]
+      return extractedMin[0]
     }
+  }
 
+  return p?.min as number | undefined
+})
+
+const gaugeMax = computed(() => {
+  const ds = comp.value?.dataSource
+  const p = comp.value?.props
+
+  if (ds?.enabled && remoteData.value) {
     const extractedMax = extractNumberArray(remoteData.value, ds.maxPath as string)
     if (extractedMax && extractedMax.length > 0 && extractedMax[0] !== undefined) {
-      max = extractedMax[0]
-    }
-  } else {
-    // 使用手动输入的数据
-    if (p.value !== undefined) {
-      value = p.value as number
-    } else if (p.valueInput) {
-      const parsed = parseNumberInput(p.valueInput as string, [])
-      if (parsed.length > 0 && parsed[0] !== undefined) {
-        value = parsed[0]
-      }
-    }
-
-    if (p.name) {
-      name = p.name as string
-    }
-
-    if (p.min !== undefined) {
-      min = p.min as number
-    }
-
-    if (p.max !== undefined) {
-      max = p.max as number
+      return extractedMax[0]
     }
   }
 
-  const option: EChartsOption = {
-    title: {
-      text: (p.title as string) || '',
-      left: 'center',
-    },
-    tooltip: {
-      formatter: '{b}: {c}',
-    },
-    series: [
-      {
-        name: name,
-        type: 'gauge',
-        min: min,
-        max: max,
-        startAngle: (p.startAngle as number) || 225,
-        endAngle: (p.endAngle as number) || -45,
-        splitNumber: (p.splitNumber as number) || 10,
-        progress: {
-          show: (p.showProgress as boolean) !== false,
-          width: (p.progressWidth as number) || 10,
-        },
-        axisLine: {
-          lineStyle: {
-            width: (p.axisLineWidth as number) || 10,
-            color: (p.axisLineColor as Array<[number, string]>) || [
-              [0.3, '#67e0e3'],
-              [0.7, '#37a2da'],
-              [1, '#fd666d'],
-            ],
-          },
-        },
-        pointer: {
-          itemStyle: {
-            color: (p.pointerColor as string) || 'auto',
-          },
-          length: (p.pointerLength as string) || '70%',
-          width: (p.pointerWidth as number) || 8,
-        },
-        axisTick: {
-          show: (p.showAxisTick as boolean) !== false,
-          splitNumber: (p.axisTickSplitNumber as number) || 5,
-        },
-        splitLine: {
-          show: (p.showSplitLine as boolean) !== false,
-          length: (p.splitLineLength as number) || 15,
-        },
-        axisLabel: {
-          show: (p.showAxisLabel as boolean) !== false,
-          distance: (p.axisLabelDistance as number) || 25,
-          fontSize: (p.axisLabelFontSize as number) || 12,
-        },
-        detail: {
-          valueAnimation: true,
-          formatter: (p.detailFormatter as string) || '{value}',
-          fontSize: (p.detailFontSize as number) || 20,
-          offsetCenter: [(p.detailOffsetX as string) || '0%', (p.detailOffsetY as string) || '70%'],
-        },
-        data: [
-          {
-            value: value,
-            name: name,
-          },
-        ],
-      },
-    ],
+  return p?.max as number | undefined
+})
+
+const customOption = computed(() => {
+  const opt = comp.value?.props?.option
+  return typeof opt === 'string' ? JSON.parse(opt) : opt
+})
+
+// 聚合要透传给库组件的 props
+const chartProps = computed((): Record<string, unknown> => {
+  const p = comp.value?.props
+  return {
+    value: gaugeValue.value,
+    name: gaugeName.value,
+    min: gaugeMin.value,
+    max: gaugeMax.value,
+
+    // 样式/选项属性
+    title: p?.title,
+    startAngle: p?.startAngle,
+    endAngle: p?.endAngle,
+    splitNumber: p?.splitNumber,
+    showProgress: p?.showProgress,
+    progressWidth: p?.progressWidth,
+    axisLineWidth: p?.axisLineWidth,
+    axisLineColor: p?.axisLineColor,
+    pointerColor: p?.pointerColor,
+    pointerLength: p?.pointerLength,
+    pointerWidth: p?.pointerWidth,
+    showAxisTick: p?.showAxisTick,
+    axisTickSplitNumber: p?.axisTickSplitNumber,
+    showSplitLine: p?.showSplitLine,
+    splitLineLength: p?.splitLineLength,
+    showAxisLabel: p?.showAxisLabel,
+    axisLabelDistance: p?.axisLabelDistance,
+    axisLabelFontSize: p?.axisLabelFontSize,
+    detailFormatter: p?.detailFormatter,
+    detailFontSize: p?.detailFontSize,
+    detailOffsetX: p?.detailOffsetX,
+    detailOffsetY: p?.detailOffsetY,
+
+    // 高级配置覆盖
+    option: customOption.value,
   }
-
-  return option
-}
-
-// 监听组件属性、数据源变化
-watch(
-  [() => comp.value?.props, () => comp.value?.dataSource, remoteData],
-  () => {
-    chartOption.value = buildOption()
-  },
-  { deep: true, immediate: true },
-)
+})
 </script>
-
-<style scoped>
-.gauge-chart {
-  width: 100%;
-  height: 100%;
-}
-.echart {
-  width: 100%;
-  height: 100%;
-}
-</style>

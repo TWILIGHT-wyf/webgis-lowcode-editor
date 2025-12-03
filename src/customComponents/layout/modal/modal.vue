@@ -2,6 +2,7 @@
 import { computed, ref, watch } from 'vue'
 import { storeToRefs } from 'pinia'
 import { useComponent } from '@/stores/component'
+import { vModal as BaseModal } from '@one/visual-lib'
 import Shape from '@/components/Editor/shape/shape.vue'
 import { getComponent } from '@/customComponents/registry'
 
@@ -30,58 +31,47 @@ const handleClose = () => {
   dialogVisible.value = false
 }
 
-// 样式
-const dialogStyle = computed(() => {
+// 聚合所有 Props 传递给 Base 组件
+const modalProps = computed((): Record<string, unknown> => {
   const s = comp.value?.style || {}
+  const p = comp.value?.props || {}
   return {
-    backgroundColor: String(s.backgroundColor || '#ffffff'),
-    color: String(s.textColor || '#333333'),
+    // Modal 配置
+    visible: dialogVisible.value,
+    title: p.title ?? '对话框标题',
+    width: p.width ?? '50%',
+    fullscreen: p.fullscreen ?? false,
+    closeOnClickModal: p.closeOnClickModal !== false,
+    showClose: p.showClose !== false,
+    showFooter: p.showFooter !== false,
+    content: p.content ?? '这是对话框内容',
+    // 容器样式
+    backgroundColor: s.backgroundColor ?? '#ffffff',
+    textColor: s.textColor ?? '#333333',
   }
 })
 
 function getChildComponent(childId: string) {
   return componentStore.value.find((c) => c.id === childId)
 }
+
+const hasChildren = computed(() => comp.value?.children && comp.value.children.length > 0)
 </script>
 
 <template>
-  <el-dialog
-    v-model="dialogVisible"
-    :title="comp?.props?.title || '对话框标题'"
-    :width="comp?.props?.width || '50%'"
-    :fullscreen="comp?.props?.fullscreen || false"
-    :close-on-click-modal="comp?.props?.closeOnClickModal !== false"
-    :show-close="comp?.props?.showClose !== false"
-    :append-to-body="true"
-    @close="handleClose"
-  >
-    <div :style="dialogStyle">
-      <template v-if="comp?.children && comp.children.length > 0">
-        <Shape v-for="childId in comp.children" :key="childId" :id="childId">
-          <component
-            :is="getComponent(getChildComponent(childId)?.type || '')"
-            :id="childId"
-            :style="{ width: '100%', height: '100%' }"
-          />
-        </Shape>
-      </template>
-      <template v-else>
-        {{ comp?.props?.content || '这是对话框内容' }}
-      </template>
-    </div>
-    <template #footer v-if="comp?.props?.showFooter !== false">
-      <span class="dialog-footer">
-        <el-button @click="handleClose">取消</el-button>
-        <el-button type="primary" @click="handleClose">确定</el-button>
-      </span>
+  <BaseModal v-bind="modalProps" @close="handleClose" @confirm="handleClose">
+    <template v-if="hasChildren">
+      <Shape v-for="childId in comp?.children" :key="childId" :id="childId">
+        <component
+          :is="getComponent(getChildComponent(childId)?.type || '')"
+          :id="childId"
+          :style="{ width: '100%', height: '100%' }"
+        />
+      </Shape>
     </template>
-  </el-dialog>
+  </BaseModal>
 </template>
 
 <style scoped>
-.dialog-footer {
-  display: flex;
-  justify-content: flex-end;
-  gap: 8px;
-}
+/* 样式已内联到 BaseModal */
 </style>

@@ -1,18 +1,12 @@
 <template>
-  <div class="box-container" :style="containerStyle">
-    <div class="box-content" :style="contentStyle">
-      {{ displayContent }}
-    </div>
-  </div>
+  <VBox v-bind="boxProps" />
 </template>
 
 <script setup lang="ts">
 import { computed, toRef } from 'vue'
-import type { CSSProperties } from 'vue'
 import { useComponent } from '@/stores/component'
 import { storeToRefs } from 'pinia'
-import { useDataSource } from '@/datasource/useDataSource'
-import { extractWithFallback } from '@/datasource/dataUtils'
+import { vBox as VBox, useDataSource, extractWithFallback } from '@one/visual-lib'
 
 const props = defineProps<{ id: string }>()
 const { componentStore } = storeToRefs(useComponent())
@@ -34,48 +28,27 @@ const displayContent = computed<string>(() => {
   return localContent
 })
 
-// 容器样式
-const containerStyle = computed<CSSProperties>(() => {
+// 聚合所有 Props 传递给 Dumb 组件
+const boxProps = computed((): Record<string, unknown> => {
   const s = comp.value?.style || {}
   return {
-    opacity: ((s.opacity ?? 100) as number) / 100,
-    display: s.visible === false ? 'none' : 'flex',
-    backgroundColor: (s.backgroundColor as string) ?? '#ffffff',
-    borderColor: (s.borderColor as string) ?? '#dcdfe6',
-    borderWidth: `${(s.borderWidth as number) ?? 1}px`,
-    borderStyle: (s.borderStyle as string) ?? 'solid',
-    borderRadius: `${(s.borderRadius as number) ?? 4}px`,
-    padding: `${(s.padding as number) ?? 16}px`,
-    boxShadow: (s.boxShadow as string) ?? 'none',
-  }
-})
-
-// 内容样式
-const contentStyle = computed<CSSProperties>(() => {
-  const s = comp.value?.style || {}
-  const textAlign = (s.textAlign as string) ?? 'center'
-  return {
-    fontSize: `${(s.fontSize as number) ?? 14}px`,
-    color: (s.textColor as string) ?? '#606266',
-    fontWeight: (s.fontWeight as string) ?? 'normal',
-    textAlign: textAlign as 'left' | 'center' | 'right' | 'justify',
-    lineHeight: (s.lineHeight as number) ?? 1.5,
+    content: displayContent.value,
+    // 容器样式
+    opacity: s.opacity ?? 100,
+    visible: s.visible !== false,
+    backgroundColor: s.backgroundColor ?? '#ffffff',
+    borderColor: s.borderColor ?? '#dcdfe6',
+    borderWidth: s.borderWidth ?? 1,
+    borderStyle: s.borderStyle ?? 'solid',
+    borderRadius: s.borderRadius ?? 4,
+    padding: s.padding ?? 16,
+    boxShadow: s.boxShadow ?? 'none',
+    // 文字样式
+    fontSize: s.fontSize ?? 14,
+    textColor: s.textColor ?? '#606266',
+    fontWeight: s.fontWeight ?? 'normal',
+    textAlign: s.textAlign ?? 'center',
+    lineHeight: s.lineHeight ?? 1.5,
   }
 })
 </script>
-
-<style scoped>
-.box-container {
-  width: 100%;
-  height: 100%;
-  box-sizing: border-box;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.box-content {
-  word-break: break-word;
-  white-space: pre-wrap;
-}
-</style>
