@@ -2,8 +2,8 @@
 import { computed, ref, onMounted, onBeforeUnmount } from 'vue'
 import { storeToRefs } from 'pinia'
 import { useComponent } from '@/stores/component'
-import { vTrigger as BaseTrigger, useDataSource } from '@one/visual-lib'
-import type { TriggerLog } from '@one/visual-lib'
+import { vTrigger as BaseTrigger, useDataSource } from '@twi1i9ht/visual-lib'
+import type { TriggerLog } from '@twi1i9ht/visual-lib'
 
 const props = defineProps<{
   id: string

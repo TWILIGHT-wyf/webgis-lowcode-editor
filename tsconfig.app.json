@@ -7,7 +7,7 @@
     "lib": ["ESNext", "DOM", "DOM.Iterable"],
     "paths": {
       "@/*": ["./src/*"],
-      "@one/visual-lib": ["./packages/visual-lib/index.ts"]
+      "@twi1i9ht/visual-lib": ["./packages/visual-lib/index.ts"]
     }
   }
 }

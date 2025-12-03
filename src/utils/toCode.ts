@@ -1,6 +1,98 @@
 import type { Component } from '@/types/components'
 
+/**
+ * 组件类型到库导出名的映射
+ * 图表组件保持 camelCase，其他组件使用 v 前缀
+ */
+const COMPONENT_NAME_MAP: Record<string, string> = {
+  // 图表组件 (保持原名)
+  lineChart: 'lineChart',
+  'chart.bar': 'barChart',
+  barChart: 'barChart',
+  'chart.stackedBar': 'stackedBarChart',
+  stackedBarChart: 'stackedBarChart',
+  pieChart: 'pieChart',
+  doughnutChart: 'doughnutChart',
+  scatterChart: 'scatterChart',
+  radarChart: 'radarChart',
+  gaugeChart: 'gaugeChart',
+  funnelChart: 'funnelChart',
+  sankeyChart: 'sankeyChart',
 
+  // KPI 组件
+  Text: 'vText',
+  box: 'vBox',
+  stat: 'vStat',
+  countUp: 'vCountUp',
+  progress: 'vProgress',
+  badge: 'vBadge',
+
+  // 数据组件
+  table: 'vTable',
+  list: 'vList',
+  timeline: 'vTimeline',
+  cardGrid: 'vCardGrid',
+  pivot: 'vPivot',
+
+  // 控件组件
+  select: 'vSelect',
+  multiSelect: 'vMultiSelect',
+  dateRange: 'vDateRange',
+  searchBox: 'vSearchBox',
+  slider: 'vSlider',
+  switch: 'vSwitch',
+  checkboxGroup: 'vCheckboxGroup',
+  buttonGroup: 'vButtonGroup',
+
+  // 布局组件
+  row: 'vRow',
+  col: 'vCol',
+  flex: 'vFlex',
+  grid: 'vGrid',
+  modal: 'vModal',
+  panel: 'vPanel',
+  tabs: 'vTabs',
+
+  // 媒体组件
+  image: 'vImage',
+  video: 'vVideo',
+
+  // 内容组件
+  markdown: 'vMarkdown',
+  html: 'vHtml',
+  iframe: 'vIframe',
+
+  // 分组组件
+  Group: 'vGroup',
+
+  // 地图组件
+  map: 'vMap',
+  base: 'vMap',
+  marker: 'vMarker',
+  heat: 'vHeatLayer',
+  heatLayer: 'vHeatLayer',
+  geojson: 'vGeoJsonLayer',
+  geoJsonLayer: 'vGeoJsonLayer',
+  cluster: 'vClusterLayer',
+  clusterLayer: 'vClusterLayer',
+  tile: 'vTileLayer',
+  tileLayer: 'vTileLayer',
+  vector: 'vVectorLayer',
+  vectorLayer: 'vVectorLayer',
+  legend: 'vLegend',
+  scale: 'vScale',
+  layers: 'vLayers',
+
+  // 高级组件
+  scripting: 'vScripting',
+  state: 'vState',
+  trigger: 'vTrigger',
+}
+
+/**
+ * 保留的 Props 属性，不需要在模板中绑定
+ */
+const RESERVED_PROPS = ['style', 'class', 'id', 'ref', 'key']
 
 /**
  * 将componentStore转换为Vue代码
@@ -59,9 +151,9 @@ function generateComponentTemplate(
   // 处理组件名称映射
   const tagName = getComponentTagName(comp.type)
 
-  // 开始标签
   let html = `${indentStr}<${tagName}\n`
-  html += `${indentStr}  :ref="el => componentRefs['${comp.id}'] = el"\n`
+  // 使用辅助函数设置 ref，避免模板中的类型问题
+  html += `${indentStr}  :ref="setComponentRef('${comp.id}')"\n`
 
   // 添加动画相关class和事件
   if (animationInfo.class && 'trigger' in animationInfo) {
@@ -69,8 +161,9 @@ function generateComponentTemplate(
     if (animationInfo.trigger === 'hover' || animationInfo.trigger === 'click') {
       classes.push('animation-paused')
     }
+    // 使用单引号避免冲突
     const classStr = `['${classes.join("', '")}']`
-    html += `${indentStr}  :class="${classStr}"\n`
+    html += `${indentStr}  :class='${classStr}'\n`
 
     // 根据trigger添加动画触发事件
     if (animationInfo.trigger === 'hover') {
@@ -80,8 +173,8 @@ function generateComponentTemplate(
       html += `${indentStr}  @click.stop="playAnimation_${comp.id}"\n`
     }
 
-    // 添加style属性(包含动画配置)
-    html += `${indentStr}  :style="{...${style}, ...animationStyles_${comp.id}}"\n`
+    // 添加style属性(包含动画配置) - 使用单引号
+    html += `${indentStr}  :style='{...${style}, ...animationStyles_${comp.id}}'\n`
   } else {
     html += `${indentStr}  :style='${style}'\n`
   }
@@ -96,21 +189,22 @@ function generateComponentTemplate(
     html += events
   }
 
-  // Text组件特殊处理：需要渲染文本内容
-  if (comp.type === 'Text' && comp.props?.text) {
+  // 核心修改：处理嵌套关系
+  if (children.length > 0) {
+    html += `${indentStr}>\n` // 闭合开始标签 >
+
+    // 递归渲染子组件
+    children.forEach((child) => {
+      html += generateComponentTemplate(child, allComponents, indent + 2)
+    })
+
+    html += `${indentStr}</${tagName}>\n` // 闭合标签
+  } else if (comp.type === 'Text' && comp.props?.text) {
     html += `${indentStr}>\n`
     html += `${indentStr}  {{ ${JSON.stringify(comp.props.text)} }}\n`
     html += `${indentStr}</${tagName}>\n`
-  }
-  // 如果有子组件，生成子组件
-  else if (children.length > 0) {
-    html += `${indentStr}>\n`
-    for (const child of children) {
-      html += generateComponentTemplate(child, allComponents, indent + 2)
-    }
-    html += `${indentStr}</${tagName}>\n`
   } else {
-    html += `${indentStr}/>\n`
+    html += `${indentStr}/>\n` // 自闭合
   }
 
   return html
@@ -144,55 +238,10 @@ function generateAnimationInfo(comp: Component):
 
 /**
  * 获取组件标签名
+ * 优先从映射表查找，否则返回原类型
  */
 function getComponentTagName(type: string): string {
-  // 特殊映射
-  const mapping: Record<string, string> = {
-    Text: 'div',
-    lineChart: 'LineChart',
-    'chart.bar': 'BarChart',
-    'chart.stackedBar': 'StackedBarChart',
-    pieChart: 'PieChart',
-    doughnutChart: 'DoughnutChart',
-    scatterChart: 'ScatterChart',
-    radarChart: 'RadarChart',
-    gaugeChart: 'GaugeChart',
-    funnelChart: 'FunnelChart',
-    sankeyChart: 'SankeyChart',
-    box: 'Box',
-    stat: 'Stat',
-    countUp: 'CountUp',
-    progress: 'Progress',
-    badge: 'Badge',
-    table: 'DataTable',
-    list: 'DataList',
-    timeline: 'Timeline',
-    cardGrid: 'CardGrid',
-    pivot: 'Pivot',
-    select: 'Select',
-    multiSelect: 'MultiSelect',
-    dateRange: 'DateRange',
-    searchBox: 'SearchBox',
-    slider: 'Slider',
-    switch: 'Switch',
-    checkboxGroup: 'CheckboxGroup',
-    buttonGroup: 'ButtonGroup',
-    row: 'el-row',
-    col: 'el-col',
-    flex: 'Flex',
-    grid: 'Grid',
-    modal: 'Modal',
-    panel: 'Panel',
-    tabs: 'Tabs',
-    image: 'el-image',
-    video: 'video',
-    markdown: 'Markdown',
-    html: 'Html',
-    iframe: 'Iframe',
-    Group: 'Group',
-  }
-
-  return mapping[type] || type
+  return COMPONENT_NAME_MAP[type] || type
 }
 
 /**
@@ -249,6 +298,7 @@ function generateComponentStyle(comp: Component): string {
 
 /**
  * 生成组件Props
+ * 使用单引号包裹属性值，避免 JSON 双引号冲突
  */
 function generateComponentProps(comp: Component): string {
   let propsStr = ''
@@ -256,12 +306,18 @@ function generateComponentProps(comp: Component): string {
 
   if (comp.props) {
     for (const [key, value] of Object.entries(comp.props)) {
+      // 跳过 Text 组件的 text 属性（在模板中特殊处理）
       if (comp.type === 'Text' && key === 'text') continue
 
-      if (value !== undefined && value !== null) {
-        const propValue = typeof value === 'string' ? `"${value}"` : JSON.stringify(value)
-        propsStr += `${indentStr}:${key}="${propValue}"\n`
-      }
+      // 跳过保留属性
+      if (RESERVED_PROPS.includes(key)) continue
+
+      // 跳过 undefined 和 null
+      if (value === undefined || value === null) continue
+
+      // 使用单引号包裹 JSON 字符串，避免双引号冲突
+      const propValue = JSON.stringify(value)
+      propsStr += `${indentStr}:${key}='${propValue}'\n`
     }
   }
 
@@ -300,10 +356,19 @@ function generateScript(components: Component[]): string {
 
   return `<script setup lang="ts">
 import { ref, onMounted, nextTick } from 'vue'
+import type { ComponentPublicInstance } from 'vue'
 ${imports}
 
-// 组件ref引用（精确化类型以便后续操作不使用 unknown）
+// 组件 Ref 类型定义
+type ComponentRef = Element | ComponentPublicInstance | null
+
+// 组件 ref 引用
 const componentRefs = ref<Record<string, ComponentRef>>({})
+
+// 设置组件 ref 的辅助函数
+const setComponentRef = (id: string) => (el: ComponentRef) => {
+  if (el) componentRefs.value[id] = el
+}
 
 // 组件数据
 ${generateComponentData(components)}
@@ -328,21 +393,30 @@ ${eventHandlers}
 
 /**
  * 生成导入语句
+ * 统一从 @twi1i9ht/visual-lib 导入所有组件
  */
 function generateImports(components: Component[]): string {
-  const types = new Set(components.map((c) => c.type))
-  let imports = ''
+  const libImports = new Set<string>()
 
-  // 根据组件类型生成导入
-  if (types.has('lineChart'))
-    imports += "import LineChart from '@/customComponents/chart/lineChart/lineChart.vue'\n"
-  if (types.has('chart.bar'))
-    imports += "import BarChart from '@/customComponents/chart/barChart/barChart.vue'\n"
-  if (types.has('pieChart'))
-    imports += "import PieChart from '@/customComponents/chart/pieChart/pieChart.vue'\n"
-  // ... 更多导入
+  // 收集所有需要导入的组件
+  components.forEach((comp) => {
+    const componentName = COMPONENT_NAME_MAP[comp.type]
+    // 只导入在映射表中的组件（排除原生 HTML 标签）
+    if (componentName) {
+      libImports.add(componentName)
+    }
+  })
 
-  return imports
+  let importStr = ''
+
+  // 生成组件库导入语句
+  if (libImports.size > 0) {
+    const sortedImports = Array.from(libImports).sort()
+    importStr += `import { ${sortedImports.join(', ')} } from '@twi1i9ht/visual-lib'\n`
+    importStr += `import '@twi1i9ht/visual-lib/dist/style.css'`
+  }
+
+  return importStr
 }
 
 /**

@@ -23,7 +23,7 @@ import { computed } from 'vue'
 import { storeToRefs } from 'pinia'
 import { Menu } from '@element-plus/icons-vue'
 import { useComponent } from '@/stores/component'
-import { vLegend as BaseLegend, useDataSource, getValueByPath } from '@one/visual-lib'
+import { vLegend as BaseLegend, useDataSource, getValueByPath } from '@twi1i9ht/visual-lib'
 
 interface LegendItem {
   label: string

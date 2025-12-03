@@ -6,7 +6,7 @@
 import { computed, toRef } from 'vue'
 import { useComponent } from '@/stores/component'
 import { storeToRefs } from 'pinia'
-import { vPivot as BasePivot, useDataSource, extractWithFallback } from '@one/visual-lib'
+import { vPivot as BasePivot, useDataSource, extractWithFallback } from '@twi1i9ht/visual-lib'
 
 const props = defineProps<{ id: string }>()
 const { componentStore } = storeToRefs(useComponent())

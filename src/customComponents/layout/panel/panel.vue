@@ -3,7 +3,7 @@ import { computed, ref, watch } from 'vue'
 import type { CSSProperties } from 'vue'
 import { storeToRefs } from 'pinia'
 import { useComponent } from '@/stores/component'
-import { vPanel as BasePanel } from '@one/visual-lib'
+import { vPanel as BasePanel } from '@twi1i9ht/visual-lib'
 import { componentRegistry } from '@/customComponents/registry'
 import Shape from '@/components/Editor/shape/shape.vue'
 

@@ -2,7 +2,7 @@
 import { computed, ref, watch } from 'vue'
 import { storeToRefs } from 'pinia'
 import { useComponent } from '@/stores/component'
-import { vModal as BaseModal } from '@one/visual-lib'
+import { vModal as BaseModal } from '@twi1i9ht/visual-lib'
 import Shape from '@/components/Editor/shape/shape.vue'
 import { getComponent } from '@/customComponents/registry'
 

@@ -29,7 +29,7 @@ import {
   vClusterLayer as BaseClusterLayer,
   useDataSource,
   getValueByPath,
-} from '@one/visual-lib'
+} from '@twi1i9ht/visual-lib'
 
 interface MarkerData {
   lat: number

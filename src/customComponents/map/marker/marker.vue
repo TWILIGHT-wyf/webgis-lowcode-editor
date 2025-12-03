@@ -22,7 +22,7 @@
       :color="marker.color"
       :draggable="draggableMarkers"
       @click="() => handleMarkerClick(marker, index)"
-      @dragend="(latlng) => handleMarkerDrag(latlng, index)"
+      @dragend="(latlng: { lat: number; lng: number }) => handleMarkerDrag(latlng, index)"
     />
   </BaseMap>
 </template>
@@ -38,7 +38,7 @@ import {
   vMarker as BaseMarker,
   useDataSource,
   extractWithFallback,
-} from '@one/visual-lib'
+} from '@twi1i9ht/visual-lib'
 
 interface MarkerData {
   lat: number
@@ -71,7 +71,7 @@ const markers = computed(() => {
       return extractWithFallback<MarkerData[]>(dataSourceData.value, field, [])
     }
   }
-  return (comp.value?.props.markers as MarkerData[]) || []
+  return (comp.value?.props.markers as unknown as MarkerData[]) || []
 })
 
 const placeholder = computed(

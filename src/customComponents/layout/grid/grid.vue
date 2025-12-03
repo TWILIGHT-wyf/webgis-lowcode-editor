@@ -3,7 +3,7 @@ import { computed } from 'vue'
 import type { CSSProperties } from 'vue'
 import { storeToRefs } from 'pinia'
 import { useComponent } from '@/stores/component'
-import { vGrid as BaseGrid } from '@one/visual-lib'
+import { vGrid as BaseGrid } from '@twi1i9ht/visual-lib'
 import { componentRegistry } from '@/customComponents/registry'
 import Shape from '@/components/Editor/shape/shape.vue'
 

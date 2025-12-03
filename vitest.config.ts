@@ -1,4 +1,5 @@
 import { fileURLToPath } from 'node:url'
+import path from 'node:path'
 import { mergeConfig, defineConfig, configDefaults } from 'vitest/config'
 import viteConfig from './vite.config'
 
@@ -6,6 +7,12 @@ import viteConfig from './vite.config'
 export default mergeConfig(
   viteConfig,
   defineConfig({
+    resolve: {
+      alias: {
+        // 确保 @twi1i9ht/visual-lib 解析到本地 packages 目录
+        '@twi1i9ht/visual-lib': path.resolve(__dirname, 'packages/visual-lib/index.ts'),
+      },
+    },
     test: {
       globals: true,
       environment: 'jsdom',

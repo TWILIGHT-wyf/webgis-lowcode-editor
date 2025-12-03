@@ -206,7 +206,7 @@ function assembleProjectFiles(
   if (options.lint) {
     files.push(
       {
-        path: '.eslintrc.cjs',
+        path: 'eslint.config.js',
         content: createEslintConfig(options.language),
         shouldProcess: false,
       },
@@ -267,6 +267,7 @@ function createPackageJson(
     'lodash-es': '^4.17.21',
     dompurify: '^3.3.0',
     marked: '^17.0.1',
+    '@twi1i9ht/visual-lib': '^1.0.4',
   }
 
   const devDependencies: Record<string, string> = {
@@ -280,8 +281,9 @@ function createPackageJson(
   }
 
   if (options.lint) {
+    devDependencies['@eslint/js'] = '^9.33.0'
     devDependencies.eslint = '^9.33.0'
-    devDependencies['eslint-plugin-vue'] = '^9.27.0'
+    devDependencies['eslint-plugin-vue'] = '^10.4.0'
     devDependencies['@vue/eslint-config-prettier'] = '^10.2.0'
     devDependencies.prettier = '3.6.2'
     if (options.language === 'ts') {
@@ -300,8 +302,7 @@ function createPackageJson(
   }
 
   if (options.lint) {
-    const ext = options.language === 'ts' ? '.ts,.vue' : '.js,.vue'
-    scripts.lint = `eslint . --ext ${ext}`
+    scripts.lint = 'eslint .'
     scripts.format = 'prettier --write .'
   }
 
@@ -348,6 +349,7 @@ function createMainEntry(): string {
 import { createPinia } from 'pinia'
 import ElementPlus from 'element-plus'
 import 'element-plus/dist/index.css'
+import 'leaflet/dist/leaflet.css'
 import App from './App.vue'
 import router from './router'
 import './styles/global.css'
@@ -473,33 +475,51 @@ function createEnvDeclaration(): string {
 }
 
 /**
- * 创建 ESLint 配置文件
+ * 创建 ESLint 配置文件 (flat config 格式，兼容 ESLint 9.x)
  * @param language 编程语言
- * @returns .eslintrc.cjs 内容
+ * @returns eslint.config.js 内容
  */
 function createEslintConfig(language: 'ts' | 'js'): string {
-  const extendsList = [
-    "'eslint:recommended'",
-    "'plugin:vue/vue3-recommended'",
-    "'@vue/eslint-config-prettier'",
-  ]
-
   if (language === 'ts') {
-    extendsList.splice(2, 0, "'@vue/eslint-config-typescript'")
+    return `import js from '@eslint/js'
+import pluginVue from 'eslint-plugin-vue'
+import skipFormatting from '@vue/eslint-config-prettier/skip-formatting'
+import vueTsEslintConfig from '@vue/eslint-config-typescript'
+
+export default [
+  {
+    name: 'app/files-to-lint',
+    files: ['**/*.{ts,mts,tsx,vue}'],
+  },
+  {
+    name: 'app/files-to-ignore',
+    ignores: ['**/dist/**', '**/dist-ssr/**', '**/coverage/**'],
+  },
+  js.configs.recommended,
+  ...pluginVue.configs['flat/essential'],
+  ...vueTsEslintConfig(),
+  skipFormatting,
+]
+`
   }
 
-  return `module.exports = {
-  root: true,
-  env: {
-    browser: true,
-    es2021: true,
+  return `import js from '@eslint/js'
+import pluginVue from 'eslint-plugin-vue'
+import skipFormatting from '@vue/eslint-config-prettier/skip-formatting'
+
+export default [
+  {
+    name: 'app/files-to-lint',
+    files: ['**/*.{js,mjs,jsx,vue}'],
   },
-  extends: [${extendsList.join(', ')}],
-  parserOptions: {
-    ecmaVersion: 'latest',
-    sourceType: 'module',
+  {
+    name: 'app/files-to-ignore',
+    ignores: ['**/dist/**', '**/dist-ssr/**', '**/coverage/**'],
   },
-}
+  js.configs.recommended,
+  ...pluginVue.configs['flat/essential'],
+  skipFormatting,
+]
 `
 }
 

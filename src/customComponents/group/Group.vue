@@ -25,7 +25,7 @@ import type { CSSProperties } from 'vue'
 import { useComponent } from '@/stores/component'
 import { storeToRefs } from 'pinia'
 import { componentRegistry } from '@/customComponents/registry'
-import { vGroup as BaseGroup } from '@one/visual-lib'
+import { vGroup as BaseGroup } from '@twi1i9ht/visual-lib'
 
 const props = defineProps<{ id: string }>()
 const { componentStore } = storeToRefs(useComponent())
@@ -50,7 +50,7 @@ const groupProps = computed(() => {
   const s = comp.value?.style || {}
   return {
     opacity: Number(s.opacity ?? 1),
-    visible: comp.value?.visible !== false,
+    visible: comp.value?.style?.visible !== false,
     rotation: Number(comp.value?.rotation || 0),
     borderRadius: Number(s.borderRadius || 0),
     backgroundColor: String(s.backgroundColor || 'transparent'),

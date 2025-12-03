@@ -11,7 +11,7 @@ import {
   useDataSource,
   extractNumber,
   extractWithFallback,
-} from '@one/visual-lib'
+} from '@twi1i9ht/visual-lib'
 
 const props = defineProps<{ id: string }>()
 const { componentStore } = storeToRefs(useComponent())

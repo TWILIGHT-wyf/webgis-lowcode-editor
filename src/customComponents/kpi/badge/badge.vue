@@ -36,7 +36,7 @@ import { computed, toRef } from 'vue'
 import type { CSSProperties } from 'vue'
 import { useComponent } from '@/stores/component'
 import { storeToRefs } from 'pinia'
-import { vBadge as BaseBadge, useDataSource, extractWithFallback } from '@one/visual-lib'
+import { vBadge as BaseBadge, useDataSource, extractWithFallback } from '@twi1i9ht/visual-lib'
 import { componentRegistry } from '@/customComponents/registry'
 import Shape from '@/components/Editor/shape/shape.vue'
 

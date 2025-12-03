@@ -5,10 +5,11 @@
 <script setup lang="ts">
 import { inject, watch, onMounted, onBeforeUnmount, type Ref } from 'vue'
 import L from 'leaflet'
+import type { GeoJsonObject, Feature } from 'geojson'
 
 export interface GeoJsonLayerProps {
   /** GeoJSON 数据 */
-  data: GeoJSON.GeoJsonObject | null
+  data: GeoJsonObject | null
   /** 样式配置 */
   style?: {
     color?: string
@@ -41,7 +42,7 @@ const props = withDefaults(defineProps<GeoJsonLayerProps>(), {
 })
 
 const emit = defineEmits<{
-  featureClick: [feature: GeoJSON.Feature, layer: L.Layer]
+  featureClick: [feature: Feature, layer: L.Layer]
 }>()
 
 // 从父组件注入地图实例

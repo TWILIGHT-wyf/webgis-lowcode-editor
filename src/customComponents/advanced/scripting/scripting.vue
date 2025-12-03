@@ -2,7 +2,11 @@
 import { computed, watch, ref } from 'vue'
 import { storeToRefs } from 'pinia'
 import { useComponent } from '@/stores/component'
-import { vScripting as BaseScripting, useDataSource, extractWithFallback } from '@one/visual-lib'
+import {
+  vScripting as BaseScripting,
+  useDataSource,
+  extractWithFallback,
+} from '@twi1i9ht/visual-lib'
 
 const props = defineProps<{
   id: string

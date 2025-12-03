@@ -10,7 +10,7 @@ import {
   vMultiSelect as BaseMultiSelect,
   useDataSource,
   extractWithFallback,
-} from '@one/visual-lib'
+} from '@twi1i9ht/visual-lib'
 
 interface SelectOption {
   label: string

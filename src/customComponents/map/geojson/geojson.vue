@@ -30,7 +30,7 @@ import {
   vGeoJsonLayer as BaseGeoJsonLayer,
   useDataSource,
   getValueByPath,
-} from '@one/visual-lib'
+} from '@twi1i9ht/visual-lib'
 
 const props = defineProps<{ id: string }>()
 
@@ -51,7 +51,7 @@ const geojsonData = computed(() => {
       return getValueByPath(dataSourceData.value, field) as GeoJSON.GeoJsonObject | null
     }
   }
-  return (comp.value?.props.geojsonData as GeoJSON.GeoJsonObject) || null
+  return (comp.value?.props.geojsonData as unknown as GeoJSON.GeoJsonObject) || null
 })
 
 const placeholder = computed(

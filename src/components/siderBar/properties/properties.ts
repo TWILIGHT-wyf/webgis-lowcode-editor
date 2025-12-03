@@ -2,7 +2,7 @@ import { computed, ref, watch } from 'vue'
 import { useComponent } from '@/stores/component'
 import { useSizeStore } from '@/stores/size'
 import { storeToRefs } from 'pinia'
-import { useDataSource } from '@one/visual-lib'
+import { useDataSource } from '@twi1i9ht/visual-lib'
 
 export function customProperties() {
   const componentStore = useComponent()

@@ -14,7 +14,7 @@
 import { computed, ref, watch } from 'vue'
 import { useComponent } from '@/stores/component'
 import { storeToRefs } from 'pinia'
-import { vSearchBox as BaseSearchBox } from '@one/visual-lib'
+import { vSearchBox as BaseSearchBox } from '@twi1i9ht/visual-lib'
 
 const props = defineProps<{
   id: string

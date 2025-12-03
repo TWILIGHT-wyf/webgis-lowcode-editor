@@ -32,7 +32,7 @@
 import { computed } from 'vue'
 import { useComponent } from '@/stores/component'
 import { storeToRefs } from 'pinia'
-import { vCol as BaseCol } from '@one/visual-lib'
+import { vCol as BaseCol } from '@twi1i9ht/visual-lib'
 import { useLayoutHelpers } from '@/customComponents/layout/layoutUtils'
 import Shape from '@/components/Editor/shape/shape.vue'
 

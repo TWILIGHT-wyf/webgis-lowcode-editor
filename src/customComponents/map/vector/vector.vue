@@ -27,7 +27,7 @@ import {
   vVectorLayer as BaseVectorLayer,
   useDataSource,
   getValueByPath,
-} from '@one/visual-lib'
+} from '@twi1i9ht/visual-lib'
 
 interface VectorFeature {
   type: 'point' | 'line' | 'polygon'

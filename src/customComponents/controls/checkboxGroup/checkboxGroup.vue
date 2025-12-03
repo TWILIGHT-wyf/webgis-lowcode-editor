@@ -10,7 +10,7 @@ import {
   vCheckboxGroup as BaseCheckboxGroup,
   useDataSource,
   extractWithFallback,
-} from '@one/visual-lib'
+} from '@twi1i9ht/visual-lib'
 
 // 选项接口
 interface CheckboxOption {
@@ -33,8 +33,8 @@ const dataSourceRef = toRef(() => comp.value?.dataSource)
 const { data: remoteData } = useDataSource(dataSourceRef)
 
 // 字段映射
-const labelField = computed(() => comp.value?.props.labelField || 'label')
-const valueField = computed(() => comp.value?.props.valueField || 'value')
+const labelField = computed(() => String(comp.value?.props.labelField || 'label'))
+const valueField = computed(() => String(comp.value?.props.valueField || 'value'))
 
 // 选项数据
 const options = computed<CheckboxOption[]>(() => {

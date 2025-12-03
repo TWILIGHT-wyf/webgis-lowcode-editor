@@ -6,7 +6,12 @@
 import { computed, toRef } from 'vue'
 import { useComponent } from '@/stores/component'
 import { storeToRefs } from 'pinia'
-import { vStat as VStat, useDataSource, extractWithFallback, extractNumber } from '@one/visual-lib'
+import {
+  vStat as VStat,
+  useDataSource,
+  extractWithFallback,
+  extractNumber,
+} from '@twi1i9ht/visual-lib'
 
 const props = defineProps<{ id: string }>()
 const { componentStore } = storeToRefs(useComponent())

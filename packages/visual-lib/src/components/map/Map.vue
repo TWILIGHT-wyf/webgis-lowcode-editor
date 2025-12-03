@@ -16,7 +16,7 @@
 <script setup lang="ts">
 import { ref, computed, watch, onMounted, onBeforeUnmount, provide, type CSSProperties } from 'vue'
 import L from 'leaflet'
-import 'leaflet/dist/leaflet.css'
+// 注意：leaflet CSS 需要在使用方项目中导入：import 'leaflet/dist/leaflet.css'
 
 export interface MapProps {
   /** 中心点纬度 */

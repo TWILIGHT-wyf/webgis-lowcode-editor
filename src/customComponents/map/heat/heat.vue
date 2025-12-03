@@ -21,8 +21,8 @@ import {
   vHeatLayer as BaseHeatLayer,
   useDataSource,
   extractWithFallback,
-} from '@one/visual-lib'
-import type { HeatPoint } from '@one/visual-lib'
+} from '@twi1i9ht/visual-lib'
+import type { HeatPoint } from '@twi1i9ht/visual-lib'
 
 const props = defineProps<{ id: string }>()
 
@@ -39,7 +39,7 @@ const heatData = computed(() => {
       return extractWithFallback<HeatPoint[]>(dataSourceData.value, field, [])
     }
   }
-  return (comp.value?.props.heatData as HeatPoint[]) || []
+  return (comp.value?.props.heatData as unknown as HeatPoint[]) || []
 })
 
 const placeholder = computed(

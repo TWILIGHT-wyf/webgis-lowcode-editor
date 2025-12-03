@@ -1,63 +1,164 @@
 <template>
-  <div class="runtime-view">
+  <div class="runtime-view" :class="{ 'theme-dark': isDarkMode }">
     <ExportConfigDialog v-model="exportDialogVisible" :project="projectSnapshot" />
 
-    <div v-if="isLoading" class="loading-container">
-      <el-icon class="loading-icon" :size="48"><Loading /></el-icon>
-      <p class="loading-text">正在加载预览...</p>
-    </div>
-
-    <template v-else>
-      <div class="toolbar">
-        <div class="toolbar-left">
-          <el-button type="info" @click="backToEditor" icon="Back">返回编辑器</el-button>
-          <div class="toolbar-info">
-            <span class="project-name">{{ projectName }}</span>
-            <span class="page-name" v-if="currentPageName">/ {{ currentPageName }}</span>
-            <el-tag v-if="isProjectMode" type="success" size="small" class="mode-tag">
-              项目预览
-            </el-tag>
-            <el-tag v-else type="info" size="small" class="mode-tag"> 单页预览 </el-tag>
+    <!-- 全屏加载遮罩 -->
+    <transition name="fade">
+      <div v-if="isLoading" class="loading-overlay">
+        <div class="loading-content">
+          <div class="loading-spinner">
+            <div class="spinner-ring"></div>
+            <el-icon class="spinner-icon" :size="32"><MapLocation /></el-icon>
           </div>
-
-          <div v-if="isProjectMode && allPages.length > 1" class="page-nav">
-            <el-dropdown @command="navigateToPage">
-              <el-button>
-                页面导航 <el-icon class="el-icon--right"><ArrowDown /></el-icon>
-              </el-button>
-              <template #dropdown>
-                <el-dropdown-menu>
-                  <el-dropdown-item
-                    v-for="page in allPages"
-                    :key="page.id"
-                    :command="page.id"
-                    :class="{ 'is-active': page.id === currentPageId }"
-                  >
-                    <el-icon v-if="page.id === currentPageId"><Check /></el-icon>
-                    <span>{{ page.name }}</span>
-                    <span v-if="page.route" class="page-route">{{ page.route }}</span>
-                  </el-dropdown-item>
-                </el-dropdown-menu>
-              </template>
-            </el-dropdown>
-          </div>
-        </div>
-
-        <div class="toolbar-right">
-          <el-button type="primary" @click="refreshPreview" icon="Refresh">刷新预览</el-button>
-          <el-button type="primary" plain @click="openExportDialog" icon="Download">
-            导出源码
-          </el-button>
+          <p class="loading-text">正在加载预览...</p>
+          <p class="loading-hint">准备渲染组件</p>
         </div>
       </div>
+    </transition>
 
-      <el-tabs v-model="activePreviewTab" class="preview-tabs" type="border-card">
-        <el-tab-pane label="运行画布" name="runtime">
-          <div class="preview-container">
+    <template v-if="!isLoading">
+      <!-- 重构后的 Header -->
+      <header class="preview-header">
+        <div class="header-left">
+          <!-- 返回按钮 -->
+          <el-tooltip content="返回编辑器" placement="bottom">
+            <el-button class="back-btn" text @click="backToEditor">
+              <el-icon><Back /></el-icon>
+            </el-button>
+          </el-tooltip>
+
+          <div class="header-divider"></div>
+
+          <!-- 项目信息 -->
+          <div class="project-info">
+            <el-icon class="project-icon"><Folder /></el-icon>
+            <span class="project-name">{{ projectName }}</span>
+            <span class="page-separator">/</span>
+            <span class="page-name">{{ currentPageName || '未选择页面' }}</span>
+            <el-tag
+              :type="isProjectMode ? 'success' : 'info'"
+              size="small"
+              effect="dark"
+              class="mode-tag"
+            >
+              {{ isProjectMode ? '项目预览' : '单页预览' }}
+            </el-tag>
+          </div>
+        </div>
+
+        <!-- 中间：页面导航 -->
+        <div class="header-center">
+          <el-select
+            v-if="isProjectMode && allPages.length > 1"
+            v-model="currentPageId"
+            placeholder="选择页面"
+            class="page-selector"
+            @change="navigateToPage"
+          >
+            <template #prefix>
+              <el-icon><Files /></el-icon>
+            </template>
+            <el-option v-for="page in allPages" :key="page.id" :label="page.name" :value="page.id">
+              <div class="page-option">
+                <span class="page-option-name">{{ page.name }}</span>
+                <span v-if="page.route" class="page-option-route">{{ page.route }}</span>
+              </div>
+            </el-option>
+          </el-select>
+        </div>
+
+        <!-- 右侧：功能按钮 -->
+        <div class="header-right">
+          <el-tooltip content="刷新预览" placement="bottom">
+            <el-button class="action-btn" text @click="refreshPreview">
+              <el-icon><Refresh /></el-icon>
+            </el-button>
+          </el-tooltip>
+
+          <el-tooltip content="查看 JSON" placement="bottom">
+            <el-button
+              class="action-btn"
+              text
+              :class="{ 'is-active': activePreviewTab === 'json' }"
+              @click="activePreviewTab = 'json'"
+            >
+              <el-icon><Document /></el-icon>
+            </el-button>
+          </el-tooltip>
+
+          <el-tooltip content="查看源码" placement="bottom">
+            <el-button
+              class="action-btn"
+              text
+              :class="{ 'is-active': activePreviewTab === 'code' }"
+              @click="activePreviewTab = 'code'"
+            >
+              <el-icon><Edit /></el-icon>
+            </el-button>
+          </el-tooltip>
+
+          <div class="header-divider"></div>
+
+          <el-button type="primary" plain @click="openExportDialog" class="export-btn">
+            <el-icon><Download /></el-icon>
+            导出
+          </el-button>
+
+          <el-tooltip content="切换主题" placement="bottom">
+            <el-switch
+              v-model="isDarkMode"
+              :active-icon="Moon"
+              :inactive-icon="Sunny"
+              class="theme-switch"
+            />
+          </el-tooltip>
+        </div>
+      </header>
+
+      <!-- Tab 切换栏 -->
+      <nav class="tab-nav">
+        <button
+          class="tab-item"
+          :class="{ 'is-active': activePreviewTab === 'runtime' }"
+          @click="activePreviewTab = 'runtime'"
+        >
+          <el-icon><View /></el-icon>
+          运行画布
+        </button>
+        <button
+          class="tab-item"
+          :class="{ 'is-active': activePreviewTab === 'json' }"
+          @click="activePreviewTab = 'json'"
+        >
+          <el-icon><Document /></el-icon>
+          全站 JSON
+        </button>
+        <button
+          class="tab-item"
+          :class="{ 'is-active': activePreviewTab === 'code' }"
+          @click="activePreviewTab = 'code'"
+        >
+          <el-icon><Edit /></el-icon>
+          全站代码
+        </button>
+      </nav>
+
+      <!-- 内容区域 -->
+      <main class="preview-main">
+        <!-- 运行画布 Tab -->
+        <div v-show="activePreviewTab === 'runtime'" class="tab-content runtime-content">
+          <div class="canvas-wrapper">
             <div class="preview-stage" ref="previewStage">
               <div v-if="topLevelComponents.length === 0" class="empty-state">
-                <el-icon :size="64" color="#dcdfe6"><Document /></el-icon>
-                <p>当前页面没有组件</p>
+                <div class="empty-illustration">
+                  <el-icon :size="80"><DocumentRemove /></el-icon>
+                </div>
+                <h3 class="empty-title">当前页面为空</h3>
+                <p class="empty-desc">返回编辑器添加组件后再预览</p>
+                <el-button type="primary" plain @click="backToEditor">
+                  <el-icon><Back /></el-icon>
+                  返回编辑器
+                </el-button>
               </div>
 
               <RuntimeComponent
@@ -69,74 +170,98 @@
               />
             </div>
           </div>
-        </el-tab-pane>
+        </div>
 
-        <el-tab-pane label="全站 JSON" name="json">
-          <div class="json-viewer">
-            <div class="json-toolbar">
-              <div>
-                <p class="section-title">项目结构 JSON</p>
-                <p class="section-subtitle">同步所有页面与数据，便于全站调试</p>
+        <!-- JSON Tab -->
+        <div v-show="activePreviewTab === 'json'" class="tab-content json-content">
+          <div class="panel-card">
+            <div class="panel-header">
+              <div class="panel-info">
+                <el-icon class="panel-icon"><Document /></el-icon>
+                <div>
+                  <h3 class="panel-title">项目结构 JSON</h3>
+                  <p class="panel-desc">同步所有页面与数据，便于全站调试</p>
+                </div>
               </div>
-              <div class="json-actions">
-                <el-button text size="small" @click="copyProjectJson" :disabled="!projectSnapshot">
+              <div class="panel-actions">
+                <el-button text @click="copyProjectJson" :disabled="!projectSnapshot">
                   <el-icon><CopyDocument /></el-icon>
                   复制
                 </el-button>
-                <el-button
-                  text
-                  size="small"
-                  @click="downloadProjectJson"
-                  :disabled="!projectSnapshot"
-                >
+                <el-button text @click="downloadProjectJson" :disabled="!projectSnapshot">
                   <el-icon><Download /></el-icon>
                   下载
                 </el-button>
               </div>
             </div>
-            <el-scrollbar class="json-scroll">
-              <pre class="json-block">{{ fullProjectJson }}</pre>
-            </el-scrollbar>
+            <div class="code-preview-box">
+              <pre><code class="hljs language-json" v-html="highlightedJson"></code></pre>
+            </div>
           </div>
-        </el-tab-pane>
+        </div>
 
-        <el-tab-pane label="全站代码" name="code">
-          <div class="code-preview">
-            <div class="code-toolbar">
-              <div class="section-info">
-                <el-icon class="section-icon"><Files /></el-icon>
+        <!-- 代码 Tab -->
+        <div v-show="activePreviewTab === 'code'" class="tab-content code-content">
+          <div class="panel-card code-panel">
+            <div class="panel-header">
+              <div class="panel-info">
+                <el-icon class="panel-icon"><Files /></el-icon>
                 <div>
-                  <p class="section-title">生成目录结构</p>
-                  <p class="section-subtitle">点击文件即可在右侧查看源码</p>
+                  <h3 class="panel-title">生成目录结构</h3>
+                  <p class="panel-desc">点击文件即可在右侧查看源码</p>
                 </div>
               </div>
-              <div class="code-options">
+              <div class="panel-actions">
                 <el-radio-group v-model="codePreviewOptions.language" size="small">
-                  <el-radio-button label="ts">TypeScript</el-radio-button>
-                  <el-radio-button label="js">JavaScript</el-radio-button>
+                  <el-radio-button value="ts">TypeScript</el-radio-button>
+                  <el-radio-button value="js">JavaScript</el-radio-button>
                 </el-radio-group>
-                <el-checkbox v-model="codePreviewOptions.lint" size="small"
-                  >含 ESLint/Prettier</el-checkbox
-                >
+                <el-checkbox v-model="codePreviewOptions.lint" size="small">
+                  含 ESLint/Prettier
+                </el-checkbox>
               </div>
             </div>
 
-            <div class="code-preview-layout">
-              <div class="file-tree-panel">
-                <el-tree
-                  :data="fileTreeData"
-                  :props="fileTreeProps"
-                  node-key="path"
-                  highlight-current
-                  :expand-on-click-node="false"
-                  :current-node-key="selectedFilePath"
-                  @node-click="handleFileNodeClick"
-                />
-              </div>
+            <div class="code-layout">
+              <!-- 文件树 -->
+              <aside class="file-tree-panel">
+                <div class="tree-header">
+                  <el-icon><FolderOpened /></el-icon>
+                  <span>项目文件</span>
+                </div>
+                <el-scrollbar class="tree-scroll">
+                  <el-tree
+                    :data="fileTreeData"
+                    :props="fileTreeProps"
+                    node-key="path"
+                    highlight-current
+                    default-expand-all
+                    :expand-on-click-node="false"
+                    :current-node-key="selectedFilePath"
+                    @node-click="handleFileNodeClick"
+                  >
+                    <template #default="{ node, data }">
+                      <span class="tree-node">
+                        <el-icon v-if="!data.isLeaf" class="folder-icon"><Folder /></el-icon>
+                        <el-icon v-else class="file-icon" :class="getFileIconClass(data.label)">
+                          <Document />
+                        </el-icon>
+                        <span class="node-label">{{ node.label }}</span>
+                      </span>
+                    </template>
+                  </el-tree>
+                </el-scrollbar>
+              </aside>
 
-              <div class="code-viewer-panel">
+              <!-- 代码查看器 -->
+              <section class="code-viewer-panel">
                 <div class="code-viewer-header">
-                  <span class="file-path">{{ selectedFilePath || '选择一个文件以查看代码' }}</span>
+                  <div class="file-info">
+                    <el-icon><Document /></el-icon>
+                    <span class="file-path">{{
+                      selectedFilePath || '选择一个文件以查看代码'
+                    }}</span>
+                  </div>
                   <div class="code-actions">
                     <el-button
                       text
@@ -158,17 +283,18 @@
                     </el-button>
                   </div>
                 </div>
-                <el-scrollbar v-if="selectedFileContent" class="code-scroll">
-                  <pre class="code-block">{{ selectedFileContent }}</pre>
-                </el-scrollbar>
-                <div v-else class="code-empty">
-                  <p>请选择左侧文件查看源码。</p>
+                <div v-if="selectedFileContent" class="code-preview-box">
+                  <pre><code :class="'hljs language-' + getLanguageFromPath(selectedFilePath)" v-html="highlightedCode"></code></pre>
                 </div>
-              </div>
+                <div v-else class="code-empty">
+                  <el-icon :size="48"><DocumentRemove /></el-icon>
+                  <p>请选择左侧文件查看源码</p>
+                </div>
+              </section>
             </div>
           </div>
-        </el-tab-pane>
-      </el-tabs>
+        </div>
+      </main>
     </template>
   </div>
 </template>
@@ -196,12 +322,43 @@ import {
   CopyDocument,
   Files,
   Download,
+  Back,
+  Refresh,
+  Edit,
+  View,
+  Folder,
+  FolderOpened,
+  DocumentRemove,
+  Moon,
+  Sunny,
+  MapLocation,
 } from '@element-plus/icons-vue'
+
+// 引入 highlight.js
+import hljs from 'highlight.js/lib/core'
+import json from 'highlight.js/lib/languages/json'
+import xml from 'highlight.js/lib/languages/xml'
+import javascript from 'highlight.js/lib/languages/javascript'
+import typescript from 'highlight.js/lib/languages/typescript'
+import css from 'highlight.js/lib/languages/css'
+import 'highlight.js/styles/atom-one-dark.css'
+
+// 注册语言
+hljs.registerLanguage('json', json)
+hljs.registerLanguage('xml', xml)
+hljs.registerLanguage('html', xml)
+hljs.registerLanguage('vue', xml)
+hljs.registerLanguage('javascript', javascript)
+hljs.registerLanguage('typescript', typescript)
+hljs.registerLanguage('css', css)
 
 const router = useRouter()
 const route = useRoute()
 
 const projectStore = useProjectStore()
+
+// 主题模式
+const isDarkMode = ref(true)
 
 // 预览页面使用独立的本地组件状态，不依赖 componentStore
 // 这样可以避免编辑器和预览页面之间的状态污染
@@ -227,10 +384,62 @@ const isProjectMode = computed(() => route.query.mode === 'project')
 const fullProjectJson = computed(() =>
   projectSnapshot.value ? JSON.stringify(projectSnapshot.value, null, 2) : '// 尚未加载项目',
 )
+
+// 高亮后的 JSON
+const highlightedJson = computed(() => {
+  if (!projectSnapshot.value) return '// 尚未加载项目'
+  try {
+    const jsonStr = JSON.stringify(projectSnapshot.value, null, 2)
+    return hljs.highlight(jsonStr, { language: 'json' }).value
+  } catch {
+    return fullProjectJson.value
+  }
+})
+
+// 高亮后的代码
+const highlightedCode = computed(() => {
+  if (!selectedFileContent.value) return ''
+  try {
+    const lang = getLanguageFromPath(selectedFilePath.value)
+    return hljs.highlight(selectedFileContent.value, { language: lang }).value
+  } catch {
+    return selectedFileContent.value
+  }
+})
+
 const fileTreeData = computed<FileTreeNode[]>(() => sortTree(buildFileTree(generatedFiles.value)))
 const selectedFileContent = computed(() => {
   return generatedFiles.value.find((file) => file.path === selectedFilePath.value)?.content || ''
 })
+
+// 根据文件路径获取语言
+function getLanguageFromPath(path: string): string {
+  const ext = path.split('.').pop()?.toLowerCase() || ''
+  const langMap: Record<string, string> = {
+    vue: 'xml',
+    html: 'xml',
+    json: 'json',
+    js: 'javascript',
+    ts: 'typescript',
+    css: 'css',
+    scss: 'css',
+  }
+  return langMap[ext] || 'javascript'
+}
+
+// 获取文件图标类名
+function getFileIconClass(filename: string): string {
+  const ext = filename.split('.').pop()?.toLowerCase() || ''
+  const classMap: Record<string, string> = {
+    vue: 'file-vue',
+    ts: 'file-ts',
+    js: 'file-js',
+    json: 'file-json',
+    css: 'file-css',
+    html: 'file-html',
+  }
+  return classMap[ext] || ''
+}
 
 // 加载指定页面的组件
 async function loadPage(pageId: string) {
@@ -270,7 +479,15 @@ onMounted(async () => {
     } else {
       const serverProject = await projectService.getProject(projectId.value)
       if (serverProject) {
-        syncProjectContext(serverProject)
+        syncProjectContext({
+          id: serverProject._id,
+          name: serverProject.name,
+          cover: serverProject.cover,
+          description: serverProject.description,
+          pages: serverProject.pages,
+          createdAt: new Date(serverProject.createdAt).getTime(),
+          updatedAt: new Date(serverProject.updatedAt).getTime(),
+        })
       } else {
         throw new Error('Server returned null')
       }
@@ -607,312 +824,634 @@ async function copyToClipboard(payload: string, successMessage: string) {
 </script>
 
 <style scoped>
+/* ==================== 基础变量 ==================== */
 .runtime-view {
+  --preview-bg: #f0f2f5;
+  --header-bg: #ffffff;
+  --card-bg: #ffffff;
+  --border-color: #e4e7ed;
+  --text-primary: #1f2937;
+  --text-secondary: #6b7280;
+  --text-muted: #9ca3af;
+  --code-bg: #1e1e1e;
+  --code-text: #d4d4d4;
+  --accent-color: #409eff;
+
   display: flex;
   flex-direction: column;
   height: 100vh;
-  background-color: #0b0d16;
-  color: #e5e9f0;
+  background-color: var(--preview-bg);
+  color: var(--text-primary);
+  overflow: hidden;
 }
 
-.loading-container {
+/* 暗色主题 */
+.runtime-view.theme-dark {
+  --preview-bg: #0f111a;
+  --header-bg: #1a1d2e;
+  --card-bg: #1a1d2e;
+  --border-color: rgba(255, 255, 255, 0.08);
+  --text-primary: #f5f5f5;
+  --text-secondary: #a0aec0;
+  --text-muted: #718096;
+  --code-bg: #0d0f17;
+  --code-text: #e2e8f0;
+}
+
+/* ==================== 加载动画 ==================== */
+.loading-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, #0f111a 0%, #1a1d2e 100%);
+}
+
+.loading-content {
   display: flex;
   flex-direction: column;
   align-items: center;
+  gap: 20px;
+}
+
+.loading-spinner {
+  position: relative;
+  width: 80px;
+  height: 80px;
+  display: flex;
+  align-items: center;
   justify-content: center;
-  height: 100vh;
-  background-color: #0f111f;
-  gap: 16px;
 }
 
-.loading-icon {
-  color: var(--el-color-primary);
-  animation: rotating 1.5s linear infinite;
+.spinner-ring {
+  position: absolute;
+  inset: 0;
+  border: 3px solid transparent;
+  border-top-color: var(--accent-color);
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
 }
 
-@keyframes rotating {
-  from {
-    transform: rotate(0deg);
-  }
+.spinner-ring::before {
+  content: '';
+  position: absolute;
+  inset: 6px;
+  border: 3px solid transparent;
+  border-top-color: #67c23a;
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite reverse;
+}
+
+.spinner-icon {
+  color: var(--accent-color);
+}
+
+@keyframes spin {
   to {
     transform: rotate(360deg);
   }
 }
 
 .loading-text {
-  color: #8a92b2;
-  font-size: 14px;
+  font-size: 18px;
+  font-weight: 600;
+  color: #f5f5f5;
   margin: 0;
 }
 
-.toolbar {
+.loading-hint {
+  font-size: 14px;
+  color: #718096;
+  margin: 0;
+}
+
+/* 淡入淡出 */
+.fade-enter-active,
+.fade-leave-active {
+  transition: opacity 0.3s ease;
+}
+.fade-enter-from,
+.fade-leave-to {
+  opacity: 0;
+}
+
+/* ==================== Header ==================== */
+.preview-header {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 16px 24px;
-  background-color: #121526;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
-  box-shadow: 0 6px 24px rgba(0, 0, 0, 0.25);
+  height: 56px;
+  padding: 0 20px;
+  background-color: var(--header-bg);
+  border-bottom: 1px solid var(--border-color);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+  flex-shrink: 0;
 }
 
-.toolbar-left {
+.header-left,
+.header-center,
+.header-right {
   display: flex;
   align-items: center;
   gap: 12px;
 }
 
-.toolbar-right {
-  display: flex;
-  align-items: center;
-  gap: 12px;
+.header-divider {
+  width: 1px;
+  height: 20px;
+  background-color: var(--border-color);
 }
 
-.toolbar-info {
+/* 返回按钮 */
+.back-btn {
+  width: 36px;
+  height: 36px;
+  border-radius: 8px;
+  color: var(--text-secondary);
+  transition: all 0.2s;
+}
+
+.back-btn:hover {
+  background-color: rgba(64, 158, 255, 0.1);
+  color: var(--accent-color);
+}
+
+/* 项目信息 */
+.project-info {
   display: flex;
   align-items: center;
   gap: 8px;
-  margin-left: 12px;
+}
+
+.project-icon {
+  color: var(--accent-color);
+  font-size: 18px;
 }
 
 .project-name {
   font-weight: 600;
-  font-size: 16px;
-  color: #f5f7ff;
+  font-size: 15px;
+  color: var(--text-primary);
+}
+
+.page-separator {
+  color: var(--text-muted);
 }
 
 .page-name {
   font-size: 14px;
-  color: #8a92b2;
+  color: var(--text-secondary);
 }
 
 .mode-tag {
   margin-left: 8px;
 }
 
-.page-nav {
-  margin-left: 24px;
+/* 页面选择器 */
+.page-selector {
+  width: 200px;
 }
 
-.page-nav :deep(.el-dropdown-menu__item) {
+.page-selector :deep(.el-select__wrapper) {
+  border-radius: 8px;
+  background-color: var(--card-bg);
+  border: 1px solid var(--border-color);
+}
+
+.page-option {
   display: flex;
+  justify-content: space-between;
   align-items: center;
-  gap: 8px;
+  width: 100%;
 }
 
-.page-nav :deep(.el-dropdown-menu__item.is-active) {
-  color: var(--el-color-primary);
+.page-option-name {
   font-weight: 500;
 }
 
-.page-route {
+.page-option-route {
   font-size: 12px;
-  color: #5f668c;
-  font-family: 'JetBrains Mono', Consolas, monospace;
-  margin-left: auto;
+  color: var(--text-muted);
+  font-family: 'Fira Code', Consolas, monospace;
 }
 
-:deep(.el-tabs__content) {
+/* 操作按钮 */
+.action-btn {
+  width: 36px;
+  height: 36px;
+  border-radius: 8px;
+  color: var(--text-secondary);
+  transition: all 0.2s;
+}
+
+.action-btn:hover {
+  background-color: rgba(64, 158, 255, 0.1);
+  color: var(--accent-color);
+}
+
+.action-btn.is-active {
+  background-color: rgba(64, 158, 255, 0.15);
+  color: var(--accent-color);
+}
+
+.export-btn {
+  border-radius: 8px;
+}
+
+.theme-switch {
+  margin-left: 4px;
+}
+
+/* ==================== Tab 导航 ==================== */
+.tab-nav {
+  display: flex;
+  gap: 4px;
+  padding: 12px 20px;
+  background-color: var(--header-bg);
+  border-bottom: 1px solid var(--border-color);
+  flex-shrink: 0;
+}
+
+.tab-item {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 16px;
+  border: none;
   background: transparent;
+  color: var(--text-secondary);
+  font-size: 14px;
+  font-weight: 500;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.2s;
 }
 
-.preview-tabs {
+.tab-item:hover {
+  background-color: rgba(64, 158, 255, 0.08);
+  color: var(--text-primary);
+}
+
+.tab-item.is-active {
+  background-color: var(--accent-color);
+  color: #ffffff;
+}
+
+/* ==================== 主内容区 ==================== */
+.preview-main {
   flex: 1;
-  padding: 16px 24px 24px;
+  overflow: hidden;
+  padding: 20px;
+}
+
+.tab-content {
+  height: 100%;
   overflow: hidden;
 }
 
-.preview-tabs :deep(.el-tabs__header) {
-  background: transparent;
+/* ==================== 运行画布 ==================== */
+.runtime-content {
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
-.preview-tabs :deep(.el-tabs__item) {
-  color: #8a92b2;
-}
-
-.preview-tabs :deep(.el-tabs__item.is-active) {
-  color: #f5f7ff;
-}
-
-.preview-container {
-  flex: 1;
+.canvas-wrapper {
+  max-width: 100%;
+  max-height: 100%;
   overflow: auto;
-  padding: 16px;
-  background-color: #0f111f;
-  border-radius: 12px;
+  padding: 24px;
 }
 
 .preview-stage {
   position: relative;
   width: 1920px;
   height: 1080px;
-  background-color: #fff;
-  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.35);
-  margin: 0 auto;
+  background-color: #ffffff;
+  border-radius: 12px;
+  box-shadow:
+    0 4px 6px rgba(0, 0, 0, 0.05),
+    0 10px 20px rgba(0, 0, 0, 0.08),
+    0 20px 40px rgba(0, 0, 0, 0.06);
 }
 
+/* 空状态 */
 .empty-state {
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
   height: 100%;
-  color: #8a92b2;
   gap: 16px;
 }
 
-.empty-state p {
+.empty-illustration {
+  width: 120px;
+  height: 120px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, #f0f4f8 0%, #e2e8f0 100%);
+  border-radius: 50%;
+  color: #a0aec0;
+}
+
+.empty-title {
+  margin: 0;
+  font-size: 18px;
+  font-weight: 600;
+  color: #4a5568;
+}
+
+.empty-desc {
   margin: 0;
   font-size: 14px;
+  color: #718096;
 }
 
-.json-viewer,
-.code-preview {
-  background-color: #0f111f;
+/* ==================== 面板卡片 ==================== */
+.panel-card {
+  height: 100%;
+  background-color: var(--card-bg);
   border-radius: 12px;
-  padding: 16px;
-  border: 1px solid rgba(255, 255, 255, 0.05);
-  min-height: 480px;
+  border: 1px solid var(--border-color);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
 }
 
-.json-toolbar,
-.code-toolbar {
+.panel-header {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 12px;
+  padding: 16px 20px;
+  border-bottom: 1px solid var(--border-color);
+  flex-shrink: 0;
   flex-wrap: wrap;
+  gap: 12px;
 }
 
-.section-title {
-  margin: 0;
-  font-weight: 600;
-  color: #f5f7ff;
-}
-
-.section-subtitle {
-  margin: 2px 0 0;
-  font-size: 12px;
-  color: #8a92b2;
-}
-
-.section-info {
+.panel-info {
   display: flex;
   align-items: center;
   gap: 12px;
 }
 
-.section-icon {
-  font-size: 18px;
-  color: #6ab7ff;
+.panel-icon {
+  font-size: 24px;
+  color: var(--accent-color);
 }
 
-.json-actions,
-.code-actions,
-.code-options {
+.panel-title {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.panel-desc {
+  margin: 2px 0 0;
+  font-size: 13px;
+  color: var(--text-muted);
+}
+
+.panel-actions {
   display: flex;
   align-items: center;
   gap: 8px;
 }
 
-.json-scroll {
-  margin-top: 12px;
-  max-height: 540px;
-}
-
-.json-block,
-.code-block {
+/* ==================== 代码预览盒子 (核心修复) ==================== */
+.code-preview-box {
+  flex: 1;
+  overflow: auto;
+  background: var(--code-bg);
   margin: 0;
-  background: #05060d;
-  border-radius: 10px;
+  min-height: 0;
+}
+
+.code-preview-box pre {
+  margin: 0;
   padding: 16px;
-  color: #d1e5ff;
-  font-family: 'JetBrains Mono', Consolas, Monaco, monospace;
+}
+
+.code-preview-box code {
+  font-family: 'Fira Code', 'JetBrains Mono', Consolas, Monaco, monospace;
   font-size: 13px;
-  line-height: 1.5;
+  line-height: 1.6;
+  color: var(--code-text);
   white-space: pre;
+  display: block;
 }
 
-.code-preview {
+/* hljs 主题覆盖 */
+.code-preview-box .hljs {
+  background: transparent;
+  padding: 0;
+}
+
+/* ==================== JSON 内容 ==================== */
+.json-content .panel-card {
+  height: 100%;
+}
+
+.json-content .code-preview-box {
+  border-radius: 0 0 12px 12px;
+}
+
+/* ==================== 代码内容 ==================== */
+.code-content {
   display: flex;
-  flex-direction: column;
-  min-height: 520px;
 }
 
-.code-preview-layout {
-  margin-top: 16px;
+.code-panel {
+  flex: 1;
+}
+
+.code-layout {
+  flex: 1;
   display: flex;
   gap: 16px;
-  flex: 1;
-  min-height: 420px;
+  padding: 16px;
+  min-height: 0;
+  overflow: hidden;
 }
 
+/* 文件树 */
 .file-tree-panel {
-  width: 320px;
-  background: #0b0d16;
-  border-radius: 12px;
-  border: 1px solid rgba(255, 255, 255, 0.05);
-  padding: 12px;
+  width: 280px;
+  flex-shrink: 0;
+  background-color: var(--code-bg);
+  border-radius: 10px;
+  border: 1px solid var(--border-color);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.tree-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 16px;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-secondary);
+  border-bottom: 1px solid var(--border-color);
+  flex-shrink: 0;
+}
+
+.tree-scroll {
+  flex: 1;
+  padding: 8px;
 }
 
 .file-tree-panel :deep(.el-tree) {
   background: transparent;
-  color: #cfd8ff;
+  color: var(--code-text);
+  --el-tree-node-hover-bg-color: rgba(64, 158, 255, 0.1);
+}
+
+.file-tree-panel :deep(.el-tree-node__content) {
+  height: 32px;
+  border-radius: 6px;
 }
 
 .file-tree-panel :deep(.el-tree-node.is-current > .el-tree-node__content) {
-  background: rgba(64, 158, 255, 0.2);
+  background-color: rgba(64, 158, 255, 0.2);
 }
 
+.tree-node {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 13px;
+}
+
+.folder-icon {
+  color: #f0c36d;
+}
+
+.file-icon {
+  color: #a0aec0;
+}
+
+.file-icon.file-vue {
+  color: #42b883;
+}
+
+.file-icon.file-ts {
+  color: #3178c6;
+}
+
+.file-icon.file-js {
+  color: #f7df1e;
+}
+
+.file-icon.file-json {
+  color: #f5a623;
+}
+
+.file-icon.file-css {
+  color: #264de4;
+}
+
+/* 代码查看器 */
 .code-viewer-panel {
   flex: 1;
   display: flex;
   flex-direction: column;
-  background: #05060d;
-  border-radius: 12px;
-  border: 1px solid rgba(255, 255, 255, 0.05);
+  background-color: var(--code-bg);
+  border-radius: 10px;
+  border: 1px solid var(--border-color);
+  overflow: hidden;
+  min-width: 0;
 }
 
 .code-viewer-header {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 12px 16px;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  padding: 10px 16px;
+  border-bottom: 1px solid var(--border-color);
+  flex-shrink: 0;
+}
+
+.file-info {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--text-muted);
+  min-width: 0;
 }
 
 .file-path {
-  font-family: 'JetBrains Mono', Consolas, Monaco, monospace;
+  font-family: 'Fira Code', Consolas, monospace;
   font-size: 13px;
-  color: #8f9ac8;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
-.code-scroll {
-  flex: 1;
+.code-actions {
+  display: flex;
+  gap: 4px;
+  flex-shrink: 0;
 }
 
 .code-empty {
   flex: 1;
   display: flex;
+  flex-direction: column;
   align-items: center;
   justify-content: center;
-  color: #5f668c;
+  gap: 12px;
+  color: var(--text-muted);
 }
 
-.code-block {
-  min-height: 320px;
+.code-empty p {
+  margin: 0;
+  font-size: 14px;
 }
 
-.code-options :deep(.el-radio-button__inner) {
-  background: transparent;
-  color: #cfd8ff;
+/* ==================== 响应式 ==================== */
+@media (max-width: 1024px) {
+  .header-center {
+    display: none;
+  }
+
+  .code-layout {
+    flex-direction: column;
+  }
+
+  .file-tree-panel {
+    width: 100%;
+    max-height: 200px;
+  }
 }
 
-.code-options :deep(.el-radio-button__orig-radio:checked + .el-radio-button__inner) {
-  background-color: var(--el-color-primary);
-  color: #fff;
-}
+@media (max-width: 768px) {
+  .preview-header {
+    flex-wrap: wrap;
+    height: auto;
+    padding: 12px 16px;
+    gap: 12px;
+  }
 
-.code-options :deep(.el-checkbox__label) {
-  color: #cfd8ff;
+  .header-left,
+  .header-right {
+    width: 100%;
+    justify-content: space-between;
+  }
+
+  .tab-nav {
+    overflow-x: auto;
+  }
+
+  .preview-main {
+    padding: 12px;
+  }
 }
 </style>

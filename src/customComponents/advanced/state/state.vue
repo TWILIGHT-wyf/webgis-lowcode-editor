@@ -2,7 +2,7 @@
 import { computed } from 'vue'
 import { storeToRefs } from 'pinia'
 import { useComponent } from '@/stores/component'
-import { vState as BaseState, useDataSource, extractWithFallback } from '@one/visual-lib'
+import { vState as BaseState, useDataSource, extractWithFallback } from '@twi1i9ht/visual-lib'
 
 const props = defineProps<{
   id: string

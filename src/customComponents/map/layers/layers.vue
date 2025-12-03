@@ -23,7 +23,7 @@ import { computed } from 'vue'
 import { storeToRefs } from 'pinia'
 import { Files } from '@element-plus/icons-vue'
 import { useComponent } from '@/stores/component'
-import { vLayers as BaseLayers, useDataSource, getValueByPath } from '@one/visual-lib'
+import { vLayers as BaseLayers, useDataSource, getValueByPath } from '@twi1i9ht/visual-lib'
 
 interface LayerItem {
   label: string

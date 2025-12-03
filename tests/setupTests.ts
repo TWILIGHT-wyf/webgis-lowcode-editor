@@ -1,6 +1,7 @@
 // 全局测试设置：在 Vitest 启动时注册常用的 mocks
 // 注：Vitest 配置中请将此文件加入 `setupFiles` 或在 `vitest` 配置里注册
 import { vi } from 'vitest'
+import { ref, defineComponent, h } from 'vue'
 import { getActivePinia, setActivePinia, createPinia } from 'pinia'
 // 为组件挂载做准备
 import { config as VTUConfig } from '@vue/test-utils'
@@ -82,6 +83,166 @@ vi.mock('echarts', () => {
     }),
     connect: vi.fn(),
     disconnect: vi.fn(),
+  }
+})
+
+/**
+ * 创建一个简单的 Mock 组件，只渲染 Props 用于测试
+ * @param name - 组件名称
+ * @param hasSlot - 是否需要渲染 Slot
+ */
+function createMockComponent(name: string, hasSlot = false) {
+  return defineComponent({
+    name,
+    props: {
+      // 接受所有 props
+    },
+    inheritAttrs: false,
+    setup(_props, { attrs, slots }) {
+      return () =>
+        h(
+          'div',
+          {
+            'data-testid': `mock-${name}`,
+            'data-component': name,
+            ...attrs,
+          },
+          hasSlot && slots.default ? slots.default() : undefined,
+        )
+    },
+  })
+}
+
+/**
+ * 全局 Mock @twi1i9ht/visual-lib 组件库
+ * 在测试 Smart 组件时避免真实渲染 ECharts/Leaflet 等复杂组件
+ */
+vi.mock('@twi1i9ht/visual-lib', () => {
+  return {
+    // 图表组件 Mock
+    lineChart: createMockComponent('lineChart'),
+    barChart: createMockComponent('barChart'),
+    pieChart: createMockComponent('pieChart'),
+    doughnutChart: createMockComponent('doughnutChart'),
+    radarChart: createMockComponent('radarChart'),
+    gaugeChart: createMockComponent('gaugeChart'),
+    funnelChart: createMockComponent('funnelChart'),
+    scatterChart: createMockComponent('scatterChart'),
+    sankeyChart: createMockComponent('sankeyChart'),
+    stackedBarChart: createMockComponent('stackedBarChart'),
+
+    // KPI 组件 Mock
+    vText: createMockComponent('vText'),
+    vBox: createMockComponent('vBox'),
+    vStat: createMockComponent('vStat'),
+    vProgress: createMockComponent('vProgress'),
+    vCountUp: createMockComponent('vCountUp'),
+
+    // 布局组件 Mock
+    vBadge: createMockComponent('vBadge'),
+    vPanel: createMockComponent('vPanel', true),
+    vFlex: createMockComponent('vFlex', true),
+    vGrid: createMockComponent('vGrid', true),
+    vTabs: createMockComponent('vTabs', true),
+    vModal: createMockComponent('vModal', true),
+    vRow: createMockComponent('vRow', true),
+    vCol: createMockComponent('vCol', true),
+
+    // 数据组件 Mock
+    vTimeline: createMockComponent('vTimeline'),
+    vTable: createMockComponent('vTable'),
+    vList: createMockComponent('vList'),
+    vCardGrid: createMockComponent('vCardGrid'),
+    vPivot: createMockComponent('vPivot'),
+
+    // 控件组件 Mock
+    vButtonGroup: createMockComponent('vButtonGroup'),
+    vCheckboxGroup: createMockComponent('vCheckboxGroup'),
+    vDateRange: createMockComponent('vDateRange'),
+    vMultiSelect: createMockComponent('vMultiSelect'),
+    vSearchBox: createMockComponent('vSearchBox'),
+    vSelect: createMockComponent('vSelect'),
+    vSlider: createMockComponent('vSlider'),
+    vSwitch: createMockComponent('vSwitch'),
+
+    // 内容组件 Mock
+    vHtml: createMockComponent('vHtml'),
+    vIframe: createMockComponent('vIframe'),
+    vMarkdown: createMockComponent('vMarkdown'),
+
+    // 媒体组件 Mock
+    vImage: createMockComponent('vImage'),
+    vVideo: createMockComponent('vVideo'),
+
+    // 高级组件 Mock
+    vScripting: createMockComponent('vScripting'),
+    vState: createMockComponent('vState'),
+    vTrigger: createMockComponent('vTrigger'),
+
+    // Group 组件 Mock
+    vGroup: createMockComponent('vGroup', true),
+
+    // Map 组件 Mock - 需要渲染 Slot 以支持嵌套 Marker 等
+    vMap: createMockComponent('vMap', true),
+    vMarker: createMockComponent('vMarker'),
+    vHeatLayer: createMockComponent('vHeatLayer'),
+    vGeoJsonLayer: createMockComponent('vGeoJsonLayer'),
+    vClusterLayer: createMockComponent('vClusterLayer'),
+    vTileLayer: createMockComponent('vTileLayer'),
+    vVectorLayer: createMockComponent('vVectorLayer'),
+    vLegend: createMockComponent('vLegend'),
+    vScale: createMockComponent('vScale'),
+    vLayers: createMockComponent('vLayers'),
+
+    // 组件注册表 Mock
+    componentRegistry: {},
+
+    // Hooks Mock
+    useDataSource: vi.fn(() => ({
+      data: ref(null),
+      rawData: ref(null),
+      loading: ref(false),
+      error: ref(null),
+      fetchData: vi.fn(),
+    })),
+
+    // 工具函数 Mock
+    getValueByPath: vi.fn((obj: unknown, path: string | undefined) => {
+      if (!path || !obj) return undefined
+      try {
+        const keys = path.replace(/\[(\d+)\]/g, '.$1').split('.')
+        let result: unknown = obj
+        for (const key of keys) {
+          if (result === null || result === undefined) return undefined
+          result = (result as Record<string, unknown>)[key]
+        }
+        return result
+      } catch {
+        return undefined
+      }
+    }),
+    extractWithFallback: vi.fn(
+      <T>(remoteData: unknown, path: string | undefined, fallbackValue: T): T => {
+        if (!path) return fallbackValue
+        if (!remoteData) return fallbackValue
+        try {
+          const keys = path.replace(/\[(\d+)\]/g, '.$1').split('.')
+          let result: unknown = remoteData
+          for (const key of keys) {
+            if (result === null || result === undefined) return fallbackValue
+            result = (result as Record<string, unknown>)[key]
+          }
+          return (result ?? fallbackValue) as T
+        } catch {
+          return fallbackValue
+        }
+      },
+    ),
+    extractNumber: vi.fn(),
+    parseNumberInput: vi.fn(),
+    parseStringInput: vi.fn(),
+    extractNumberArray: vi.fn(),
+    extractStringArray: vi.fn(),
   }
 })
 

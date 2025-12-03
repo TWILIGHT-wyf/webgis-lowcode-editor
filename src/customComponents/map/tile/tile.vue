@@ -30,7 +30,7 @@ import {
   vTileLayer as BaseTileLayer,
   useDataSource,
   getValueByPath,
-} from '@one/visual-lib'
+} from '@twi1i9ht/visual-lib'
 
 const props = defineProps<{ id: string }>()
 

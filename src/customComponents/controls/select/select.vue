@@ -6,7 +6,7 @@
 import { computed, ref, toRef, watch } from 'vue'
 import { useComponent } from '@/stores/component'
 import { storeToRefs } from 'pinia'
-import { vSelect as BaseSelect, useDataSource, extractWithFallback } from '@one/visual-lib'
+import { vSelect as BaseSelect, useDataSource, extractWithFallback } from '@twi1i9ht/visual-lib'
 
 interface SelectOption {
   label: string

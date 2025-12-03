@@ -13,7 +13,7 @@ import {
   useDataSource,
   extract2DArray,
   parse2DArrayInput,
-} from '@one/visual-lib'
+} from '@twi1i9ht/visual-lib'
 
 const props = defineProps<{ id: string }>()
 
