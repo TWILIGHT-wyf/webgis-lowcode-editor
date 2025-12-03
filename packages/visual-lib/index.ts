@@ -1,118 +1,155 @@
-import type { App } from 'vue'
+import type { App, Component } from 'vue'
 // packages/visual-lib/index.ts
 
-// 1. 导出图表组件
-import lineChart from './src/components/chart/lineChart/lineChart.vue'
-import barChart from './src/components/chart/barChart/barChart.vue'
-import pieChart from './src/components/chart/pieChart/pieChart.vue'
-import doughnutChart from './src/components/chart/doughnutChart/doughnutChart.vue'
-import radarChart from './src/components/chart/radarChart/radarChart.vue'
-import gaugeChart from './src/components/chart/gaugeChart/gaugeChart.vue'
-import funnelChart from './src/components/chart/funnelChart/funnelChart.vue'
-import scatterChart from './src/components/chart/scatterChart/scatterChart.vue'
-import sankeyChart from './src/components/chart/sankeyChart/sankeyChart.vue'
-import stackedBarChart from './src/components/chart/stackedBarChart/stackedBarChart.vue'
+/**
+ * 使用 Vite 的 import.meta.glob 动态导入所有组件
+ * 这样新增组件只需在对应目录创建 .vue 文件，无需手动注册
+ */
+const componentModules = import.meta.glob<{ default: Component }>('./src/components/**/*.vue', {
+  eager: true,
+})
 
-// 2. 导出 KPI 组件
-import vText from './src/components/kpi/text/Text.vue'
-import vBox from './src/components/kpi/box/Box.vue'
-import vStat from './src/components/kpi/stat/Stat.vue'
-import vProgress from './src/components/kpi/progress/Progress.vue'
-import vCountUp from './src/components/kpi/countUp/CountUp.vue'
+/**
+ * 从文件路径提取组件名称
+ * 例如：'./src/components/chart/lineChart/lineChart.vue' -> 'lineChart'
+ *       './src/components/kpi/text/Text.vue' -> 'vText'
+ */
+function extractComponentName(path: string): string {
+  const match = path.match(/\/([^/]+)\.vue$/)
+  if (!match || !match[1]) return ''
 
-// 3. 导出布局组件
-import vBadge from './src/components/layout/badge/Badge.vue'
-import vPanel from './src/components/layout/panel/Panel.vue'
-import vFlex from './src/components/layout/flex/Flex.vue'
-import vGrid from './src/components/layout/grid/Grid.vue'
-import vTabs from './src/components/layout/tabs/Tabs.vue'
-import vModal from './src/components/layout/modal/Modal.vue'
-import vRow from './src/components/layout/row/Row.vue'
-import vCol from './src/components/layout/col/Col.vue'
+  const fileName = match[1]
 
-// 4. 导出数据组件
-import vTimeline from './src/components/data/timeline/Timeline.vue'
-import vTable from './src/components/data/table/Table.vue'
-import vList from './src/components/data/list/List.vue'
-import vCardGrid from './src/components/data/cardGrid/CardGrid.vue'
-import vPivot from './src/components/data/pivot/Pivot.vue'
+  // 对于非图表组件，如果文件名首字母是大写，添加 'v' 前缀
+  // 图表组件保持原名（如 lineChart, barChart）
+  if (path.includes('/chart/')) {
+    return fileName
+  }
 
-export {
-  // 图表组件
-  lineChart,
-  barChart,
-  pieChart,
-  doughnutChart,
-  radarChart,
-  gaugeChart,
-  funnelChart,
-  scatterChart,
-  sankeyChart,
-  stackedBarChart,
-  // KPI 组件
-  vText,
-  vBox,
-  vStat,
-  vProgress,
-  vCountUp,
-  // 布局组件
-  vBadge,
-  vPanel,
-  vFlex,
-  vGrid,
-  vTabs,
-  vModal,
-  vRow,
-  vCol,
-  // 数据组件
-  vTimeline,
-  vTable,
-  vList,
-  vCardGrid,
-  vPivot,
+  // 其他组件：如果首字母大写，加 'v' 前缀
+  const firstChar = fileName.charAt(0)
+  if (firstChar && firstChar === firstChar.toUpperCase()) {
+    return `v${fileName}`
+  }
+
+  return fileName
 }
 
-// 3. 导出 Hooks
-// 注意：hooks 文件实际名为 useDataSource.ts，之前引用 useDataFetch 会导致找不到模块／类型
+// 动态构建组件注册表
+const componentRegistry: Record<string, Component> = {}
+
+for (const path in componentModules) {
+  const mod = componentModules[path]
+  const componentName = extractComponentName(path)
+  if (componentName && mod?.default) {
+    componentRegistry[componentName] = mod.default
+  }
+}
+
+// 图表组件
+export const lineChart = componentRegistry.lineChart
+export const barChart = componentRegistry.barChart
+export const pieChart = componentRegistry.pieChart
+export const doughnutChart = componentRegistry.doughnutChart
+export const radarChart = componentRegistry.radarChart
+export const gaugeChart = componentRegistry.gaugeChart
+export const funnelChart = componentRegistry.funnelChart
+export const scatterChart = componentRegistry.scatterChart
+export const sankeyChart = componentRegistry.sankeyChart
+export const stackedBarChart = componentRegistry.stackedBarChart
+
+// KPI 组件
+export const vText = componentRegistry.vText
+export const vBox = componentRegistry.vBox
+export const vStat = componentRegistry.vStat
+export const vProgress = componentRegistry.vProgress
+export const vCountUp = componentRegistry.vCountUp
+
+// 布局组件
+export const vBadge = componentRegistry.vBadge
+export const vPanel = componentRegistry.vPanel
+export const vFlex = componentRegistry.vFlex
+export const vGrid = componentRegistry.vGrid
+export const vTabs = componentRegistry.vTabs
+export const vModal = componentRegistry.vModal
+export const vRow = componentRegistry.vRow
+export const vCol = componentRegistry.vCol
+
+// 数据组件
+export const vTimeline = componentRegistry.vTimeline
+export const vTable = componentRegistry.vTable
+export const vList = componentRegistry.vList
+export const vCardGrid = componentRegistry.vCardGrid
+export const vPivot = componentRegistry.vPivot
+
+// 控件组件
+export const vButtonGroup = componentRegistry.vButtonGroup
+export const vCheckboxGroup = componentRegistry.vCheckboxGroup
+export const vDateRange = componentRegistry.vDateRange
+export const vMultiSelect = componentRegistry.vMultiSelect
+export const vSearchBox = componentRegistry.vSearchBox
+export const vSelect = componentRegistry.vSelect
+export const vSlider = componentRegistry.vSlider
+export const vSwitch = componentRegistry.vSwitch
+
+// 内容组件
+export const vHtml = componentRegistry.vHtml
+export const vIframe = componentRegistry.vIframe
+export const vMarkdown = componentRegistry.vMarkdown
+
+// 媒体组件
+export const vImage = componentRegistry.vImage
+export const vVideo = componentRegistry.vVideo
+
+// 高级组件
+export const vScripting = componentRegistry.vScripting
+export const vState = componentRegistry.vState
+export const vTrigger = componentRegistry.vTrigger
+
+// Group 组件
+export const vGroup = componentRegistry.vGroup
+
+// Map 组件
+export const vMap = componentRegistry.vMap
+export const vMarker = componentRegistry.vMarker
+export const vHeatLayer = componentRegistry.vHeatLayer
+export const vGeoJsonLayer = componentRegistry.vGeoJsonLayer
+export const vClusterLayer = componentRegistry.vClusterLayer
+export const vTileLayer = componentRegistry.vTileLayer
+export const vVectorLayer = componentRegistry.vVectorLayer
+export const vLegend = componentRegistry.vLegend
+export const vScale = componentRegistry.vScale
+export const vLayers = componentRegistry.vLayers
+
+// 导出组件注册表，供外部使用
+export { componentRegistry }
+
+// 导出 Hooks
 export * from './src/hooks/useDataSource'
 
-// 4. 导出工具函数
+// 导出工具函数
 export * from './src/utils/dataUtils'
 
-// 5. (可选) 提供一个 Vue 插件式的安装方法
+// 导出类型
+export type { TriggerLog } from './src/components/advanced/trigger/Trigger.vue'
+export type { GroupProps } from './src/components/group/Group.vue'
+export type { MapProps } from './src/components/map/Map.vue'
+export type { MarkerProps } from './src/components/map/Marker.vue'
+export type { HeatPoint, HeatLayerProps } from './src/components/map/HeatLayer.vue'
+export type { GeoJsonLayerProps } from './src/components/map/GeoJsonLayer.vue'
+export type { ClusterMarkerData, ClusterLayerProps } from './src/components/map/ClusterLayer.vue'
+export type { TileLayerProps } from './src/components/map/TileLayer.vue'
+export type { VectorFeature, VectorLayerProps } from './src/components/map/VectorLayer.vue'
+export type { LegendItem, LegendProps } from './src/components/map/Legend.vue'
+export type { ScaleProps } from './src/components/map/Scale.vue'
+export type { LayerItem, LayersProps } from './src/components/map/Layers.vue'
+
+// 提供 Vue 插件式的安装方法
 export default {
   install(app: App) {
-    // 图表组件
-    app.component('lineChart', lineChart)
-    app.component('barChart', barChart)
-    app.component('pieChart', pieChart)
-    app.component('doughnutChart', doughnutChart)
-    app.component('radarChart', radarChart)
-    app.component('gaugeChart', gaugeChart)
-    app.component('funnelChart', funnelChart)
-    app.component('scatterChart', scatterChart)
-    app.component('sankeyChart', sankeyChart)
-    app.component('stackedBarChart', stackedBarChart)
-    // KPI 组件
-    app.component('vText', vText)
-    app.component('vBox', vBox)
-    app.component('vStat', vStat)
-    app.component('vProgress', vProgress)
-    app.component('vCountUp', vCountUp)
-    // 布局组件
-    app.component('vBadge', vBadge)
-    app.component('vPanel', vPanel)
-    app.component('vFlex', vFlex)
-    app.component('vGrid', vGrid)
-    app.component('vTabs', vTabs)
-    app.component('vModal', vModal)
-    app.component('vRow', vRow)
-    app.component('vCol', vCol)
-    // 数据组件
-    app.component('vTimeline', vTimeline)
-    app.component('vTable', vTable)
-    app.component('vList', vList)
-    app.component('vCardGrid', vCardGrid)
-    app.component('vPivot', vPivot)
+    // 自动注册所有组件
+    for (const [name, component] of Object.entries(componentRegistry)) {
+      app.component(name, component)
+    }
   },
 }

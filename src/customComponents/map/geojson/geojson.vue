@@ -1,30 +1,45 @@
 <template>
-  <div ref="mapContainer" class="geojson-layer-map">
-    <div v-if="!geojsonData" class="map-placeholder">
-      <el-icon class="placeholder-icon"><Document /></el-icon>
-      <div class="placeholder-text">{{ placeholder || '配置GeoJSON数据以显示图层' }}</div>
-    </div>
-  </div>
+  <BaseMap v-bind="mapProps">
+    <template #placeholder>
+      <div class="map-placeholder">
+        <el-icon class="placeholder-icon"><Document /></el-icon>
+        <div class="placeholder-text">{{ placeholder }}</div>
+      </div>
+    </template>
+    <!-- GeoJSON 图层 -->
+    <BaseGeoJsonLayer
+      v-if="geojsonData"
+      :data="geojsonData"
+      :style="geoStyle"
+      :show-popup="showPopup"
+      :popup-fields="popupFields"
+      :fit-bounds="true"
+      @feature-click="handleFeatureClick"
+    />
+  </BaseMap>
 </template>
 
 <script setup lang="ts">
-import { ref, computed, watch, onMounted, onBeforeUnmount } from 'vue'
+import { computed } from 'vue'
 import { storeToRefs } from 'pinia'
 import { Document } from '@element-plus/icons-vue'
-import L from 'leaflet'
-import 'leaflet/dist/leaflet.css'
+import type L from 'leaflet'
 import { useComponent } from '@/stores/component'
-import { useDataSource } from '@/datasource/useDataSource'
-import { getValueByPath } from '@/datasource/dataUtils'
+import {
+  vMap as BaseMap,
+  vGeoJsonLayer as BaseGeoJsonLayer,
+  useDataSource,
+  getValueByPath,
+} from '@one/visual-lib'
 
 const props = defineProps<{ id: string }>()
 
+const emit = defineEmits<{
+  featureClick: [feature: GeoJSON.Feature, layer: L.Layer]
+}>()
+
 const { componentStore } = storeToRefs(useComponent())
 const comp = computed(() => componentStore.value.find((c) => c.id === props.id))
-
-const mapContainer = ref<HTMLDivElement>()
-let map: L.Map | null = null
-let geojsonLayer: L.GeoJSON | null = null
 
 const dataSourceConfig = computed(() => comp.value?.dataSource)
 const { data: dataSourceData } = useDataSource(dataSourceConfig)
@@ -32,110 +47,49 @@ const { data: dataSourceData } = useDataSource(dataSourceConfig)
 const geojsonData = computed(() => {
   if (dataSourceData.value) {
     const field = dataSourceConfig.value?.geojsonDataField as string | undefined
-    if (field) return getValueByPath(dataSourceData.value, field)
+    if (field) {
+      return getValueByPath(dataSourceData.value, field) as GeoJSON.GeoJsonObject | null
+    }
   }
-  return comp.value?.props.geojsonData
+  return (comp.value?.props.geojsonData as GeoJSON.GeoJsonObject) || null
 })
 
-const placeholder = computed(() => comp.value?.props.placeholder as string)
+const placeholder = computed(
+  () => (comp.value?.props.placeholder as string) || '配置GeoJSON数据以显示图层',
+)
 
-// 初始化地图
-function initMap() {
-  if (!mapContainer.value) return
+const showPopup = computed(() => (comp.value?.props.showPopup as boolean) ?? true)
+const popupFields = computed(() => comp.value?.props.popupFields as string[] | undefined)
 
-  if (map) {
-    map.remove()
-    map = null
-  }
-
-  map = L.map(mapContainer.value, {
-    center: [
-      (comp.value?.props.centerLat as number) ?? 39.9,
-      (comp.value?.props.centerLng as number) ?? 116.4,
-    ],
-    zoom: (comp.value?.props.zoom as number) ?? 10,
-    zoomControl: true,
-  })
-
-  // 添加底图
-  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-    attribution: '&copy; OpenStreetMap',
-  }).addTo(map)
-
-  // 添加GeoJSON图层
-  addGeoJSONLayer()
-}
-
-// 添加GeoJSON图层
-function addGeoJSONLayer() {
-  if (!map || !geojsonData.value) return
-
-  // 清除旧图层
-  if (geojsonLayer) {
-    map.removeLayer(geojsonLayer)
-    geojsonLayer = null
-  }
-
-  // 添加新图层
+const geoStyle = computed(() => {
   const style = comp.value?.props.style as Record<string, unknown> | undefined
-  geojsonLayer = L.geoJSON(geojsonData.value as GeoJSON.GeoJsonObject, {
-    style: () => ({
-      color: (style?.color as string) ?? '#3388ff',
-      weight: (style?.weight as number) ?? 2,
-      opacity: (style?.opacity as number) ?? 0.8,
-      fillColor: (style?.fillColor as string) ?? '#3388ff',
-      fillOpacity: (style?.fillOpacity as number) ?? 0.4,
-    }),
-    onEachFeature: (feature, layer) => {
-      const showPopup = comp.value?.props.showPopup as boolean
-      if (showPopup && feature.properties) {
-        const popupFields = comp.value?.props.popupFields as string[] | undefined
-        const fields = popupFields || Object.keys(feature.properties)
-        const popupContent = fields
-          .filter((field) => feature.properties[field] !== undefined)
-          .map((field) => `<strong>${field}:</strong> ${feature.properties[field]}`)
-          .join('<br>')
-        layer.bindPopup(popupContent)
-      }
-    },
-  }).addTo(map)
+  return {
+    color: (style?.color as string) ?? '#3388ff',
+    weight: (style?.weight as number) ?? 2,
+    opacity: (style?.opacity as number) ?? 0.8,
+    fillColor: (style?.fillColor as string) ?? '#3388ff',
+    fillOpacity: (style?.fillOpacity as number) ?? 0.4,
+  }
+})
 
-  // 自适应视图
-  map.fitBounds(geojsonLayer.getBounds(), { padding: [50, 50] })
+// Map 属性
+const mapProps = computed(() => {
+  const p = comp.value?.props || {}
+  return {
+    centerLat: (p.centerLat as number) ?? 39.9,
+    centerLng: (p.centerLng as number) ?? 116.4,
+    zoom: (p.zoom as number) ?? 10,
+    zoomControl: true,
+    placeholder: placeholder.value,
+  }
+})
+
+function handleFeatureClick(feature: GeoJSON.Feature, layer: L.Layer) {
+  emit('featureClick', feature, layer)
 }
-
-// 监听数据变化
-watch(geojsonData, () => {
-  if (map) {
-    addGeoJSONLayer()
-  }
-})
-
-onMounted(() => {
-  initMap()
-})
-
-onBeforeUnmount(() => {
-  if (map) {
-    map.remove()
-    map = null
-  }
-})
 </script>
 
 <style scoped lang="scss">
-.geojson-layer-map {
-  position: relative;
-  width: 100%;
-  height: 100%;
-  background-color: #f5f5f5;
-
-  :deep(.leaflet-container) {
-    width: 100%;
-    height: 100%;
-  }
-}
-
 .map-placeholder {
   display: flex;
   flex-direction: column;

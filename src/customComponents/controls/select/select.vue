@@ -1,35 +1,14 @@
 <template>
-  <div class="select-container" :style="containerStyle">
-    <el-select
-      v-model="selectedValue"
-      :placeholder="placeholder"
-      :clearable="clearable"
-      :filterable="filterable"
-      :disabled="disabled"
-      :size="selectSize"
-      :style="selectStyle"
-      @change="handleChange"
-    >
-      <el-option
-        v-for="option in options"
-        :key="option.value"
-        :label="option.label"
-        :value="option.value"
-        :disabled="option.disabled"
-      />
-    </el-select>
-  </div>
+  <BaseSelect v-bind="selectProps" @change="handleChange" />
 </template>
 
 <script setup lang="ts">
 import { computed, ref, toRef, watch } from 'vue'
-import type { CSSProperties } from 'vue'
 import { useComponent } from '@/stores/component'
 import { storeToRefs } from 'pinia'
-import { useDataSource } from '@/datasource/useDataSource'
-import { extractWithFallback } from '@/datasource/dataUtils'
+import { vSelect as BaseSelect, useDataSource, extractWithFallback } from '@one/visual-lib'
 
-interface Option {
+interface SelectOption {
   label: string
   value: string | number
   disabled?: boolean
@@ -58,10 +37,14 @@ watch(
   { immediate: true },
 )
 
+// 字段映射
+const labelField = computed(() => (comp.value?.props.labelField as string) ?? 'label')
+const valueField = computed(() => (comp.value?.props.valueField as string) ?? 'value')
+
 // 选项数据
-const options = computed<Option[]>(() => {
+const options = computed<SelectOption[]>(() => {
   const ds = comp.value?.dataSource
-  const localOptions = comp.value?.props.options as Option[] | string
+  const localOptions = comp.value?.props.options as SelectOption[] | string
 
   // 如果启用了数据源
   if (ds?.enabled && remoteData.value) {
@@ -91,59 +74,36 @@ const options = computed<Option[]>(() => {
     })
   }
 
-  // 默认选项
-  return [
-    { label: '选项 1', value: '1' },
-    { label: '选项 2', value: '2' },
-    { label: '选项 3', value: '3' },
-  ]
+  return []
 })
 
-// 配置项
-const placeholder = computed(() => (comp.value?.props.placeholder as string) ?? '请选择')
-const clearable = computed(() => (comp.value?.props.clearable as boolean) ?? true)
-const filterable = computed(() => (comp.value?.props.filterable as boolean) ?? false)
-const disabled = computed(() => (comp.value?.props.disabled as boolean) ?? false)
-const selectSize = computed(
-  () => (comp.value?.props.size as 'large' | 'default' | 'small') ?? 'default',
-)
-const labelField = computed(() => (comp.value?.props.labelField as string) ?? 'label')
-const valueField = computed(() => (comp.value?.props.valueField as string) ?? 'value')
-
-// 样式
-const containerStyle = computed<CSSProperties>(() => {
+// 聚合 props
+const selectProps = computed(() => {
+  const p = comp.value?.props || {}
   const s = comp.value?.style || {}
+
   return {
-    opacity: ((s.opacity ?? 100) as number) / 100,
-    display: s.visible === false ? 'none' : 'flex',
-    alignItems: 'center',
-    width: '100%',
-    height: '100%',
-    padding: `${(s.padding as number) ?? 8}px`,
-    backgroundColor: (s.backgroundColor as string) ?? 'transparent',
-    borderRadius: `${(s.borderRadius as number) ?? 4}px`,
+    modelValue: selectedValue.value,
+    options: options.value,
+    placeholder: p.placeholder ?? '请选择',
+    clearable: p.clearable ?? true,
+    filterable: p.filterable ?? false,
+    disabled: p.disabled ?? false,
+    size: p.size ?? 'default',
+    padding: s.padding ?? 8,
+    backgroundColor: s.backgroundColor ?? 'transparent',
+    borderRadius: s.borderRadius ?? 4,
+    opacity: s.opacity ?? 100,
+    selectWidth: s.selectWidth ?? 100,
+    borderColor: s.borderColor ?? '#dcdfe6',
+    focusBorderColor: s.focusBorderColor ?? '#409eff',
+    hoverBorderColor: s.hoverBorderColor ?? '#c0c4cc',
   }
-})
-
-const selectStyle = computed<CSSProperties>(() => {
-  const s = comp.value?.style || {}
-  return {
-    width: `${(s.selectWidth as number) ?? 100}%`,
-    '--el-input-border-color': (s.borderColor as string) ?? '#dcdfe6',
-    '--el-input-focus-border-color': (s.focusBorderColor as string) ?? '#409eff',
-    '--el-input-hover-border-color': (s.hoverBorderColor as string) ?? '#c0c4cc',
-  } as CSSProperties
 })
 
 // 事件
 function handleChange(value: string | number) {
+  selectedValue.value = value
   console.log('Select changed:', value)
-  // 可以在这里触发自定义事件或更新 store
 }
 </script>
-
-<style scoped>
-.select-container {
-  box-sizing: border-box;
-}
-</style>

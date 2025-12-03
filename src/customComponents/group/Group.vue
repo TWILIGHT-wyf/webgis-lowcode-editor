@@ -1,7 +1,7 @@
 <template>
-  <div class="group-container">
+  <BaseGroup v-bind="groupProps" :show-placeholder="!hasChildren">
     <!-- 渲染子组件 -->
-    <div v-if="hasChildren" :style="childrenContainerStyle">
+    <div v-if="hasChildren" class="children-container">
       <!-- 子组件使用绝对定位，相对于组合容器 -->
       <div
         v-for="childId in comp?.children"
@@ -16,9 +16,7 @@
         />
       </div>
     </div>
-    <!-- 空状态占位符 -->
-    <div v-else class="group-placeholder">组合</div>
-  </div>
+  </BaseGroup>
 </template>
 
 <script setup lang="ts">
@@ -27,6 +25,7 @@ import type { CSSProperties } from 'vue'
 import { useComponent } from '@/stores/component'
 import { storeToRefs } from 'pinia'
 import { componentRegistry } from '@/customComponents/registry'
+import { vGroup as BaseGroup } from '@one/visual-lib'
 
 const props = defineProps<{ id: string }>()
 const { componentStore } = storeToRefs(useComponent())
@@ -46,13 +45,17 @@ const getComponentByType = (type: string) => {
   return componentRegistry[type] || 'div'
 }
 
-// 子组件容器样式
-const childrenContainerStyle = computed<CSSProperties>(() => {
+// Group 属性
+const groupProps = computed(() => {
+  const s = comp.value?.style || {}
   return {
-    position: 'relative',
-    width: '100%',
-    height: '100%',
-    boxSizing: 'border-box',
+    opacity: Number(s.opacity ?? 1),
+    visible: comp.value?.visible !== false,
+    rotation: Number(comp.value?.rotation || 0),
+    borderRadius: Number(s.borderRadius || 0),
+    backgroundColor: String(s.backgroundColor || 'transparent'),
+    border: String(s.border || 'none'),
+    placeholder: '组合',
   }
 })
 
@@ -80,24 +83,14 @@ const getChildItemStyle = (childId: string): CSSProperties => {
 </script>
 
 <style scoped>
-.group-container {
+.children-container {
+  position: relative;
   width: 100%;
   height: 100%;
-  position: relative;
+  box-sizing: border-box;
 }
 
 .child-item {
   pointer-events: auto;
-}
-
-.group-placeholder {
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  color: #909399;
-  font-size: 12px;
-  opacity: 0.5;
-  pointer-events: none;
 }
 </style>

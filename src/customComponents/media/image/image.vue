@@ -1,9 +1,12 @@
+<template>
+  <BaseImage v-bind="imageProps" />
+</template>
+
 <script setup lang="ts">
 import { computed } from 'vue'
 import { storeToRefs } from 'pinia'
 import { useComponent } from '@/stores/component'
-import { useDataSource } from '@/datasource/useDataSource'
-import { extractWithFallback } from '@/datasource/dataUtils'
+import { vImage as BaseImage, useDataSource, extractWithFallback } from '@one/visual-lib'
 
 const props = defineProps<{
   id: string
@@ -28,99 +31,25 @@ const imageUrl = computed(() => {
   return String(comp.value?.props?.url || '')
 })
 
-// 样式
-const containerStyle = computed(() => {
+// 聚合 props
+const imageProps = computed(() => {
+  const p = comp.value?.props || {}
   const s = comp.value?.style || {}
-  return {
-    width: '100%',
-    height: '100%',
-    display: 'flex',
-    justifyContent: String(s.objectFit === 'contain' ? 'center' : 'flex-start'),
-    alignItems: String(s.objectFit === 'contain' ? 'center' : 'flex-start'),
-    backgroundColor: String(s.backgroundColor || 'transparent'),
-    borderRadius: `${s.borderRadius || 0}px`,
-    overflow: 'hidden',
-    border: String(s.border || 'none'),
-  }
-})
 
-const imageStyle = computed(() => {
-  const s = comp.value?.style || {}
   return {
-    width: '100%',
-    height: '100%',
-    objectFit: String(s.objectFit || 'cover'),
-    opacity: (s.opacity || 100) / 100,
+    url: imageUrl.value,
+    fit: (p.fit as 'fill' | 'contain' | 'cover' | 'none' | 'scale-down') || 'cover',
+    lazy: p.lazy !== false,
+    preview: p.preview === true,
+    previewZIndex: (p.previewZIndex as number) || 2000,
+    hideOnClickModal: p.hideOnClickModal !== false,
+    placeholder: (p.placeholder as string) || '请设置图片地址',
+    errorText: (p.errorText as string) || '图片加载失败',
+    backgroundColor: s.backgroundColor || 'transparent',
+    borderRadius: s.borderRadius || 0,
+    border: s.border || 'none',
+    objectFit: s.objectFit || 'cover',
+    opacity: s.opacity || 100,
   }
 })
 </script>
-
-<template>
-  <div :style="containerStyle">
-    <el-image
-      v-if="imageUrl"
-      :src="imageUrl"
-      :style="imageStyle"
-      :fit="comp?.props?.fit || 'cover'"
-      :lazy="comp?.props?.lazy !== false"
-      :preview-src-list="comp?.props?.preview ? [imageUrl] : undefined"
-      :z-index="comp?.props?.previewZIndex || 2000"
-      :initial-index="0"
-      :hide-on-click-modal="comp?.props?.hideOnClickModal !== false"
-      :preview-teleported="true"
-    >
-      <template #error>
-        <div class="image-error">
-          <el-icon><Picture /></el-icon>
-          <span>{{ comp?.props?.errorText || '图片加载失败' }}</span>
-        </div>
-      </template>
-      <template #placeholder>
-        <div class="image-loading">
-          <el-icon class="is-loading"><Loading /></el-icon>
-        </div>
-      </template>
-    </el-image>
-    <div v-else class="image-placeholder">
-      <el-icon><Picture /></el-icon>
-      <span>{{ comp?.props?.placeholder || '请设置图片地址' }}</span>
-    </div>
-  </div>
-</template>
-
-<style scoped>
-.image-error,
-.image-loading,
-.image-placeholder {
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  align-items: center;
-  width: 100%;
-  height: 100%;
-  color: #909399;
-  font-size: 14px;
-  gap: 8px;
-  background-color: #f5f7fa;
-}
-
-.image-error .el-icon,
-.image-loading .el-icon,
-.image-placeholder .el-icon {
-  font-size: 48px;
-  color: #c0c4cc;
-}
-
-.is-loading {
-  animation: rotating 2s linear infinite;
-}
-
-@keyframes rotating {
-  0% {
-    transform: rotate(0deg);
-  }
-  100% {
-    transform: rotate(360deg);
-  }
-}
-</style>

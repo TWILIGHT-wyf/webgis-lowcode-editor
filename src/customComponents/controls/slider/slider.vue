@@ -1,31 +1,12 @@
 <template>
-  <div :style="containerStyle">
-    <el-slider
-      v-model="sliderValue"
-      :min="min"
-      :max="max"
-      :step="step"
-      :disabled="disabled"
-      :show-stops="showStops"
-      :show-tooltip="showTooltip"
-      :format-tooltip="formatTooltip"
-      :range="range"
-      :vertical="vertical"
-      :height="height"
-      :marks="marksData"
-      @change="handleChange"
-      @input="handleInput"
-    />
-    <div v-if="showValue" :style="valueStyle" class="slider-value">
-      {{ displayValue }}
-    </div>
-  </div>
+  <BaseSlider v-bind="sliderProps" @change="handleChange" @input="handleInput" />
 </template>
 
 <script setup lang="ts">
 import { computed, ref, watch } from 'vue'
 import { useComponent } from '@/stores/component'
 import { storeToRefs } from 'pinia'
+import { vSlider as BaseSlider } from '@one/visual-lib'
 
 const props = defineProps<{
   id: string
@@ -36,64 +17,17 @@ const { componentStore } = storeToRefs(useComponent())
 // 从 store 获取组件配置
 const comp = computed(() => componentStore.value.find((c) => c.id === props.id))
 
-// 样式
-const containerStyle = computed(() => {
-  const s = comp.value?.style || {}
-  return {
-    padding: `${s.padding || 16}px`,
-    backgroundColor: String(s.backgroundColor || 'transparent'),
-    '--el-slider-main-bg-color': String(s.activeColor || '#409eff'),
-    '--el-slider-runway-bg-color': String(s.inactiveColor || '#e4e7ed'),
-    '--el-slider-button-size': `${s.buttonSize || 20}px`,
-  }
-})
-
-const valueStyle = computed(() => {
-  const s = comp.value?.style || {}
-  const align = String(s.valueAlign || 'center')
-  return {
-    marginTop: '8px',
-    fontSize: `${s.valueFontSize || 14}px`,
-    color: String(s.valueColor || '#606266'),
-    textAlign:
-      align === 'left' || align === 'right' || align === 'center' || align === 'justify'
-        ? align
-        : 'center',
-  } as const
-})
-
 // 组件属性
+const range = computed(() => comp.value?.props.range ?? false)
 const min = computed(() => comp.value?.props.min ?? 0)
 const max = computed(() => comp.value?.props.max ?? 100)
-const step = computed(() => comp.value?.props.step ?? 1)
-const disabled = computed(() => comp.value?.props.disabled ?? false)
-const showStops = computed(() => comp.value?.props.showStops ?? false)
-const showTooltip = computed(() => comp.value?.props.showTooltip ?? true)
-const range = computed(() => comp.value?.props.range ?? false)
-const vertical = computed(() => comp.value?.props.vertical ?? false)
-const height = computed(() => comp.value?.props.height || '200px')
-const showValue = computed(() => comp.value?.props.showValue ?? true)
-const valueFormat = computed(() => comp.value?.props.valueFormat || '{value}')
-const defaultValue = computed(() => comp.value?.props.defaultValue)
-
-// 标记点
-const marksData = computed(() => {
-  const marksStr = comp.value?.props.marks
-  if (!marksStr) return undefined
-
-  try {
-    return typeof marksStr === 'string' ? JSON.parse(marksStr) : marksStr
-  } catch {
-    return undefined
-  }
-})
 
 // 滑块值
 const sliderValue = ref<number | number[]>(0)
 
 // 监听默认值变化
 watch(
-  defaultValue,
+  () => comp.value?.props.defaultValue,
   (newVal) => {
     if (newVal !== undefined) {
       sliderValue.value = range.value
@@ -112,22 +46,51 @@ watch(
   { immediate: true },
 )
 
-// 格式化提示
-const formatTooltip = (val: number) => {
-  const format = String(valueFormat.value || '{value}')
-  return format.replace('{value}', String(val))
-}
+// 标记点
+const marksData = computed(() => {
+  const marksStr = comp.value?.props.marks
+  if (!marksStr) return undefined
 
-// 显示值
-const displayValue = computed(() => {
-  if (Array.isArray(sliderValue.value)) {
-    return `${sliderValue.value[0]} - ${sliderValue.value[1]}`
+  try {
+    return typeof marksStr === 'string' ? JSON.parse(marksStr) : marksStr
+  } catch {
+    return undefined
   }
-  return formatTooltip(sliderValue.value)
+})
+
+// 聚合 props
+const sliderProps = computed(() => {
+  const p = comp.value?.props || {}
+  const s = comp.value?.style || {}
+
+  return {
+    modelValue: sliderValue.value,
+    min: min.value,
+    max: max.value,
+    step: p.step ?? 1,
+    disabled: p.disabled ?? false,
+    showStops: p.showStops ?? false,
+    showTooltip: p.showTooltip ?? true,
+    range: range.value,
+    vertical: p.vertical ?? false,
+    height: p.height || '200px',
+    marks: marksData.value,
+    showValue: p.showValue ?? true,
+    valueFormat: p.valueFormat || '{value}',
+    padding: s.padding || 16,
+    backgroundColor: s.backgroundColor || 'transparent',
+    activeColor: s.activeColor || '#409eff',
+    inactiveColor: s.inactiveColor || '#e4e7ed',
+    buttonSize: s.buttonSize || 20,
+    valueFontSize: s.valueFontSize || 14,
+    valueColor: s.valueColor || '#606266',
+    valueAlign: s.valueAlign || 'center',
+  }
 })
 
 // 事件处理
 const handleChange = (value: number | number[]) => {
+  sliderValue.value = value
   console.log('Slider change:', value)
 }
 
@@ -135,16 +98,3 @@ const handleInput = (value: number | number[]) => {
   console.log('Slider input:', value)
 }
 </script>
-
-<style scoped>
-.slider-value {
-  margin-top: 8px;
-  text-align: v-bind('valueStyle.textAlign');
-}
-
-:deep(.el-slider) {
-  --el-slider-main-bg-color: v-bind('containerStyle["--el-slider-main-bg-color"]');
-  --el-slider-runway-bg-color: v-bind('containerStyle["--el-slider-runway-bg-color"]');
-  --el-slider-button-size: v-bind('containerStyle["--el-slider-button-size"]');
-}
-</style>

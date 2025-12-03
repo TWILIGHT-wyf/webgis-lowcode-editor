@@ -1,10 +1,12 @@
+<template>
+  <BaseHtml v-bind="htmlProps" />
+</template>
+
 <script setup lang="ts">
 import { computed } from 'vue'
 import { storeToRefs } from 'pinia'
 import { useComponent } from '@/stores/component'
-import { useDataSource } from '@/datasource/useDataSource'
-import { extractWithFallback } from '@/datasource/dataUtils'
-import DOMPurify from 'dompurify'
+import { vHtml as BaseHtml, useDataSource, extractWithFallback } from '@one/visual-lib'
 
 const props = defineProps<{
   id: string
@@ -29,78 +31,25 @@ const htmlContent = computed(() => {
   return String(comp.value?.props?.content || '<p>请输入 HTML 内容...</p>')
 })
 
-// 清理后的 HTML
-const sanitizedHtml = computed(() => {
-  const enableSanitize = comp.value?.props?.sanitize !== false
-  if (enableSanitize) {
-    // 使用 DOMPurify 清理 HTML,防止 XSS 攻击
-    return DOMPurify.sanitize(htmlContent.value, {
-      ALLOWED_TAGS: comp.value?.props?.allowedTags
-        ? String(comp.value.props.allowedTags).split(',')
-        : undefined,
-      ALLOWED_ATTR: comp.value?.props?.allowedAttributes
-        ? String(comp.value.props.allowedAttributes).split(',')
-        : undefined,
-    })
-  }
-  return htmlContent.value
-})
-
-// 样式
-const containerStyle = computed(() => {
+// 聚合 props
+const htmlProps = computed(() => {
+  const p = comp.value?.props || {}
   const s = comp.value?.style || {}
+
   return {
-    width: '100%',
-    height: '100%',
-    padding: `${s.padding || 16}px`,
-    backgroundColor: String(s.backgroundColor || '#ffffff'),
-    color: String(s.textColor || '#333333'),
-    fontSize: `${s.fontSize || 14}px`,
-    lineHeight: String(s.lineHeight || 1.6),
-    borderRadius: `${s.borderRadius || 0}px`,
-    border: String(s.border || 'none'),
-    overflow: String(s.overflow || 'auto'),
-    fontFamily: String(s.fontFamily || 'inherit'),
+    content: htmlContent.value,
+    sanitize: p.sanitize !== false,
+    allowedTags: p.allowedTags ? String(p.allowedTags) : undefined,
+    allowedAttributes: p.allowedAttributes ? String(p.allowedAttributes) : undefined,
+    padding: s.padding || 16,
+    backgroundColor: s.backgroundColor || '#ffffff',
+    textColor: s.textColor || '#333333',
+    fontSize: s.fontSize || 14,
+    lineHeight: s.lineHeight || 1.6,
+    borderRadius: s.borderRadius || 0,
+    border: s.border || 'none',
+    overflow: s.overflow || 'auto',
+    fontFamily: s.fontFamily || 'inherit',
   }
 })
 </script>
-
-<template>
-  <div :style="containerStyle" class="html-container" v-html="sanitizedHtml"></div>
-</template>
-
-<style scoped>
-.html-container {
-  box-sizing: border-box;
-}
-
-/* 基础样式重置 */
-.html-container :deep(*) {
-  box-sizing: border-box;
-}
-
-.html-container :deep(img) {
-  max-width: 100%;
-  height: auto;
-}
-
-.html-container :deep(table) {
-  border-collapse: collapse;
-  width: 100%;
-}
-
-.html-container :deep(table th),
-.html-container :deep(table td) {
-  padding: 8px;
-  border: 1px solid #ddd;
-}
-
-.html-container :deep(a) {
-  color: #409eff;
-  text-decoration: none;
-}
-
-.html-container :deep(a:hover) {
-  text-decoration: underline;
-}
-</style>
