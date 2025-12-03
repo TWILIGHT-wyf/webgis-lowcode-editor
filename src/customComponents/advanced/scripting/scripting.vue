@@ -2,8 +2,7 @@
 import { computed, watch, ref } from 'vue'
 import { storeToRefs } from 'pinia'
 import { useComponent } from '@/stores/component'
-import { useDataSource } from '@/datasource/useDataSource'
-import { extractWithFallback } from '@/datasource/dataUtils'
+import { vScripting as BaseScripting, useDataSource, extractWithFallback } from '@one/visual-lib'
 
 const props = defineProps<{
   id: string
@@ -80,148 +79,34 @@ watch(
   { immediate: true },
 )
 
-// 样式
-const containerStyle = computed(() => {
+// 聚合属性
+const componentProps = computed(() => {
+  const p = comp.value?.props || {}
   const s = comp.value?.style || {}
+
   return {
-    width: '100%',
-    height: '100%',
-    padding: `${s.padding || 16}px`,
+    title: String(p.title || '脚本执行器'),
+    scriptCode: scriptCode.value,
+    output: output.value,
+    error: error.value,
+    autoRun: Boolean(p.autoRun),
+    showCode: p.showCode !== false,
+    showControls: p.showControls !== false,
+    showPlaceholder: p.showPlaceholder !== false,
+    placeholder: String(p.placeholder || '点击执行按钮运行脚本'),
+    // 样式
+    padding: Number(s.padding || 16),
     backgroundColor: String(s.backgroundColor || '#1e1e1e'),
-    color: String(s.textColor || '#d4d4d4'),
-    fontSize: `${s.fontSize || 14}px`,
-    lineHeight: String(s.lineHeight || 1.6),
-    borderRadius: `${s.borderRadius || 4}px`,
+    textColor: String(s.textColor || '#d4d4d4'),
+    fontSize: Number(s.fontSize || 14),
+    lineHeight: Number(s.lineHeight || 1.6),
+    borderRadius: Number(s.borderRadius || 4),
     border: String(s.border || '1px solid #3c3c3c'),
-    overflow: 'auto',
     fontFamily: String(s.fontFamily || 'Consolas, Monaco, "Courier New", monospace'),
   }
 })
 </script>
 
 <template>
-  <div :style="containerStyle">
-    <div class="scripting-container">
-      <div class="header">
-        <span class="title">
-          <el-icon><Document /></el-icon>
-          脚本执行器
-        </span>
-        <el-button
-          v-if="!comp?.props?.autoRun"
-          type="primary"
-          size="small"
-          @click="executeScript"
-          :icon="comp?.props?.showControls !== false ? 'CaretRight' : undefined"
-        >
-          <template v-if="comp?.props?.showControls !== false">执行</template>
-        </el-button>
-      </div>
-
-      <div v-if="comp?.props?.showCode !== false" class="code-section">
-        <div class="section-title">代码:</div>
-        <pre class="code-block">{{ scriptCode }}</pre>
-      </div>
-
-      <div v-if="output || error" class="output-section">
-        <div class="section-title">输出:</div>
-        <div v-if="error" class="error-output">{{ error }}</div>
-        <pre v-else class="output-block">{{ output }}</pre>
-      </div>
-
-      <div v-if="!output && !error && comp?.props?.showPlaceholder !== false" class="placeholder">
-        <el-icon><VideoPlay /></el-icon>
-        <span>{{ comp?.props?.placeholder || '点击执行按钮运行脚本' }}</span>
-      </div>
-    </div>
-  </div>
+  <BaseScripting v-bind="componentProps" @execute="executeScript" />
 </template>
-
-<style scoped>
-.scripting-container {
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-  height: 100%;
-}
-
-.header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding-bottom: 8px;
-  border-bottom: 1px solid #3c3c3c;
-}
-
-.title {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  font-weight: 600;
-  font-size: 16px;
-}
-
-.section-title {
-  font-size: 12px;
-  opacity: 0.7;
-  margin-bottom: 6px;
-  text-transform: uppercase;
-}
-
-.code-section {
-  flex-shrink: 0;
-}
-
-.code-block {
-  margin: 0;
-  padding: 12px;
-  background: rgba(0, 0, 0, 0.3);
-  border-radius: 4px;
-  overflow-x: auto;
-  white-space: pre-wrap;
-  word-wrap: break-word;
-}
-
-.output-section {
-  flex: 1;
-  min-height: 0;
-  display: flex;
-  flex-direction: column;
-}
-
-.output-block {
-  flex: 1;
-  margin: 0;
-  padding: 12px;
-  background: rgba(0, 0, 0, 0.2);
-  border-radius: 4px;
-  overflow: auto;
-  white-space: pre-wrap;
-  word-wrap: break-word;
-  color: #4ec9b0;
-}
-
-.error-output {
-  flex: 1;
-  padding: 12px;
-  background: rgba(220, 38, 38, 0.1);
-  border: 1px solid rgba(220, 38, 38, 0.3);
-  border-radius: 4px;
-  color: #f87171;
-  overflow: auto;
-}
-
-.placeholder {
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  align-items: center;
-  flex: 1;
-  gap: 8px;
-  opacity: 0.5;
-}
-
-.placeholder .el-icon {
-  font-size: 32px;
-}
-</style>

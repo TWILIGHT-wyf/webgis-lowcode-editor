@@ -1,31 +1,17 @@
 <template>
-  <div class="progress-container" :style="containerStyle">
-    <!-- 使用 Element Plus Progress 组件 -->
-    <el-progress
-      :percentage="progressValue"
-      :type="progressType"
-      :status="status"
-      :stroke-width="strokeWidth"
-      :text-inside="textInside"
-      :show-text="showText"
-      :color="customColors"
-      :format="formatText"
-      :width="circleWidth"
-      :stroke-linecap="strokeLinecap"
-      :define-back-color="defineBackColor"
-      :striped="showStripe"
-      :striped-flow="animateStripe"
-    />
-  </div>
+  <VProgress v-bind="progressProps" />
 </template>
 
 <script setup lang="ts">
 import { computed, toRef } from 'vue'
-import type { CSSProperties } from 'vue'
 import { useComponent } from '@/stores/component'
 import { storeToRefs } from 'pinia'
-import { useDataSource } from '@/datasource/useDataSource'
-import { extractNumber, extractWithFallback } from '@/datasource/dataUtils'
+import {
+  vProgress as VProgress,
+  useDataSource,
+  extractNumber,
+  extractWithFallback,
+} from '@one/visual-lib'
 
 const props = defineProps<{ id: string }>()
 const { componentStore } = storeToRefs(useComponent())
@@ -49,13 +35,8 @@ const progressValue = computed<number>(() => {
   return Math.max(0, Math.min(100, val)) // 限制在0-100之间
 })
 
-// 组件属性
-const progressType = computed(() => {
-  const type = (comp.value?.props.type as string) ?? 'line'
-  return type as 'line' | 'circle' | 'dashboard'
-})
-
-const status = computed<'' | 'success' | 'exception' | 'warning' | undefined>(() => {
+// 状态
+const progressStatus = computed<'' | 'success' | 'exception' | 'warning' | undefined>(() => {
   const ds = comp.value?.dataSource
   let statusValue = (comp.value?.props.status as string) ?? ''
   if (ds?.enabled && remoteData.value && ds.statusPath && typeof ds.statusPath === 'string') {
@@ -68,81 +49,39 @@ const status = computed<'' | 'success' | 'exception' | 'warning' | undefined>(()
   return (statusValue || undefined) as '' | 'success' | 'exception' | 'warning' | undefined
 })
 
-const strokeWidth = computed<number>(() => (comp.value?.props.strokeWidth as number) ?? 6)
-const textInside = computed<boolean>(() => (comp.value?.props.textInside as boolean) ?? false)
-const showText = computed<boolean>(() => (comp.value?.props.showText as boolean) ?? true)
-const showStripe = computed<boolean>(() => (comp.value?.props.showStripe as boolean) ?? false)
-const animateStripe = computed<boolean>(() => (comp.value?.props.animateStripe as boolean) ?? false)
-const circleWidth = computed<number>(() => (comp.value?.props.circleWidth as number) ?? 126)
-const strokeLinecap = computed<'butt' | 'round' | 'square'>(
-  () => (comp.value?.props.strokeLinecap as 'butt' | 'round' | 'square') ?? 'round',
-)
-const defineBackColor = computed<string>(
-  () => (comp.value?.style.trackColor as string) ?? '#e5e9f2',
-)
-const textFormat = computed<string>(() => (comp.value?.props.textFormat as string) ?? '{value}%')
-
-// 自定义颜色
-const customColors = computed(() => {
+// 聚合所有 Props 传递给 Dumb 组件
+const progressProps = computed((): Record<string, unknown> => {
   const s = comp.value?.style || {}
-  const barColor = (s.barColor as string) ?? '#409eff'
-  const successColor = (s.successColor as string) ?? '#67c23a'
-  const warningColor = (s.warningColor as string) ?? '#e6a23c'
-  const exceptionColor = (s.exceptionColor as string) ?? '#f56c6c'
-
-  if (status.value) {
-    if (status.value === 'success') return successColor
-    if (status.value === 'warning') return warningColor
-    if (status.value === 'exception') return exceptionColor
-  }
-
-  const useGradient = (comp.value?.props.useGradient as boolean) ?? false
-  if (useGradient) {
-    return [
-      { color: exceptionColor, percentage: 20 },
-      { color: warningColor, percentage: 50 },
-      { color: successColor, percentage: 100 },
-    ]
-  }
-
-  return barColor
-})
-
-// 格式化文本
-const formatText = (percentage: number) => {
-  return textFormat.value.replace('{value}', percentage.toFixed(0))
-}
-
-// 样式
-const containerStyle = computed<CSSProperties>(() => {
-  const s = comp.value?.style || {}
+  const p = comp.value?.props || {}
   return {
-    opacity: ((s.opacity ?? 100) as number) / 100,
-    display: s.visible === false ? 'none' : 'flex',
-    backgroundColor: (s.backgroundColor as string) ?? 'transparent',
-    borderColor: (s.borderColor as string) ?? 'transparent',
-    borderWidth: `${(s.borderWidth as number) ?? 0}px`,
-    borderStyle: 'solid',
-    borderRadius: `${(s.borderRadius as number) ?? 0}px`,
-    padding: `${(s.padding as number) ?? 10}px`,
-    width: '100%',
-    height: '100%',
-    alignItems: 'center',
-    justifyContent: 'center',
+    // 核心数据
+    percentage: progressValue.value,
+    type: p.type ?? 'line',
+    status: progressStatus.value,
+    // 进度条配置
+    strokeWidth: p.strokeWidth ?? 6,
+    textInside: p.textInside ?? false,
+    showText: p.showText ?? true,
+    showStripe: p.showStripe ?? false,
+    animateStripe: p.animateStripe ?? false,
+    circleWidth: p.circleWidth ?? 126,
+    strokeLinecap: p.strokeLinecap ?? 'round',
+    textFormat: p.textFormat ?? '{value}%',
+    // 颜色配置
+    barColor: s.barColor ?? '#409eff',
+    trackColor: s.trackColor ?? '#e5e9f2',
+    successColor: s.successColor ?? '#67c23a',
+    warningColor: s.warningColor ?? '#e6a23c',
+    exceptionColor: s.exceptionColor ?? '#f56c6c',
+    useGradient: p.useGradient ?? false,
+    // 容器样式
+    opacity: s.opacity ?? 100,
+    visible: s.visible !== false,
+    backgroundColor: s.backgroundColor ?? 'transparent',
+    borderColor: s.borderColor ?? 'transparent',
+    borderWidth: s.borderWidth ?? 0,
+    borderRadius: s.borderRadius ?? 0,
+    padding: s.padding ?? 10,
   }
 })
 </script>
-
-<style scoped>
-.progress-container {
-  box-sizing: border-box;
-}
-
-:deep(.el-progress) {
-  width: 100%;
-}
-
-:deep(.el-progress__text) {
-  font-size: inherit !important;
-}
-</style>

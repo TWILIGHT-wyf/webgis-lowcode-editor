@@ -1,47 +1,38 @@
 <template>
-  <div class="doughnut-chart" :style="{ width: '100%', height: '100%' }">
-    <v-chart :option="chartOption" autoresize class="echart" />
-  </div>
+  <DoughnutChartBase v-bind="chartProps" />
 </template>
 
 <script setup lang="ts">
-import { ref, watch, computed } from 'vue'
-import type { EChartsOption } from 'echarts'
-import { use } from 'echarts/core'
-import { CanvasRenderer } from 'echarts/renderers'
-import { PieChart } from 'echarts/charts'
-import { TitleComponent, TooltipComponent, LegendComponent } from 'echarts/components'
+import { computed } from 'vue'
 import { useComponent } from '@/stores/component'
 import type { Component } from '@/types/components'
-import { useDataSource } from '@/datasource/useDataSource'
+
+// 从视觉组件库导入基础组件和工具函数
 import {
-  parseNumberInput,
-  parseStringInput,
+  doughnutChart as DoughnutChartBase,
+  useDataSource,
   extractNumberArray,
   extractStringArray,
-} from '../../../datasource/dataUtils'
+  parseNumberInput,
+  parseStringInput,
+} from '@one/visual-lib'
 
-// 按需引入
-use([TitleComponent, TooltipComponent, LegendComponent, PieChart, CanvasRenderer])
+const props = defineProps<{ id: string }>()
 
-const props = defineProps<{
-  id: string
-}>()
-
+// 获取组件配置
 const componentStore = useComponent()
 const comp = computed(() => componentStore.componentStore.find((c: Component) => c.id === props.id))
 
-// 使用数据源 hook
+// 获取数据源
 const { data: remoteData } = useDataSource(computed(() => comp.value?.dataSource))
 
-const chartOption = ref<EChartsOption>({})
-
-function buildOption(): EChartsOption {
-  const p = comp.value?.props || {}
+// 数据适配逻辑
+const chartData = computed(() => {
   const ds = comp.value?.dataSource
+  const p = comp.value?.props
 
   // 默认数据
-  let data: Array<{ name: string; value: number }> = [
+  const defaultData = [
     { name: 'Direct', value: 335 },
     { name: 'Email', value: 310 },
     { name: 'Union Ads', value: 234 },
@@ -49,105 +40,74 @@ function buildOption(): EChartsOption {
     { name: 'Search Engine', value: 1548 },
   ]
 
-  // 如果数据源启用且有数据，优先使用数据源
   if (ds?.enabled && remoteData.value) {
     const values = extractNumberArray(remoteData.value, ds.dataPath)
     const labels = extractStringArray(remoteData.value, ds.labelsPath)
 
-    // 只要有 values 或 labels 其中之一就可以更新
     if (values || labels) {
-      const finalValues = values || data.map((d) => d.value)
+      const finalValues = values || defaultData.map((d) => d.value)
       const finalLabels = labels || finalValues.map((_, idx) => `Category ${idx + 1}`)
-
-      // 取较短的长度，避免数组越界
       const len = Math.min(finalValues.length, finalLabels.length)
-      data = finalLabels.slice(0, len).map((name, idx) => ({
-        name: name,
+      return finalLabels.slice(0, len).map((name, idx) => ({
+        name,
         value: finalValues[idx] || 0,
       }))
     }
-  } else {
-    // 使用手动输入的数据
-    if (p.dataInput && p.labelsInput) {
-      const values = parseNumberInput(p.dataInput as string, [])
-      const labels = parseStringInput(p.labelsInput as string, [])
-      if (values.length > 0 && labels.length > 0) {
-        data = labels.map((name, idx) => ({
-          name,
-          value: values[idx] || 0,
-        }))
-      }
-    } else if (p.data && Array.isArray(p.data)) {
-      data = p.data as Array<{ name: string; value: number }>
+  }
+
+  // 使用手动输入的数据
+  if (p?.dataInput && p?.labelsInput) {
+    const values = parseNumberInput(p.dataInput as string)
+    const labels = parseStringInput(p.labelsInput as string)
+    if (values.length > 0 && labels.length > 0) {
+      return labels.map((name, idx) => ({
+        name,
+        value: values[idx] || 0,
+      }))
     }
   }
 
-  const option: EChartsOption = {
-    title: {
-      text: (p.title as string) || '',
-      left: (p.titleAlign as string) || 'center',
-      textStyle: {
-        fontSize: (p.titleSize as number) || 16,
-        color: (p.titleColor as string) || '#333',
-      },
-    },
-    tooltip: {
-      trigger: 'item',
-      formatter: '{a} <br/>{b}: {c} ({d}%)',
-    },
-    legend: {
-      show: (p.showLegend as boolean) !== false,
-      orient: (p.legendOrient as 'horizontal' | 'vertical') || 'horizontal',
-      left: (p.legendLeft as string) || 'center',
-      top: (p.legendTop as string) || 'bottom',
-    },
-    series: [
-      {
-        name: (p.seriesName as string) || 'Access From',
-        type: 'pie',
-        radius: [(p.innerRadius as string) || '40%', (p.outerRadius as string) || '70%'],
-        center: [(p.centerX as string) || '50%', (p.centerY as string) || '50%'],
-        avoidLabelOverlap: false,
-        itemStyle: {
-          borderRadius: (p.borderRadius as number) || 10,
-          borderColor: (p.borderColor as string) || '#fff',
-          borderWidth: (p.borderWidth as number) || 2,
-        },
-        label: {
-          show: (p.showLabel as boolean) !== false,
-          formatter: (p.labelFormatter as string) || '{b}: {c}',
-        },
-        emphasis: {
-          label: {
-            show: true,
-            fontSize: 20,
-            fontWeight: 'bold',
-          },
-        },
-        labelLine: {
-          show: (p.showLabelLine as boolean) !== false,
-        },
-        data: data,
-      },
-    ],
+  if (p?.data && Array.isArray(p.data)) {
+    return p.data as Array<{ name: string; value: number }>
   }
 
-  return option
-}
+  return undefined
+})
 
-// 监听组件属性、数据源变化
-watch(
-  [() => comp.value?.props, () => comp.value?.dataSource, remoteData],
-  () => {
-    chartOption.value = buildOption()
-  },
-  { deep: true, immediate: true },
-)
+const customOption = computed(() => {
+  const opt = comp.value?.props?.option
+  return typeof opt === 'string' ? JSON.parse(opt) : opt
+})
+
+// 聚合要透传给库组件的 props
+const chartProps = computed((): Record<string, unknown> => {
+  const p = comp.value?.props
+  return {
+    data: chartData.value,
+
+    // 样式/选项属性
+    title: p?.title,
+    titleAlign: p?.titleAlign,
+    titleSize: p?.titleSize,
+    titleColor: p?.titleColor,
+    seriesName: p?.seriesName,
+    innerRadius: p?.innerRadius,
+    outerRadius: p?.outerRadius,
+    centerX: p?.centerX,
+    centerY: p?.centerY,
+    borderRadius: p?.borderRadius,
+    borderColor: p?.borderColor,
+    borderWidth: p?.borderWidth,
+    showLegend: p?.showLegend,
+    legendOrient: p?.legendOrient,
+    legendLeft: p?.legendLeft,
+    legendTop: p?.legendTop,
+    showLabel: p?.showLabel,
+    labelFormatter: p?.labelFormatter,
+    showLabelLine: p?.showLabelLine,
+
+    // 高级配置覆盖
+    option: customOption.value,
+  }
+})
 </script>
-
-<style scoped>
-div {
-  width: 100%;
-  height: 100%;
-}
-</style>

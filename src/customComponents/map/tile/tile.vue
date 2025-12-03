@@ -1,21 +1,36 @@
 <template>
-  <div ref="mapContainer" class="tile-layer-map">
-    <div v-if="!tileUrl" class="map-placeholder">
-      <el-icon class="placeholder-icon"><Grid /></el-icon>
-      <div class="placeholder-text">{{ placeholder || '配置瓦片URL以显示图层' }}</div>
-    </div>
-  </div>
+  <BaseMap v-bind="mapProps">
+    <template #placeholder>
+      <div class="map-placeholder">
+        <el-icon class="placeholder-icon"><Grid /></el-icon>
+        <div class="placeholder-text">{{ placeholder }}</div>
+      </div>
+    </template>
+    <!-- 额外瓦片图层 -->
+    <BaseTileLayer
+      v-if="tileUrl"
+      :url="tileUrl"
+      :opacity="opacity"
+      :min-zoom="tileOptions.minZoom"
+      :max-zoom="tileOptions.maxZoom"
+      :z-index="tileOptions.zIndex"
+      :attribution="tileOptions.attribution"
+      :subdomains="tileOptions.subdomains"
+    />
+  </BaseMap>
 </template>
 
 <script setup lang="ts">
-import { ref, computed, watch, onMounted, onBeforeUnmount } from 'vue'
+import { computed } from 'vue'
 import { storeToRefs } from 'pinia'
 import { Grid } from '@element-plus/icons-vue'
-import L from 'leaflet'
-import 'leaflet/dist/leaflet.css'
 import { useComponent } from '@/stores/component'
-import { useDataSource } from '@/datasource/useDataSource'
-import { getValueByPath } from '@/datasource/dataUtils'
+import {
+  vMap as BaseMap,
+  vTileLayer as BaseTileLayer,
+  useDataSource,
+  getValueByPath,
+} from '@one/visual-lib'
 
 const props = defineProps<{ id: string }>()
 
@@ -71,87 +86,35 @@ const centerLng = computed(() => {
   return (comp.value?.props.centerLng as number) ?? 116.4
 })
 
-const placeholder = computed(() => comp.value?.props.placeholder as string)
+const placeholder = computed(
+  () => (comp.value?.props.placeholder as string) || '配置瓦片URL以显示图层',
+)
 
-const mapContainer = ref<HTMLDivElement>()
-let map: L.Map | null = null
-let tileLayer: L.TileLayer | null = null
-
-// 初始化地图
-function initMap() {
-  if (!mapContainer.value || !tileUrl.value) return
-
-  // 销毁旧地图
-  if (map) {
-    map.remove()
-    map = null
+const tileOptions = computed(() => {
+  const p = comp.value?.props || {}
+  return {
+    attribution: p.attribution as string | undefined,
+    minZoom: p.minZoom as number | undefined,
+    maxZoom: p.maxZoom as number | undefined,
+    zIndex: p.zIndex as number | undefined,
+    subdomains: p.subdomains as string | undefined,
   }
+})
 
-  // 创建新地图
-  map = L.map(mapContainer.value, {
-    center: [centerLat.value, centerLng.value],
-    zoom: (comp.value?.props.zoom as number) ?? 10,
+// Map 属性
+const mapProps = computed(() => {
+  const p = comp.value?.props || {}
+  return {
+    centerLat: centerLat.value,
+    centerLng: centerLng.value,
+    zoom: (p.zoom as number) ?? 10,
     zoomControl: true,
-  })
-
-  // 添加底图
-  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-    attribution: '&copy; OpenStreetMap',
-    opacity: 0.3,
-  }).addTo(map)
-
-  // 添加瓦片层
-  tileLayer = L.tileLayer(tileUrl.value, {
-    attribution: comp.value?.props.attribution as string,
-    opacity: opacity.value,
-    minZoom: comp.value?.props.minZoom as number,
-    maxZoom: comp.value?.props.maxZoom as number,
-    subdomains: comp.value?.props.subdomains as string,
-  }).addTo(map)
-
-  const zIndex = comp.value?.props.zIndex as number
-  if (zIndex) {
-    tileLayer.setZIndex(zIndex)
-  }
-}
-
-// 监听配置变化
-watch([tileUrl, opacity], () => {
-  if (tileLayer) {
-    if (tileUrl.value) {
-      tileLayer.setUrl(tileUrl.value)
-    }
-    tileLayer.setOpacity(opacity.value)
-  } else {
-    initMap()
-  }
-})
-
-onMounted(() => {
-  initMap()
-})
-
-onBeforeUnmount(() => {
-  if (map) {
-    map.remove()
-    map = null
+    placeholder: placeholder.value,
   }
 })
 </script>
 
 <style scoped lang="scss">
-.tile-layer-map {
-  position: relative;
-  width: 100%;
-  height: 100%;
-  background-color: #f5f5f5;
-
-  :deep(.leaflet-container) {
-    width: 100%;
-    height: 100%;
-  }
-}
-
 .map-placeholder {
   display: flex;
   flex-direction: column;

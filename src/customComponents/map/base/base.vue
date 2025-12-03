@@ -1,31 +1,42 @@
 <template>
-  <div ref="mapContainer" class="base-map" :style="containerStyle">
-    <div v-if="!centerLat || !centerLng" class="map-placeholder">
-      <el-icon class="placeholder-icon"><Location /></el-icon>
-      <div class="placeholder-text">{{ placeholder }}</div>
-    </div>
-  </div>
+  <BaseMap
+    v-bind="mapProps"
+    @ready="handleMapReady"
+    @click="handleMapClick"
+    @moveend="handleMoveEnd"
+    @zoomend="handleZoomEnd"
+  >
+    <template #placeholder>
+      <div class="map-placeholder">
+        <el-icon class="placeholder-icon"><Location /></el-icon>
+        <div class="placeholder-text">{{ placeholder }}</div>
+      </div>
+    </template>
+    <slot></slot>
+  </BaseMap>
 </template>
 
 <script setup lang="ts">
-import { ref, computed, watch, onMounted, onBeforeUnmount } from 'vue'
+import { computed } from 'vue'
 import { storeToRefs } from 'pinia'
 import { Location } from '@element-plus/icons-vue'
-import L from 'leaflet'
-import 'leaflet/dist/leaflet.css'
+import type L from 'leaflet'
 import { useComponent } from '@/stores/component'
-import { useDataSource } from '@/datasource/useDataSource'
-import { getValueByPath } from '@/datasource/dataUtils'
+import { vMap as BaseMap, useDataSource, extractWithFallback } from '@one/visual-lib'
 
 const props = defineProps<{
   id: string
 }>()
 
+const emit = defineEmits<{
+  ready: [map: L.Map]
+  click: [e: L.LeafletMouseEvent]
+  moveend: [center: { lat: number; lng: number }, zoom: number]
+  zoomend: [zoom: number]
+}>()
+
 const { componentStore } = storeToRefs(useComponent())
 const comp = computed(() => componentStore.value.find((c) => c.id === props.id))
-
-const mapContainer = ref<HTMLDivElement>()
-let map: L.Map | null = null
 
 // 数据源处理
 const dataSourceRef = computed(() => comp.value?.dataSource)
@@ -35,26 +46,23 @@ const { data: dataSourceData } = useDataSource(dataSourceRef)
 const centerLat = computed(() => {
   if (dataSourceData.value) {
     const field = (comp.value?.dataSource?.centerLatField as string) || 'centerLat'
-    const value = getValueByPath(dataSourceData.value, field)
-    return typeof value === 'number' ? value : undefined
+    return extractWithFallback<number>(dataSourceData.value, field, 39.9)
   }
-  return comp.value?.props?.centerLat as number | undefined
+  return (comp.value?.props?.centerLat as number) ?? 39.9
 })
 
 const centerLng = computed(() => {
   if (dataSourceData.value) {
     const field = (comp.value?.dataSource?.centerLngField as string) || 'centerLng'
-    const value = getValueByPath(dataSourceData.value, field)
-    return typeof value === 'number' ? value : undefined
+    return extractWithFallback<number>(dataSourceData.value, field, 116.4)
   }
-  return comp.value?.props?.centerLng as number | undefined
+  return (comp.value?.props?.centerLng as number) ?? 116.4
 })
 
 const zoom = computed(() => {
   if (dataSourceData.value) {
     const field = (comp.value?.dataSource?.zoomField as string) || 'zoom'
-    const value = getValueByPath(dataSourceData.value, field)
-    return typeof value === 'number' ? value : 13
+    return extractWithFallback<number>(dataSourceData.value, field, 13)
   }
   return (comp.value?.props?.zoom as number) ?? 13
 })
@@ -62,8 +70,11 @@ const zoom = computed(() => {
 const tileUrl = computed(() => {
   if (dataSourceData.value) {
     const field = (comp.value?.dataSource?.tileUrlField as string) || 'tileUrl'
-    const value = getValueByPath(dataSourceData.value, field)
-    return typeof value === 'string' ? value : undefined
+    return extractWithFallback<string>(
+      dataSourceData.value,
+      field,
+      'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
+    )
   }
   return (
     (comp.value?.props?.tileUrl as string) || 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png'
@@ -74,79 +85,48 @@ const placeholder = computed(
   () => (comp.value?.props?.placeholder as string) || '配置地图中心点以显示底图',
 )
 
-const containerStyle = computed(() => {
+// 聚合 Map 属性
+const mapProps = computed(() => {
+  const p = comp.value?.props || {}
   const s = comp.value?.style || {}
+
   return {
-    width: '100%',
-    height: '100%',
-    borderRadius: `${s.borderRadius || 0}px`,
+    centerLat: centerLat.value,
+    centerLng: centerLng.value,
+    zoom: zoom.value,
+    minZoom: (p.minZoom as number) ?? 1,
+    maxZoom: (p.maxZoom as number) ?? 18,
+    tileUrl: tileUrl.value,
+    attribution: (p.attribution as string) || '&copy; OpenStreetMap contributors',
+    zoomControl: (p.zoomControl as boolean) ?? true,
+    dragging: (p.dragging as boolean) ?? true,
+    scrollWheelZoom: (p.scrollWheelZoom as boolean) ?? true,
+    doubleClickZoom: (p.doubleClickZoom as boolean) ?? true,
+    placeholder: placeholder.value,
+    borderRadius: Number(s.borderRadius || 0),
     border: String(s.border || 'none'),
   }
 })
 
-// 初始化地图
-function initMap() {
-  if (!mapContainer.value || !centerLat.value || !centerLng.value) return
-
-  // 销毁旧地图
-  if (map) {
-    map.remove()
-    map = null
-  }
-
-  // 创建新地图
-  map = L.map(mapContainer.value, {
-    center: [centerLat.value, centerLng.value],
-    zoom: zoom.value,
-    zoomControl: (comp.value?.props?.zoomControl as boolean) ?? true,
-    dragging: (comp.value?.props?.dragging as boolean) ?? true,
-    scrollWheelZoom: (comp.value?.props?.scrollWheelZoom as boolean) ?? true,
-    doubleClickZoom: (comp.value?.props?.doubleClickZoom as boolean) ?? true,
-  })
-
-  // 添加瓦片层
-  const tileUrlValue = tileUrl.value || 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png'
-  L.tileLayer(tileUrlValue, {
-    attribution: (comp.value?.props?.attribution as string) || '&copy; OpenStreetMap contributors',
-    minZoom: comp.value?.props?.minZoom as number | undefined,
-    maxZoom: comp.value?.props?.maxZoom as number | undefined,
-  }).addTo(map)
+// 事件处理
+const handleMapReady = (map: L.Map) => {
+  emit('ready', map)
 }
 
-// 监听配置变化
-watch([centerLat, centerLng, zoom, tileUrl], () => {
-  if (map && centerLat.value && centerLng.value) {
-    map.setView([centerLat.value, centerLng.value], zoom.value)
-  } else {
-    initMap()
-  }
-})
+const handleMapClick = (e: L.LeafletMouseEvent) => {
+  emit('click', e)
+}
 
-onMounted(() => {
-  initMap()
-})
+const handleMoveEnd = (center: { lat: number; lng: number }, zoomLevel: number) => {
+  emit('moveend', center, zoomLevel)
+}
 
-onBeforeUnmount(() => {
-  if (map) {
-    map.remove()
-    map = null
-  }
-})
+const handleZoomEnd = (zoomLevel: number) => {
+  emit('zoomend', zoomLevel)
+}
 </script>
 
 <style scoped lang="scss">
-.base-map {
-  position: relative;
-  width: 100%;
-  height: 100%;
-  background-color: #f5f5f5;
-
-  :deep(.leaflet-container) {
-    width: 100%;
-    height: 100%;
-  }
-}
-
 .map-placeholder {
   display: flex;
   flex-direction: column;

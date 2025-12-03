@@ -1,26 +1,20 @@
 <template>
-  <div class="legend-control" :style="containerStyle">
-    <div v-if="!items || items.length === 0" class="legend-placeholder">
-      <el-icon class="placeholder-icon"><Menu /></el-icon>
-      <div class="placeholder-text">{{ placeholder || '配置图例项以显示' }}</div>
-    </div>
-    <div v-else class="legend-content">
-      <div v-if="title" class="legend-title">{{ title }}</div>
-      <div class="legend-items">
-        <div v-for="(item, index) in items" :key="index" class="legend-item">
-          <div
-            class="legend-symbol"
-            :style="{
-              backgroundColor: item.color,
-              width: symbolWidth + 'px',
-              height: symbolHeight + 'px',
-              borderRadius: symbolShape === 'circle' ? '50%' : '0',
-            }"
-          ></div>
-          <span class="legend-label">{{ item.label }}</span>
-        </div>
-      </div>
-    </div>
+  <BaseLegend
+    v-if="items && items.length > 0"
+    :items="items"
+    :title="title"
+    :symbol-width="symbolWidth"
+    :symbol-height="symbolHeight"
+    :symbol-shape="symbolShape"
+    :background-color="containerStyle.backgroundColor"
+    :text-color="containerStyle.textColor"
+    :border-color="containerStyle.borderColor"
+    :font-size="containerStyle.fontSize"
+    :padding="containerStyle.padding"
+  />
+  <div v-else class="legend-placeholder" :style="placeholderStyle">
+    <el-icon class="placeholder-icon"><Menu /></el-icon>
+    <div class="placeholder-text">{{ placeholder }}</div>
   </div>
 </template>
 
@@ -29,8 +23,7 @@ import { computed } from 'vue'
 import { storeToRefs } from 'pinia'
 import { Menu } from '@element-plus/icons-vue'
 import { useComponent } from '@/stores/component'
-import { useDataSource } from '@/datasource/useDataSource'
-import { getValueByPath } from '@/datasource/dataUtils'
+import { vLegend as BaseLegend, useDataSource, getValueByPath } from '@one/visual-lib'
 
 interface LegendItem {
   label: string
@@ -67,7 +60,7 @@ const title = computed(() => {
   return comp.value?.props.title as string
 })
 
-const placeholder = computed(() => comp.value?.props.placeholder as string)
+const placeholder = computed(() => (comp.value?.props.placeholder as string) || '配置图例项以显示')
 
 const symbolWidth = computed(() => (comp.value?.props.symbolWidth as number) ?? 20)
 const symbolHeight = computed(() => (comp.value?.props.symbolHeight as number) ?? 20)
@@ -77,22 +70,26 @@ const symbolShape = computed(
 
 const containerStyle = computed(() => ({
   backgroundColor: (comp.value?.props.backgroundColor as string) || '#ffffff',
-  color: (comp.value?.props.textColor as string) || '#303133',
-  border: `1px solid ${(comp.value?.props.borderColor as string) || '#dcdfe6'}`,
-  fontSize: `${(comp.value?.props.fontSize as number) ?? 14}px`,
-  padding: `${(comp.value?.props.padding as number) ?? 12}px`,
+  textColor: (comp.value?.props.textColor as string) || '#303133',
+  borderColor: (comp.value?.props.borderColor as string) || '#dcdfe6',
+  fontSize: (comp.value?.props.fontSize as number) ?? 14,
+  padding: (comp.value?.props.padding as number) ?? 12,
+}))
+
+const placeholderStyle = computed(() => ({
+  backgroundColor: containerStyle.value.backgroundColor,
+  color: containerStyle.value.textColor,
+  border: `1px solid ${containerStyle.value.borderColor}`,
+  fontSize: `${containerStyle.value.fontSize}px`,
+  padding: `${containerStyle.value.padding}px`,
   borderRadius: '4px',
   boxShadow: '0 2px 8px rgba(0, 0, 0, 0.15)',
+  minWidth: '120px',
+  maxWidth: '300px',
 }))
 </script>
 
 <style scoped lang="scss">
-.legend-control {
-  display: inline-block;
-  min-width: 120px;
-  max-width: 300px;
-}
-
 .legend-placeholder {
   display: flex;
   flex-direction: column;
@@ -111,39 +108,6 @@ const containerStyle = computed(() => ({
   .placeholder-text {
     font-size: 12px;
     text-align: center;
-  }
-}
-
-.legend-content {
-  .legend-title {
-    font-weight: 600;
-    margin-bottom: 8px;
-    padding-bottom: 8px;
-    border-bottom: 1px solid #e4e7ed;
-  }
-
-  .legend-items {
-    display: flex;
-    flex-direction: column;
-    gap: 6px;
-  }
-
-  .legend-item {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-
-    .legend-symbol {
-      flex-shrink: 0;
-      border: 1px solid rgba(0, 0, 0, 0.1);
-    }
-
-    .legend-label {
-      flex: 1;
-      overflow: hidden;
-      text-overflow: ellipsis;
-      white-space: nowrap;
-    }
   }
 }
 </style>

@@ -1,21 +1,44 @@
 <template>
-  <div ref="mapContainer" class="marker-map" :style="containerStyle">
-    <div v-if="!markers || markers.length === 0" class="map-placeholder">
-      <el-icon class="placeholder-icon"><LocationFilled /></el-icon>
-      <div class="placeholder-text">{{ placeholder || '配置标记点数据以显示' }}</div>
-    </div>
-  </div>
+  <BaseMap v-bind="mapProps" @ready="handleMapReady">
+    <template #placeholder>
+      <div class="map-placeholder">
+        <el-icon class="placeholder-icon"><LocationFilled /></el-icon>
+        <div class="placeholder-text">{{ placeholder }}</div>
+      </div>
+    </template>
+    <!-- 渲染所有标记点 -->
+    <BaseMarker
+      v-for="(marker, index) in markers"
+      :key="index"
+      :lat="marker.lat"
+      :lng="marker.lng"
+      :label="marker.label"
+      :show-label="showLabel"
+      :popup="formatPopup(marker.popup)"
+      :icon-url="marker.icon || iconUrl"
+      :icon-size="iconSize"
+      :icon-anchor="iconAnchor"
+      :popup-anchor="popupAnchor"
+      :color="marker.color"
+      :draggable="draggableMarkers"
+      @click="() => handleMarkerClick(marker, index)"
+      @dragend="(latlng) => handleMarkerDrag(latlng, index)"
+    />
+  </BaseMap>
 </template>
 
 <script setup lang="ts">
-import { ref, computed, watch, onMounted, onBeforeUnmount } from 'vue'
+import { ref, computed, watch } from 'vue'
 import { storeToRefs } from 'pinia'
 import { LocationFilled } from '@element-plus/icons-vue'
-import L from 'leaflet'
-import 'leaflet/dist/leaflet.css'
+import type L from 'leaflet'
 import { useComponent } from '@/stores/component'
-import { useDataSource } from '@/datasource/useDataSource'
-import { getValueByPath } from '@/datasource/dataUtils'
+import {
+  vMap as BaseMap,
+  vMarker as BaseMarker,
+  useDataSource,
+  extractWithFallback,
+} from '@one/visual-lib'
 
 interface MarkerData {
   lat: number
@@ -36,9 +59,7 @@ const emit = defineEmits<{
 const { componentStore } = storeToRefs(useComponent())
 const comp = computed(() => componentStore.value.find((c) => c.id === props.id))
 
-const mapContainer = ref<HTMLDivElement>()
-let map: L.Map | null = null
-const markerLayers: L.Marker[] = []
+const mapRef = ref<L.Map | null>(null)
 
 const dataSourceConfig = computed(() => comp.value?.dataSource)
 const { data: dataSourceData } = useDataSource(dataSourceConfig)
@@ -47,187 +68,71 @@ const markers = computed(() => {
   if (dataSourceData.value) {
     const field = dataSourceConfig.value?.markersField as string | undefined
     if (field) {
-      const value = getValueByPath(dataSourceData.value, field)
-      return Array.isArray(value) ? (value as MarkerData[]) : undefined
+      return extractWithFallback<MarkerData[]>(dataSourceData.value, field, [])
     }
   }
-  return comp.value?.props.markers as MarkerData[] | undefined
+  return (comp.value?.props.markers as MarkerData[]) || []
 })
 
-const placeholder = computed(() => comp.value?.props.placeholder as string)
+const placeholder = computed(
+  () => (comp.value?.props.placeholder as string) || '配置标记点数据以显示',
+)
+const showLabel = computed(() => (comp.value?.props.showLabel as boolean) ?? false)
+const draggableMarkers = computed(() => (comp.value?.props.draggableMarkers as boolean) ?? false)
+const iconUrl = computed(() => comp.value?.props.iconUrl as string | undefined)
+const iconSize = computed(() => (comp.value?.props.iconSize as [number, number]) ?? [25, 41])
+const iconAnchor = computed(() => (comp.value?.props.iconAnchor as [number, number]) ?? [12, 41])
+const popupAnchor = computed(() => (comp.value?.props.popupAnchor as [number, number]) ?? [1, -34])
 
-const containerStyle = computed(() => ({
-  width: '100%',
-  height: '100%',
-}))
-
-// 创建自定义图标
-function createIcon(marker: MarkerData): L.Icon | L.DivIcon {
-  if (marker.icon) {
-    return L.icon({
-      iconUrl: marker.icon,
-      iconSize: (comp.value?.props.iconSize as [number, number]) ?? [25, 41],
-      iconAnchor: (comp.value?.props.iconAnchor as [number, number]) ?? [12, 41],
-      popupAnchor: (comp.value?.props.popupAnchor as [number, number]) ?? [1, -34],
-    })
-  }
-
-  if (marker.color) {
-    return L.divIcon({
-      html: `<div style="background-color: ${marker.color}; width: 20px; height: 20px; border-radius: 50%; border: 2px solid white; box-shadow: 0 2px 5px rgba(0,0,0,0.3);"></div>`,
-      className: 'custom-marker-icon',
-      iconSize: [20, 20],
-      iconAnchor: [10, 10],
-    })
-  }
-
-  const iconUrl = comp.value?.props.iconUrl as string | undefined
-  if (iconUrl) {
-    return L.icon({
-      iconUrl,
-      iconSize: (comp.value?.props.iconSize as [number, number]) ?? [25, 41],
-      iconAnchor: (comp.value?.props.iconAnchor as [number, number]) ?? [12, 41],
-      popupAnchor: (comp.value?.props.popupAnchor as [number, number]) ?? [1, -34],
-    })
-  }
-
-  return new L.Icon.Default()
-}
-
-// 初始化地图
-function initMap() {
-  if (!mapContainer.value) return
-
-  // 销毁旧地图
-  if (map) {
-    map.remove()
-    map = null
-  }
-
-  // 创建新地图
-  map = L.map(mapContainer.value, {
-    center: [
-      (comp.value?.props.centerLat as number) ?? 39.9,
-      (comp.value?.props.centerLng as number) ?? 116.4,
-    ],
-    zoom: (comp.value?.props.zoom as number) ?? 10,
+// Map 属性
+const mapProps = computed(() => {
+  const p = comp.value?.props || {}
+  return {
+    centerLat: (p.centerLat as number) ?? 39.9,
+    centerLng: (p.centerLng as number) ?? 116.4,
+    zoom: (p.zoom as number) ?? 10,
     zoomControl: true,
-  })
+    placeholder: placeholder.value,
+  }
+})
 
-  // 添加底图
-  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-    attribution: '&copy; OpenStreetMap',
-  }).addTo(map)
-
-  // 添加标记点
-  addMarkers()
+// 格式化弹窗内容
+function formatPopup(popup: string | Record<string, unknown> | undefined): string | undefined {
+  if (!popup) return undefined
+  if (typeof popup === 'string') return popup
+  return Object.entries(popup)
+    .map(([key, value]) => `<strong>${key}:</strong> ${value}`)
+    .join('<br>')
 }
 
-// 添加标记点
-function addMarkers() {
-  if (!map || !markers.value) return
-
-  // 清除旧标记
-  markerLayers.forEach((marker) => map?.removeLayer(marker))
-  markerLayers.length = 0
-
-  // 添加新标记
-  markers.value.forEach((markerData: MarkerData, index: number) => {
-    const marker = L.marker([markerData.lat, markerData.lng], {
-      icon: createIcon(markerData),
-      draggable: (comp.value?.props.draggableMarkers as boolean) ?? false,
-    })
-
-    // 标签
-    const showLabel = comp.value?.props.showLabel as boolean
-    if (showLabel && markerData.label) {
-      marker.bindTooltip(markerData.label, {
-        permanent: true,
-        direction: 'top',
-        className: 'marker-label',
-      })
-    }
-
-    // 弹窗
-    if (markerData.popup) {
-      const popupContent =
-        typeof markerData.popup === 'string'
-          ? markerData.popup
-          : Object.entries(markerData.popup)
-              .map(([key, value]) => `<strong>${key}:</strong> ${value}`)
-              .join('<br>')
-      marker.bindPopup(popupContent)
-    }
-
-    // 事件
-    marker.on('click', () => {
-      emit('markerClick', { ...markerData, index })
-    })
-
-    marker.on('dragend', () => {
-      const latlng = marker.getLatLng()
-      emit('markerDrag', { lat: latlng.lat, lng: latlng.lng, index })
-    })
-
-    marker.addTo(map!)
-    markerLayers.push(marker)
-  })
-
+// 事件处理
+function handleMapReady(map: L.Map) {
+  mapRef.value = map
   // 自适应视图
-  if (markerLayers.length > 0) {
-    const group = L.featureGroup(markerLayers)
-    map!.fitBounds(group.getBounds(), { padding: [50, 50] })
+  if (markers.value.length > 0) {
+    const bounds = markers.value.map((m) => [m.lat, m.lng] as [number, number])
+    map.fitBounds(bounds, { padding: [50, 50] })
   }
 }
 
-// 监听数据变化
-watch(markers, () => {
-  if (map) {
-    addMarkers()
-  }
-})
+function handleMarkerClick(marker: MarkerData, index: number) {
+  emit('markerClick', { ...marker, index })
+}
 
-onMounted(() => {
-  initMap()
-})
+function handleMarkerDrag(latlng: { lat: number; lng: number }, index: number) {
+  emit('markerDrag', { ...latlng, index })
+}
 
-onBeforeUnmount(() => {
-  if (map) {
-    map.remove()
-    map = null
+// 监听标记变化，自适应视图
+watch(markers, (newMarkers) => {
+  if (mapRef.value && newMarkers.length > 0) {
+    const bounds = newMarkers.map((m) => [m.lat, m.lng] as [number, number])
+    mapRef.value.fitBounds(bounds, { padding: [50, 50] })
   }
 })
 </script>
 
 <style scoped lang="scss">
-.marker-map {
-  position: relative;
-  width: 100%;
-  height: 100%;
-  background-color: #f5f5f5;
-
-  :deep(.leaflet-container) {
-    width: 100%;
-    height: 100%;
-  }
-
-  :deep(.marker-label) {
-    background: transparent;
-    border: none;
-    box-shadow: none;
-    font-weight: 500;
-    color: #303133;
-    text-shadow:
-      1px 1px 2px white,
-      -1px -1px 2px white;
-  }
-
-  :deep(.custom-marker-icon) {
-    background: transparent;
-    border: none;
-  }
-}
-
 .map-placeholder {
   display: flex;
   flex-direction: column;

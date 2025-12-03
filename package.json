@@ -24,6 +24,7 @@
     "@element-plus/icons-vue": "^2.3.2",
     "@types/leaflet.heat": "^0.2.5",
     "@types/leaflet.markercluster": "^1.5.6",
+    "@one/visual-lib": "workspace:*",
     "axios": "^1.13.2",
     "cors": "^2.8.5",
     "dompurify": "^3.3.0",

@@ -1,52 +1,39 @@
 <template>
-  <div class="radar-chart" :style="{ width: '100%', height: '100%' }">
-    <v-chart :option="chartOption" autoresize class="echart" />
-  </div>
+  <RadarChartBase v-bind="chartProps" />
 </template>
 
 <script setup lang="ts">
-import { ref, watch, computed } from 'vue'
-import type { EChartsOption } from 'echarts'
-import { use } from 'echarts/core'
-import { CanvasRenderer } from 'echarts/renderers'
-import { RadarChart } from 'echarts/charts'
-import {
-  TitleComponent,
-  TooltipComponent,
-  LegendComponent,
-  RadarComponent,
-} from 'echarts/components'
+import { computed } from 'vue'
 import { useComponent } from '@/stores/component'
 import type { Component } from '@/types/components'
-import { useDataSource } from '@/datasource/useDataSource'
+
+// 从视觉组件库导入基础组件和工具函数
 import {
-  parseNumberInput,
-  parseStringInput,
+  radarChart as RadarChartBase,
+  useDataSource,
   extractNumberArray,
   extractStringArray,
-} from '../../../datasource/dataUtils'
+  parseNumberInput,
+  parseStringInput,
+  getValueByPath,
+} from '@one/visual-lib'
 
-// 按需引入
-use([TitleComponent, TooltipComponent, LegendComponent, RadarComponent, RadarChart, CanvasRenderer])
+const props = defineProps<{ id: string }>()
 
-const props = defineProps<{
-  id: string
-}>()
-
+// 获取组件配置
 const componentStore = useComponent()
 const comp = computed(() => componentStore.componentStore.find((c: Component) => c.id === props.id))
 
-// 使用数据源 hook
+// 获取数据源
 const { data: remoteData } = useDataSource(computed(() => comp.value?.dataSource))
 
-const chartOption = ref<EChartsOption>({})
-
-function buildOption(): EChartsOption {
-  const p = comp.value?.props || {}
+// 数据适配逻辑 - 指标
+const indicators = computed(() => {
   const ds = comp.value?.dataSource
+  const p = comp.value?.props
 
-  // 默认雷达图指标
-  let indicators = [
+  // 默认指标
+  const defaultIndicators = [
     { name: '销售', max: 100 },
     { name: '管理', max: 100 },
     { name: '技术', max: 100 },
@@ -55,128 +42,99 @@ function buildOption(): EChartsOption {
     { name: '市场', max: 100 },
   ]
 
-  // 默认数据
-  let seriesData = [
-    {
-      name: '预算',
-      value: [43, 85, 70, 75, 68, 92],
-    },
-    {
-      name: '实际开销',
-      value: [50, 90, 60, 82, 73, 85],
-    },
-  ]
-
-  // 如果数据源启用且有数据
   if (ds?.enabled && remoteData.value) {
-    // 提取指标名称
     const indicatorNames = extractStringArray(remoteData.value, ds.indicatorNamesPath as string)
-    // 提取指标最大值
     const indicatorMaxs = extractNumberArray(remoteData.value, ds.indicatorMaxsPath as string)
 
     if (indicatorNames || indicatorMaxs) {
-      const names = indicatorNames || indicators.map((i) => i.name)
-      const maxs = indicatorMaxs || indicators.map((i) => i.max)
+      const names = indicatorNames || defaultIndicators.map((i) => i.name)
+      const maxs = indicatorMaxs || defaultIndicators.map((i) => i.max)
       const len = Math.min(names.length, maxs.length)
-      indicators = names.slice(0, len).map((name, idx) => ({
+      return names.slice(0, len).map((name, idx) => ({
         name,
         max: maxs[idx] || 100,
       }))
     }
+  }
 
-    // 提取系列名称
+  // 使用手动输入的数据
+  if (p?.indicatorNamesInput) {
+    const names = parseStringInput(p.indicatorNamesInput as string)
+    if (names.length > 0) {
+      const maxs = p.indicatorMaxsInput
+        ? parseNumberInput(p.indicatorMaxsInput as string)
+        : names.map(() => 100)
+      return names.map((name, idx) => ({
+        name,
+        max: maxs[idx] || 100,
+      }))
+    }
+  }
+
+  return undefined
+})
+
+// 数据适配逻辑 - 系列数据
+const seriesData = computed(() => {
+  const ds = comp.value?.dataSource
+  const p = comp.value?.props
+
+  // 默认系列数据
+  const defaultSeriesData = [
+    { name: '预算', value: [43, 85, 70, 75, 68, 92] },
+    { name: '实际开销', value: [50, 90, 60, 82, 73, 85] },
+  ]
+
+  if (ds?.enabled && remoteData.value) {
     const seriesNames = extractStringArray(remoteData.value, ds.seriesNamesPath as string)
-    // 提取系列数据（二维数组）
     const seriesValues =
       remoteData.value && ds.seriesValuesPath
-        ? (remoteData.value as Record<string, unknown>)[ds.seriesValuesPath as string]
+        ? (getValueByPath(remoteData.value, ds.seriesValuesPath as string) as unknown[])
         : undefined
 
     if (seriesNames && Array.isArray(seriesValues)) {
-      seriesData = seriesNames.map((name, idx) => ({
+      return seriesNames.map((name, idx) => ({
         name,
-        value: Array.isArray(seriesValues[idx]) ? seriesValues[idx] : [],
+        value: Array.isArray(seriesValues[idx]) ? (seriesValues[idx] as number[]) : [],
       }))
     } else if (Array.isArray(seriesValues)) {
-      seriesData = seriesValues.map((value, idx) => ({
+      return seriesValues.map((value, idx) => ({
         name: `Series ${idx + 1}`,
-        value: Array.isArray(value) ? value : [],
+        value: Array.isArray(value) ? (value as number[]) : [],
       }))
     }
-  } else {
-    // 使用手动输入的数据
-    if (p.indicatorNamesInput) {
-      const names = parseStringInput(p.indicatorNamesInput as string, [])
-      if (names.length > 0) {
-        const maxs = p.indicatorMaxsInput
-          ? parseNumberInput(p.indicatorMaxsInput as string, [])
-          : names.map(() => 100)
-        indicators = names.map((name, idx) => ({
-          name,
-          max: maxs[idx] || 100,
-        }))
-      }
-    }
-
-    if (p.seriesData && Array.isArray(p.seriesData)) {
-      seriesData = p.seriesData as Array<{ name: string; value: number[] }>
-    }
   }
 
-  const option: EChartsOption = {
-    title: {
-      text: (p.title as string) || '',
-      left: 'center',
-    },
-    tooltip: {
-      trigger: 'item',
-    },
-    legend: {
-      bottom: 10,
-      data: seriesData.map((s) => s.name),
-    },
-    radar: {
-      indicator: indicators,
-      shape: (p.radarShape as 'polygon' | 'circle') || 'polygon',
-      splitNumber: (p.splitNumber as number) || 5,
-      axisName: {
-        color: (p.axisNameColor as string) || '#333',
-      },
-    },
-    series: [
-      {
-        name: (p.seriesName as string) || 'Radar',
-        type: 'radar',
-        data: seriesData,
-        areaStyle: p.showArea
-          ? {
-              opacity: (p.areaOpacity as number) || 0.3,
-            }
-          : undefined,
-      },
-    ],
+  if (p?.seriesData && Array.isArray(p.seriesData)) {
+    return p.seriesData as Array<{ name: string; value: number[] }>
   }
 
-  return option
-}
+  return undefined
+})
 
-// 监听组件属性、数据源变化
-watch(
-  [() => comp.value?.props, () => comp.value?.dataSource, remoteData],
-  () => {
-    chartOption.value = buildOption()
-  },
-  { deep: true, immediate: true },
-)
+const customOption = computed(() => {
+  const opt = comp.value?.props?.option
+  return typeof opt === 'string' ? JSON.parse(opt) : opt
+})
+
+// 聚合要透传给库组件的 props
+const chartProps = computed((): Record<string, unknown> => {
+  const p = comp.value?.props
+  return {
+    indicators: indicators.value,
+    seriesData: seriesData.value,
+
+    // 样式/选项属性
+    title: p?.title,
+    seriesName: p?.seriesName,
+    radarShape: p?.radarShape,
+    splitNumber: p?.splitNumber,
+    axisNameColor: p?.axisNameColor,
+    showArea: p?.showArea,
+    areaOpacity: p?.areaOpacity,
+
+    // 高级配置覆盖
+    option: customOption.value,
+  }
+})
 </script>
-
-<style scoped>
-.radar-chart {
-  width: 100%;
-  height: 100%;
-}
-.echart {
-  width: 100%;
-  height: 100%;
-}
-</style>

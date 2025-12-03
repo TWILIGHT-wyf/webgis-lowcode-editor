@@ -1,238 +1,166 @@
 <template>
-  <div class="stacked-bar-chart" :style="{ width: '100%', height: '100%' }">
-    <v-chart :option="chartOption" autoresize class="echart" />
-  </div>
+  <StackedBarChartBase v-bind="chartProps" />
 </template>
 
 <script setup lang="ts">
-import { ref, watch, computed } from 'vue'
-import type { EChartsOption } from 'echarts'
-import { use } from 'echarts/core'
-import { CanvasRenderer } from 'echarts/renderers'
-import { BarChart } from 'echarts/charts'
-import {
-  TitleComponent,
-  TooltipComponent,
-  GridComponent,
-  LegendComponent,
-} from 'echarts/components'
-import { useComponent } from '@/stores/component'
+import { computed } from 'vue'
 import { storeToRefs } from 'pinia'
-import { useDataSource } from '@/datasource/useDataSource'
+import { useComponent } from '@/stores/component'
+
+// 从视觉组件库导入基础组件和工具函数
 import {
+  stackedBarChart as StackedBarChartBase,
+  useDataSource,
+  extractStringArray,
   parseNumberInput,
   parseStringInput,
-  extractStringArray,
   getValueByPath,
-} from '../../../datasource/dataUtils'
-
-use([TitleComponent, TooltipComponent, GridComponent, LegendComponent, BarChart, CanvasRenderer])
+} from '@one/visual-lib'
 
 const props = defineProps<{ id: string }>()
 
+// 获取组件配置
 const { componentStore } = storeToRefs(useComponent())
 const comp = computed(() => componentStore.value.find((c) => c.id === props.id))
+
+// 获取数据源
 const { data: remoteData } = useDataSource(computed(() => comp.value?.dataSource))
 
-const chartOption = ref<EChartsOption>({})
+// 默认值
+const defaultXAxis = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun']
+const defaultSeriesNames = ['Series 1', 'Series 2', 'Series 3']
+const defaultSeriesData = [
+  [120, 132, 101, 134, 90, 230, 210],
+  [220, 182, 191, 234, 290, 330, 310],
+  [150, 232, 201, 154, 190, 330, 410],
+]
 
-function buildOption(): EChartsOption {
-  if (!comp.value) return {}
-
-  const p = comp.value.props
-
-  if (p.option) {
-    const customOption = typeof p.option === 'string' ? JSON.parse(p.option) : p.option
-    const simpleOption = buildSimpleOption()
-    return {
-      ...customOption,
-      ...simpleOption,
-    }
-  }
-
-  return buildSimpleOption()
-}
-
-function buildSimpleOption(): EChartsOption {
-  if (!comp.value) return {}
-
-  const p = comp.value.props
-  const ds = comp.value.dataSource
-
-  const defaultXAxis = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun']
-  const defaultSeriesNames = ['Series 1', 'Series 2', 'Series 3']
-  const defaultSeriesData = [
-    [120, 132, 101, 134, 90, 230, 210],
-    [220, 182, 191, 234, 290, 330, 310],
-    [150, 232, 201, 154, 190, 330, 410],
-  ]
-
-  let xAxisData: string[] = defaultXAxis
-  let seriesNames: string[] = defaultSeriesNames
-  let seriesData: number[][] = defaultSeriesData
+// 数据适配逻辑 - xAxisData
+const xAxisData = computed(() => {
+  const ds = comp.value?.dataSource
+  const p = comp.value?.props
 
   if (ds?.enabled && remoteData.value) {
     const extractedXAxis = extractStringArray(remoteData.value, ds.xAxisPath)
-    if (extractedXAxis) xAxisData = extractedXAxis
+    if (extractedXAxis) return extractedXAxis
+  }
 
+  if (p?.xAxisInput) {
+    return parseStringInput(p.xAxisInput as string)
+  }
+  if (p?.xAxisData) {
+    return p.xAxisData as string[]
+  }
+
+  return undefined
+})
+
+// 数据适配逻辑 - seriesNames
+const seriesNames = computed(() => {
+  const ds = comp.value?.dataSource
+  const p = comp.value?.props
+
+  if (ds?.enabled && remoteData.value) {
     const extractedNames = extractStringArray(remoteData.value, ds.seriesNamesPath)
-    if (extractedNames) seriesNames = extractedNames
-
-    if (ds.seriesDataPath) {
-      const extractedData = getValueByPath(remoteData.value, ds.seriesDataPath)
-      if (Array.isArray(extractedData)) {
-        seriesData = extractedData.map((series) => {
-          if (Array.isArray(series)) {
-            return series.map((v) => (typeof v === 'number' ? v : parseFloat(String(v))))
-          }
-          return []
-        })
-      }
-    }
-  } else {
-    if (p.xAxisInput) {
-      xAxisData = parseStringInput(p.xAxisInput as string, defaultXAxis)
-    } else if (p.xAxisData) {
-      xAxisData = p.xAxisData as string[]
-    }
-
-    if (p.seriesNamesInput) {
-      seriesNames = parseStringInput(p.seriesNamesInput as string, defaultSeriesNames)
-    } else if (p.seriesNames) {
-      seriesNames = p.seriesNames as string[]
-    }
-
-    if (p.series1Input) {
-      seriesData[0] = parseNumberInput(p.series1Input as string, [])
-    }
-    if (p.series2Input) {
-      seriesData[1] = parseNumberInput(p.series2Input as string, [])
-    }
-    if (p.series3Input) {
-      seriesData[2] = parseNumberInput(p.series3Input as string, [])
-    }
-
-    if (p.seriesData && Array.isArray(p.seriesData)) {
-      seriesData = p.seriesData as number[][]
-    }
+    if (extractedNames) return extractedNames
   }
 
-  const colors = [
-    (p.color1 as string) || '#5470c6',
-    (p.color2 as string) || '#91cc75',
-    (p.color3 as string) || '#fac858',
-  ]
+  if (p?.seriesNamesInput) {
+    return parseStringInput(p.seriesNamesInput as string)
+  }
+  if (p?.seriesNames) {
+    return p.seriesNames as string[]
+  }
 
-  const simpleOption: EChartsOption = {
-    color: colors,
-    title: p.title
-      ? {
-          text: p.title as string,
-          left: 'center',
-          textStyle: {
-            fontSize: 16,
-          },
+  return undefined
+})
+
+// 数据适配逻辑 - seriesData
+const seriesData = computed(() => {
+  const ds = comp.value?.dataSource
+  const p = comp.value?.props
+
+  if (ds?.enabled && remoteData.value && ds.seriesDataPath) {
+    const extractedData = getValueByPath(remoteData.value, ds.seriesDataPath)
+    if (Array.isArray(extractedData)) {
+      return extractedData.map((series) => {
+        if (Array.isArray(series)) {
+          return series.map((v) => (typeof v === 'number' ? v : parseFloat(String(v))))
         }
-      : undefined,
-
-    tooltip:
-      p.showTooltip !== false
-        ? {
-            trigger: 'axis',
-            axisPointer: {
-              type: 'shadow',
-            },
-          }
-        : undefined,
-
-    legend:
-      p.showLegend !== false
-        ? {
-            [(p.legendPosition as string) || 'top']: 10,
-            data: seriesNames,
-          }
-        : undefined,
-
-    grid: {
-      left: '6%',
-      right: '6%',
-      bottom: '8%',
-      top: p.title ? '15%' : '10%',
-      containLabel: true,
-      show: p.showGrid !== false,
-    },
-
-    xAxis: {
-      type: 'category',
-      data: xAxisData,
-      name: (p.xAxisName as string) || '',
-      nameLocation: 'middle',
-      nameGap: 30,
-      axisLine: {
-        show: p.showXAxisLine !== false,
-      },
-      axisLabel: {
-        show: p.showXAxisLabel !== false,
-      },
-      splitLine: {
-        show: false,
-      },
-    },
-
-    yAxis: {
-      type: 'value',
-      name: (p.yAxisName as string) || '',
-      nameLocation: 'middle',
-      nameGap: 50,
-      axisLine: {
-        show: p.showYAxisLine !== false,
-      },
-      axisLabel: {
-        show: p.showYAxisLabel !== false,
-      },
-      splitLine: {
-        show: p.showGrid !== false,
-      },
-    },
-
-    series: seriesData.map((data, index) => ({
-      name: seriesNames[index] || `Series ${index + 1}`,
-      type: 'bar',
-      stack: 'total',
-      data: data,
-      barWidth: (p.barWidth as string) || '60%',
-      itemStyle: {
-        borderRadius: index === seriesData.length - 1 ? (p.borderRadius as number) || 0 : 0,
-      },
-      label: p.showLabel
-        ? {
-            show: true,
-            position: 'inside',
-            fontSize: 12,
-          }
-        : undefined,
-    })),
+        return []
+      })
+    }
   }
 
-  return simpleOption
-}
+  // 使用各个系列的单独输入
+  const result: number[][] = [...defaultSeriesData]
+  if (p?.series1Input) {
+    result[0] = parseNumberInput(p.series1Input as string)
+  }
+  if (p?.series2Input) {
+    result[1] = parseNumberInput(p.series2Input as string)
+  }
+  if (p?.series3Input) {
+    result[2] = parseNumberInput(p.series3Input as string)
+  }
 
-watch(
-  [() => comp.value?.props, () => comp.value?.dataSource, remoteData],
-  () => {
-    chartOption.value = buildOption()
-  },
-  { deep: true, immediate: true },
-)
+  if (p?.seriesData && Array.isArray(p.seriesData)) {
+    return p.seriesData as number[][]
+  }
+
+  // 检查是否有任何变化
+  if (p?.series1Input || p?.series2Input || p?.series3Input) {
+    return result
+  }
+
+  return undefined
+})
+
+// 颜色配置
+const colors = computed(() => {
+  const p = comp.value?.props
+  const result: string[] = []
+  if (p?.color1) result.push(p.color1 as string)
+  else result.push('#5470c6')
+  if (p?.color2) result.push(p.color2 as string)
+  else result.push('#91cc75')
+  if (p?.color3) result.push(p.color3 as string)
+  else result.push('#fac858')
+  return result
+})
+
+const customOption = computed(() => {
+  const opt = comp.value?.props?.option
+  return typeof opt === 'string' ? JSON.parse(opt) : opt
+})
+
+// 聚合要透传给库组件的 props
+const chartProps = computed((): Record<string, unknown> => {
+  const p = comp.value?.props
+  return {
+    xAxisData: xAxisData.value,
+    seriesNames: seriesNames.value,
+    seriesData: seriesData.value,
+    colors: colors.value,
+
+    // 样式/选项属性
+    title: p?.title,
+    barWidth: p?.barWidth,
+    borderRadius: p?.borderRadius,
+    showTooltip: p?.showTooltip,
+    showLegend: p?.showLegend,
+    legendPosition: p?.legendPosition,
+    showGrid: p?.showGrid,
+    xAxisName: p?.xAxisName,
+    yAxisName: p?.yAxisName,
+    showXAxisLine: p?.showXAxisLine,
+    showXAxisLabel: p?.showXAxisLabel,
+    showYAxisLine: p?.showYAxisLine,
+    showYAxisLabel: p?.showYAxisLabel,
+    showLabel: p?.showLabel,
+
+    // 高级配置覆盖
+    option: customOption.value,
+  }
+})
 </script>
-
-<style scoped>
-.stacked-bar-chart {
-  width: 100%;
-  height: 100%;
-}
-.echart {
-  width: 100%;
-  height: 100%;
-}
-</style>

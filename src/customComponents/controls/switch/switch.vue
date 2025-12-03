@@ -1,26 +1,12 @@
 <template>
-  <div :style="containerStyle">
-    <el-switch
-      v-model="switchValue"
-      :size="size"
-      :disabled="disabled"
-      :loading="loading"
-      :active-text="activeText"
-      :inactive-text="inactiveText"
-      :active-value="activeValue"
-      :inactive-value="inactiveValue"
-      :inline-prompt="inlinePrompt"
-      :active-icon="activeIcon"
-      :inactive-icon="inactiveIcon"
-      @change="handleChange"
-    />
-  </div>
+  <BaseSwitch v-bind="switchProps" @change="handleChange" />
 </template>
 
 <script setup lang="ts">
 import { computed, ref, watch } from 'vue'
 import { useComponent } from '@/stores/component'
 import { storeToRefs } from 'pinia'
+import { vSwitch as BaseSwitch } from '@one/visual-lib'
 
 const props = defineProps<{
   id: string
@@ -31,37 +17,15 @@ const { componentStore } = storeToRefs(useComponent())
 // 从 store 获取组件配置
 const comp = computed(() => componentStore.value.find((c) => c.id === props.id))
 
-// 样式
-const containerStyle = computed(() => {
-  const s = comp.value?.style || {}
-  return {
-    padding: `${s.padding || 16}px`,
-    backgroundColor: String(s.backgroundColor || 'transparent'),
-    '--el-switch-on-color': String(s.activeColor || '#409eff'),
-    '--el-switch-off-color': String(s.inactiveColor || '#dcdfe6'),
-    '--el-switch-border-color': String(s.borderColor || '#dcdfe6'),
-  }
-})
-
-// 组件属性
-const size = computed(() => comp.value?.props.size || 'default')
-const disabled = computed(() => comp.value?.props.disabled ?? false)
-const loading = computed(() => comp.value?.props.loading ?? false)
-const activeText = computed(() => comp.value?.props.activeText || '')
-const inactiveText = computed(() => comp.value?.props.inactiveText || '')
-const activeValue = computed(() => comp.value?.props.activeValue ?? true)
-const inactiveValue = computed(() => comp.value?.props.inactiveValue ?? false)
-const inlinePrompt = computed(() => comp.value?.props.inlinePrompt ?? false)
-const activeIcon = computed(() => comp.value?.props.activeIcon || undefined)
-const inactiveIcon = computed(() => comp.value?.props.inactiveIcon || undefined)
-const defaultValue = computed(() => comp.value?.props.defaultValue)
-
 // 开关值
 const switchValue = ref<boolean | string | number>(false)
 
+// 组件属性
+const inactiveValue = computed(() => comp.value?.props.inactiveValue ?? false)
+
 // 监听默认值变化
 watch(
-  defaultValue,
+  () => comp.value?.props.defaultValue,
   (newVal) => {
     if (newVal !== undefined && newVal !== null) {
       switchValue.value = newVal as boolean | string | number
@@ -72,16 +36,34 @@ watch(
   { immediate: true },
 )
 
+// 聚合 props
+const switchProps = computed(() => {
+  const p = comp.value?.props || {}
+  const s = comp.value?.style || {}
+
+  return {
+    modelValue: switchValue.value,
+    size: p.size || 'default',
+    disabled: p.disabled ?? false,
+    loading: p.loading ?? false,
+    activeText: p.activeText || '',
+    inactiveText: p.inactiveText || '',
+    activeValue: p.activeValue ?? true,
+    inactiveValue: inactiveValue.value,
+    inlinePrompt: p.inlinePrompt ?? false,
+    activeIcon: p.activeIcon || undefined,
+    inactiveIcon: p.inactiveIcon || undefined,
+    padding: s.padding || 16,
+    backgroundColor: s.backgroundColor || 'transparent',
+    activeColor: s.activeColor || '#409eff',
+    inactiveColor: s.inactiveColor || '#dcdfe6',
+    borderColor: s.borderColor || '#dcdfe6',
+  }
+})
+
 // 事件处理
 const handleChange = (value: boolean | string | number) => {
+  switchValue.value = value
   console.log('Switch change:', value)
 }
 </script>
-
-<style scoped>
-:deep(.el-switch) {
-  --el-switch-on-color: v-bind('containerStyle["--el-switch-on-color"]');
-  --el-switch-off-color: v-bind('containerStyle["--el-switch-off-color"]');
-  --el-switch-border-color: v-bind('containerStyle["--el-switch-border-color"]');
-}
-</style>

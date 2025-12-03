@@ -1,33 +1,23 @@
 <template>
-  <div :style="containerStyle">
-    <el-checkbox-group
-      v-model="checkboxValue"
-      :size="size"
-      :disabled="disabled"
-      :min="min"
-      :max="max"
-      @change="handleChange"
-    >
-      <component
-        :is="layout === 'button' ? 'el-checkbox-button' : 'el-checkbox'"
-        v-for="option in options"
-        :key="option.value"
-        :label="option.value"
-        :disabled="option.disabled"
-        :border="showBorder && layout !== 'button'"
-      >
-        {{ option.label }}
-      </component>
-    </el-checkbox-group>
-  </div>
+  <BaseCheckboxGroup v-bind="checkboxProps" @change="handleChange" />
 </template>
 
 <script setup lang="ts">
 import { computed, ref, toRef, watch } from 'vue'
 import { useComponent } from '@/stores/component'
 import { storeToRefs } from 'pinia'
-import { useDataSource } from '@/datasource/useDataSource'
-import { extractWithFallback } from '@/datasource/dataUtils'
+import {
+  vCheckboxGroup as BaseCheckboxGroup,
+  useDataSource,
+  extractWithFallback,
+} from '@one/visual-lib'
+
+// 选项接口
+interface CheckboxOption {
+  label: string
+  value: string | number
+  disabled?: boolean
+}
 
 const props = defineProps<{
   id: string
@@ -42,46 +32,14 @@ const comp = computed(() => componentStore.value.find((c) => c.id === props.id))
 const dataSourceRef = toRef(() => comp.value?.dataSource)
 const { data: remoteData } = useDataSource(dataSourceRef)
 
-// 样式
-const containerStyle = computed(() => {
-  const s = comp.value?.style || {}
-  return {
-    padding: `${s.padding || 16}px`,
-    backgroundColor: String(s.backgroundColor || 'transparent'),
-    display: 'flex',
-    flexDirection: (String(s.direction || 'horizontal') === 'vertical' ? 'column' : 'row') as
-      | 'column'
-      | 'row',
-    gap: `${s.gap || 12}px`,
-    '--el-checkbox-checked-bg-color': String(s.checkedColor || '#409eff'),
-    '--el-checkbox-checked-input-border-color': String(s.checkedColor || '#409eff'),
-    '--el-checkbox-input-border-color': String(s.borderColor || '#dcdfe6'),
-    '--el-checkbox-text-color': String(s.textColor || '#606266'),
-  }
-})
-
-// 组件属性
-const size = computed(() => comp.value?.props.size || 'default')
-const disabled = computed(() => comp.value?.props.disabled ?? false)
-const min = computed(() => comp.value?.props.min || undefined)
-const max = computed(() => comp.value?.props.max || undefined)
-const layout = computed(() => comp.value?.props.layout || 'default')
-const showBorder = computed(() => comp.value?.props.showBorder ?? false)
-const defaultValue = computed(() => comp.value?.props.defaultValue || '')
+// 字段映射
 const labelField = computed(() => comp.value?.props.labelField || 'label')
 const valueField = computed(() => comp.value?.props.valueField || 'value')
 
-// 选项接口
-interface Option {
-  label: string
-  value: string | number
-  disabled?: boolean
-}
-
 // 选项数据
-const options = computed<Option[]>(() => {
+const options = computed<CheckboxOption[]>(() => {
   const ds = comp.value?.dataSource
-  const localOptions = comp.value?.props.options as Option[] | string
+  const localOptions = comp.value?.props.options as CheckboxOption[] | string
 
   // 如果启用了数据源
   if (ds?.enabled && remoteData.value) {
@@ -90,11 +48,9 @@ const options = computed<Option[]>(() => {
       return extracted.map((item: unknown) => {
         if (typeof item === 'object' && item !== null) {
           const obj = item as Record<string, unknown>
-          const labelKey = String(labelField.value || 'label')
-          const valueKey = String(valueField.value || 'value')
           return {
-            label: String(obj[labelKey] ?? obj.label ?? ''),
-            value: (obj[valueKey] ?? obj.value ?? '') as string | number,
+            label: String(obj[labelField.value] ?? obj.label ?? ''),
+            value: (obj[valueField.value] ?? obj.value ?? '') as string | number,
             disabled: Boolean(obj.disabled),
           }
         }
@@ -121,13 +77,12 @@ const checkboxValue = ref<(string | number)[]>([])
 
 // 监听默认值变化
 watch(
-  defaultValue,
+  () => comp.value?.props.defaultValue,
   (newVal) => {
     if (newVal) {
       if (typeof newVal === 'string') {
         checkboxValue.value = newVal.split(',').map((s) => s.trim())
       } else if (Array.isArray(newVal)) {
-        // normalize elements to string|number
         checkboxValue.value = newVal.map((v) => (typeof v === 'number' ? v : String(v))) as (
           | string
           | number
@@ -138,32 +93,33 @@ watch(
   { immediate: true },
 )
 
+// 聚合 props
+const checkboxProps = computed(() => {
+  const p = comp.value?.props || {}
+  const s = comp.value?.style || {}
+
+  return {
+    modelValue: checkboxValue.value,
+    options: options.value,
+    size: p.size || 'default',
+    disabled: p.disabled ?? false,
+    min: p.min,
+    max: p.max,
+    layout: p.layout || 'default',
+    showBorder: p.showBorder ?? false,
+    direction: s.direction || 'horizontal',
+    gap: s.gap || 12,
+    padding: s.padding || 16,
+    backgroundColor: s.backgroundColor || 'transparent',
+    checkedColor: s.checkedColor || '#409eff',
+    borderColor: s.borderColor || '#dcdfe6',
+    textColor: s.textColor || '#606266',
+  }
+})
+
 // 事件处理
 const handleChange = (value: (string | number)[]) => {
+  checkboxValue.value = value
   console.log('CheckboxGroup change:', value)
 }
 </script>
-
-<style scoped>
-:deep(.el-checkbox-group) {
-  display: flex;
-  flex-direction: v-bind('containerStyle.flexDirection');
-  gap: v-bind('containerStyle.gap');
-}
-
-:deep(.el-checkbox) {
-  --el-checkbox-checked-bg-color: v-bind('containerStyle["--el-checkbox-checked-bg-color"]');
-  --el-checkbox-checked-input-border-color: v-bind(
-    'containerStyle["--el-checkbox-checked-input-border-color"]'
-  );
-  --el-checkbox-input-border-color: v-bind('containerStyle["--el-checkbox-input-border-color"]');
-  --el-checkbox-text-color: v-bind('containerStyle["--el-checkbox-text-color"]');
-}
-
-:deep(.el-checkbox-button) {
-  --el-checkbox-button-checked-bg-color: v-bind('containerStyle["--el-checkbox-checked-bg-color"]');
-  --el-checkbox-button-checked-border-color: v-bind(
-    'containerStyle["--el-checkbox-checked-input-border-color"]'
-  );
-}
-</style>

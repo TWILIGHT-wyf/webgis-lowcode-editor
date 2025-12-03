@@ -2,8 +2,7 @@
 import { computed, ref, watch } from 'vue'
 import { storeToRefs } from 'pinia'
 import { useComponent } from '@/stores/component'
-import { useDataSource } from '@/datasource/useDataSource'
-import { extractWithFallback } from '@/datasource/dataUtils'
+import { vTabs as BaseTabs, useDataSource, extractWithFallback } from '@one/visual-lib'
 import Shape from '@/components/Editor/shape/shape.vue'
 import { getComponent } from '@/customComponents/registry'
 
@@ -60,7 +59,7 @@ const tabs = computed(() => {
         return {
           label: String(itemObj.label ?? itemObj.name ?? ''),
           name: String(itemObj.name ?? itemObj.value ?? ''),
-          content: String(itemObj.content ?? '')
+          content: String(itemObj.content ?? ''),
         }
       }
       // if primitive, use as both label and name
@@ -76,60 +75,65 @@ const tabs = computed(() => {
   ]
 })
 
-function getChildComponent(childId: string) {
-  return componentStore.value.find((c) => c.id === childId)
-}
-
 // 初始化 activeTab
 watch(
   tabs,
   (newTabs) => {
-    if (newTabs?.length) activeTab.value = String(newTabs[0]?.name ?? '')
+    if (newTabs?.length && !activeTab.value) {
+      activeTab.value = String(newTabs[0]?.name ?? '')
+    }
   },
   { immediate: true },
 )
 
-// 样式
-const containerStyle = computed(() => {
+// 聚合所有 Props 传递给 Base 组件
+const tabsProps = computed((): Record<string, unknown> => {
   const s = comp.value?.style || {}
+  const p = comp.value?.props || {}
   return {
-    backgroundColor: String(s.backgroundColor || '#ffffff'),
-    padding: `${s.padding || 0}px`,
-    color: String(s.textColor || '#333333'),
+    // Tabs 数据
+    tabs: tabs.value,
+    activeTab: activeTab.value,
+    // Tabs 配置
+    type: p.type ?? 'border-card',
+    tabPosition: p.tabPosition ?? 'top',
+    closable: p.closable ?? false,
+    addable: p.addable ?? false,
+    // 容器样式
+    backgroundColor: s.backgroundColor ?? '#ffffff',
+    padding: s.padding ?? 0,
+    textColor: s.textColor ?? '#333333',
   }
 })
+
+// 处理 tab 切换
+const handleTabChange = (tabName: string) => {
+  activeTab.value = tabName
+}
+
+function getChildComponent(childId: string) {
+  return componentStore.value.find((c) => c.id === childId)
+}
 </script>
 
 <template>
-  <div :style="containerStyle">
-    <el-tabs
-      v-model="activeTab"
-      :type="comp?.props?.type || 'border-card'"
-      :tab-position="comp?.props?.tabPosition || 'top'"
-      :closable="comp?.props?.closable || false"
-      :addable="comp?.props?.addable || false"
-    >
-      <el-tab-pane
-        v-for="(tab, idx) in tabs"
-        :key="tab.name"
-        :label="tab.label"
-        :name="String(tab.name)"
-      >
-        <template v-if="comp?.children && comp.children.length > 0 && idx === 0">
-          <Shape v-for="childId in comp.children" :key="childId" :id="childId">
-            <component
-              :is="getComponent(getChildComponent(childId)?.type || '')"
-              :id="childId"
-              :style="{ width: '100%', height: '100%' }"
-            />
-          </Shape>
-        </template>
-        <template v-else>
-          {{ tab.content }}
-        </template>
-      </el-tab-pane>
-    </el-tabs>
-  </div>
+  <BaseTabs v-bind="tabsProps" @tab-change="handleTabChange">
+    <!-- 自定义第一个 tab 的内容（放置子组件） -->
+    <template #tab-0="{ tab }">
+      <template v-if="comp?.children && comp.children.length > 0">
+        <Shape v-for="childId in comp.children" :key="childId" :id="childId">
+          <component
+            :is="getComponent(getChildComponent(childId)?.type || '')"
+            :id="childId"
+            :style="{ width: '100%', height: '100%' }"
+          />
+        </Shape>
+      </template>
+      <template v-else>
+        {{ tab.content }}
+      </template>
+    </template>
+  </BaseTabs>
 </template>
 
 <style scoped>

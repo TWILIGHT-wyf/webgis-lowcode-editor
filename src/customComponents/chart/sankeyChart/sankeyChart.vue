@@ -1,189 +1,161 @@
 <template>
-  <div class="sankey-chart" :style="{ width: '100%', height: '100%' }">
-    <v-chart :option="chartOption" autoresize class="echart" />
-  </div>
+  <SankeyChartBase v-bind="chartProps" />
 </template>
 
 <script setup lang="ts">
-import { ref, watch, computed } from 'vue'
-import type { EChartsOption } from 'echarts'
-import { use } from 'echarts/core'
-import { CanvasRenderer } from 'echarts/renderers'
-import { SankeyChart } from 'echarts/charts'
-import { TitleComponent, TooltipComponent } from 'echarts/components'
+import { computed } from 'vue'
 import { useComponent } from '@/stores/component'
 import type { Component } from '@/types/components'
-import { useDataSource } from '@/datasource/useDataSource'
+
+// 从视觉组件库导入基础组件和工具函数
 import {
-  parseJSONInput,
+  sankeyChart as SankeyChartBase,
+  useDataSource,
   extractSankeyNodes,
   extractSankeyLinks,
-} from '../../../datasource/dataUtils'
+  parseJSONInput,
+} from '@one/visual-lib'
 
-// 按需引入
-use([TitleComponent, TooltipComponent, SankeyChart, CanvasRenderer])
+const props = defineProps<{ id: string }>()
 
-const props = defineProps<{
-  id: string
-}>()
-
+// 获取组件配置
 const componentStore = useComponent()
 const comp = computed(() => componentStore.componentStore.find((c: Component) => c.id === props.id))
 
-// 使用数据源 hook
+// 获取数据源
 const { data: remoteData } = useDataSource(computed(() => comp.value?.dataSource))
 
-const chartOption = ref<EChartsOption>({})
+// 默认数据
+const defaultNodes = [
+  { name: 'a' },
+  { name: 'b' },
+  { name: 'c' },
+  { name: 'd' },
+  { name: 'e' },
+  { name: 'f' },
+]
 
-function buildOption(): EChartsOption {
-  const p = comp.value?.props || {}
+const defaultLinks = [
+  { source: 'a', target: 'b', value: 5 },
+  { source: 'a', target: 'c', value: 3 },
+  { source: 'b', target: 'd', value: 8 },
+  { source: 'b', target: 'e', value: 3 },
+  { source: 'c', target: 'e', value: 4 },
+  { source: 'd', target: 'f', value: 6 },
+  { source: 'e', target: 'f', value: 5 },
+]
+
+// 数据适配逻辑 - nodes
+const chartData = computed(() => {
   const ds = comp.value?.dataSource
+  const p = comp.value?.props
 
-  // 默认数据
-  const defaultNodes = [
-    { name: 'a' },
-    { name: 'b' },
-    { name: 'c' },
-    { name: 'd' },
-    { name: 'e' },
-    { name: 'f' },
-  ]
-
-  const defaultLinks = [
-    { source: 'a', target: 'b', value: 5 },
-    { source: 'a', target: 'c', value: 3 },
-    { source: 'b', target: 'd', value: 8 },
-    { source: 'b', target: 'e', value: 3 },
-    { source: 'c', target: 'e', value: 4 },
-    { source: 'd', target: 'f', value: 6 },
-    { source: 'e', target: 'f', value: 5 },
-  ]
-
-  let data = defaultNodes
-  let links = defaultLinks
-
-  // 如果数据源启用且有数据
   if (ds?.enabled && remoteData.value) {
-    // 使用通用函数提取节点和连接数据
     const extractedNodes = extractSankeyNodes(remoteData.value, ds.nodesPath as string | undefined)
+    if (extractedNodes) return extractedNodes
+  }
+
+  // 使用手动输入的数据
+  if (p?.nodesInput) {
+    const parsedNodes = parseJSONInput(p.nodesInput as string, defaultNodes)
+    if (Array.isArray(parsedNodes) && parsedNodes.length > 0) {
+      return parsedNodes.map((node: unknown) => ({
+        name:
+          typeof node === 'string'
+            ? node
+            : String(
+                (node as Record<string, unknown>)?.name ||
+                  (node as Record<string, unknown>)?.id ||
+                  '',
+              ),
+        value:
+          typeof node === 'object' && node !== null
+            ? ((node as Record<string, unknown>).value as number | undefined)
+            : undefined,
+        depth:
+          typeof node === 'object' && node !== null
+            ? ((node as Record<string, unknown>).depth as number | undefined)
+            : undefined,
+        itemStyle:
+          typeof node === 'object' && node !== null
+            ? ((node as Record<string, unknown>).itemStyle as Record<string, unknown> | undefined)
+            : undefined,
+      }))
+    }
+  }
+
+  if (p?.data && Array.isArray(p.data)) {
+    return p.data as typeof defaultNodes
+  }
+
+  return undefined
+})
+
+// 数据适配逻辑 - links
+const chartLinks = computed(() => {
+  const ds = comp.value?.dataSource
+  const p = comp.value?.props
+
+  if (ds?.enabled && remoteData.value) {
     const extractedLinks = extractSankeyLinks(remoteData.value, ds.linksPath as string | undefined)
+    if (extractedLinks) return extractedLinks
+  }
 
-    if (extractedNodes) data = extractedNodes
-    if (extractedLinks) links = extractedLinks
-  } else {
-    // 使用手动输入的数据
-    if (p.nodesInput) {
-      const parsedNodes = parseJSONInput(p.nodesInput as string, defaultNodes)
-      if (Array.isArray(parsedNodes) && parsedNodes.length > 0) {
-        data = parsedNodes.map((node: unknown) => ({
-          name:
-            typeof node === 'string'
-              ? node
-              : String(
-                  (node as Record<string, unknown>)?.name ||
-                    (node as Record<string, unknown>)?.id ||
-                    '',
-                ),
-          value:
-            typeof node === 'object' && node !== null
-              ? ((node as Record<string, unknown>).value as number | undefined)
-              : undefined,
-          depth:
-            typeof node === 'object' && node !== null
-              ? ((node as Record<string, unknown>).depth as number | undefined)
-              : undefined,
-          itemStyle:
-            typeof node === 'object' && node !== null
-              ? (node as Record<string, unknown>).itemStyle
-              : undefined,
-        }))
-      }
-    }
-
-    if (p.linksInput) {
-      const parsedLinks = parseJSONInput(p.linksInput as string, defaultLinks)
-      if (Array.isArray(parsedLinks) && parsedLinks.length > 0) {
-        links = parsedLinks.map((link: unknown) => {
-          const l = link as Record<string, unknown>
-          return {
-            source: (l.source || l.from || '') as string,
-            target: (l.target || l.to || '') as string,
-            value: (l.value || 0) as number,
-          }
-        })
-      }
-    }
-
-    if (p.data && Array.isArray(p.data)) {
-      data = p.data as typeof defaultNodes
-    }
-
-    if (p.links && Array.isArray(p.links)) {
-      links = p.links as typeof defaultLinks
+  // 使用手动输入的数据
+  if (p?.linksInput) {
+    const parsedLinks = parseJSONInput(p.linksInput as string, defaultLinks)
+    if (Array.isArray(parsedLinks) && parsedLinks.length > 0) {
+      return parsedLinks.map((link: unknown) => {
+        const l = link as Record<string, unknown>
+        return {
+          source: (l.source || l.from || '') as string,
+          target: (l.target || l.to || '') as string,
+          value: (l.value || 0) as number,
+        }
+      })
     }
   }
 
-  const option: EChartsOption = {
-    title: {
-      text: (p.title as string) || '',
-      left: 'center',
-    },
-    tooltip: {
-      trigger: 'item',
-      triggerOn: 'mousemove',
-    },
-    series: [
-      {
-        type: 'sankey',
-        data: data,
-        links: links,
-        emphasis: {
-          focus: 'adjacency',
-        },
-        orient: (p.orient as 'horizontal' | 'vertical') || 'horizontal',
-        left: (p.left as string) || '5%',
-        top: (p.top as string) || '10%',
-        right: (p.right as string) || '20%',
-        bottom: (p.bottom as string) || '10%',
-        nodeWidth: (p.nodeWidth as number) || 20,
-        nodeGap: (p.nodeGap as number) || 8,
-        layoutIterations: (p.layoutIterations as number) || 32,
-        nodeAlign: (p.nodeAlign as 'left' | 'right' | 'justify') || 'justify',
-        label: {
-          show: (p.showLabel as boolean) !== false,
-          position: (p.labelPosition as 'left' | 'right' | 'top' | 'bottom') || 'right',
-          fontSize: (p.labelFontSize as number) || 12,
-          color: (p.labelColor as string) || '#000',
-        },
-        lineStyle: {
-          color: (p.lineColor as string) || 'source',
-          opacity: (p.lineOpacity as number) || 0.2,
-          curveness: (p.lineCurveness as number) || 0.5,
-        },
-      },
-    ],
+  if (p?.links && Array.isArray(p.links)) {
+    return p.links as typeof defaultLinks
   }
 
-  return option
-}
+  return undefined
+})
 
-// 监听组件属性、数据源变化
-watch(
-  [() => comp.value?.props, () => comp.value?.dataSource, remoteData],
-  () => {
-    chartOption.value = buildOption()
-  },
-  { deep: true, immediate: true },
-)
+const customOption = computed(() => {
+  const opt = comp.value?.props?.option
+  return typeof opt === 'string' ? JSON.parse(opt) : opt
+})
+
+// 聚合要透传给库组件的 props
+const chartProps = computed((): Record<string, unknown> => {
+  const p = comp.value?.props
+  return {
+    data: chartData.value,
+    links: chartLinks.value,
+
+    // 样式/选项属性
+    title: p?.title,
+    orient: p?.orient,
+    left: p?.left,
+    top: p?.top,
+    right: p?.right,
+    bottom: p?.bottom,
+    nodeWidth: p?.nodeWidth,
+    nodeGap: p?.nodeGap,
+    layoutIterations: p?.layoutIterations,
+    nodeAlign: p?.nodeAlign,
+    showLabel: p?.showLabel,
+    labelPosition: p?.labelPosition,
+    labelFontSize: p?.labelFontSize,
+    labelColor: p?.labelColor,
+    lineColor: p?.lineColor,
+    lineOpacity: p?.lineOpacity,
+    lineCurveness: p?.lineCurveness,
+
+    // 高级配置覆盖
+    option: customOption.value,
+  }
+})
 </script>
-
-<style scoped>
-.sankey-chart {
-  width: 100%;
-  height: 100%;
-}
-.echart {
-  width: 100%;
-  height: 100%;
-}
-</style>

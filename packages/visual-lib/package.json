@@ -1,0 +1,40 @@
+{
+  "name": "@one/visual-lib",
+  "version": "1.0.0",
+  "type": "module",
+  "main": "./index.ts",
+  "module": "./index.ts",
+  "types": "./index.ts",
+  "exports": {
+    ".": {
+      "types": "./index.ts",
+      "import": "./index.ts",
+      "default": "./index.ts"
+    }
+  },
+  "scripts": {
+    "build": "vite build",
+    "dev": "vite build --watch"
+  },
+  "peerDependencies": {
+    "echarts": "^5.0.0",
+    "vue": "^3.0.0",
+    "vue-echarts": "^6.0.0"
+  },
+  "devDependencies": {
+    "@types/dompurify": "^3.0.5",
+    "@types/marked": "^6.0.0",
+    "@vitejs/plugin-vue": "^5.0.0",
+    "echarts": "^6.0.0",
+    "typescript": "^5.9.3",
+    "vite": "^5.0.0",
+    "vite-plugin-dts": "^4.5.4",
+    "vue": "^3.5.25",
+    "vue-echarts": "^8.0.1",
+    "vue-tsc": "^2.0.0"
+  },
+  "dependencies": {
+    "dompurify": "^3.3.0",
+    "marked": "^17.0.1"
+  }
+}

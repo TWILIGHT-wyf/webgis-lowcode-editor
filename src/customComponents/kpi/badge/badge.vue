@@ -1,16 +1,19 @@
 <template>
-  <div class="badge-container" :style="containerStyle">
-    <el-badge
-      :value="processedValue"
-      :type="badgeType"
-      :is-dot="isDot"
-      :max="maxValue"
-      :hidden="hideBadge"
-      :show-zero="showZero"
-      :offset="badgeOffset"
-    >
-      <!-- 如果有子组件，渲染子组件；否则显示默认文本 -->
-      <div v-if="hasChildren" class="badge-slot-wrapper" :style="childrenContainerStyle">
+  <BaseBadge v-bind="badgeProps">
+    <!-- 子组件渲染 -->
+    <div v-if="hasChildren" class="badge-children-wrapper" :style="childrenContainerStyle">
+      <template v-if="comp?.layout?.mode === 'absolute'">
+        <!-- 绝对定位模式：用 Shape 包裹使子组件可拖拽 -->
+        <Shape v-for="childId in comp?.children" :key="childId" :id="childId">
+          <component
+            :is="getComponentByType(getChildComponent(childId)?.type || '')"
+            :id="childId"
+            :style="{ width: '100%', height: '100%' }"
+          />
+        </Shape>
+      </template>
+      <template v-else>
+        <!-- 其他布局模式：直接渲染 -->
         <div
           v-for="childId in comp?.children"
           :key="childId"
@@ -23,10 +26,9 @@
             :style="getChildComponentStyle(childId)"
           />
         </div>
-      </div>
-      <span v-else-if="showSlotContent" :style="slotContentStyle">{{ slotText }}</span>
-    </el-badge>
-  </div>
+      </template>
+    </div>
+  </BaseBadge>
 </template>
 
 <script setup lang="ts">
@@ -34,9 +36,9 @@ import { computed, toRef } from 'vue'
 import type { CSSProperties } from 'vue'
 import { useComponent } from '@/stores/component'
 import { storeToRefs } from 'pinia'
-import { useDataSource } from '@/datasource/useDataSource'
-import { extractWithFallback } from '@/datasource/dataUtils'
+import { vBadge as BaseBadge, useDataSource, extractWithFallback } from '@one/visual-lib'
 import { componentRegistry } from '@/customComponents/registry'
+import Shape from '@/components/Editor/shape/shape.vue'
 
 const props = defineProps<{ id: string }>()
 const { componentStore } = storeToRefs(useComponent())
@@ -58,55 +60,39 @@ const displayValue = computed<string | number>(() => {
   return localValue
 })
 
-// 组件属性
-const badgeType = computed<'primary' | 'success' | 'warning' | 'danger' | 'info'>(() => {
-  const t = (comp.value?.props.type as string) ?? 'primary'
-  return t as 'primary' | 'success' | 'warning' | 'danger' | 'info'
-})
-
-const isDot = computed<boolean>(() => (comp.value?.props.dot as boolean) ?? false)
-const maxValue = computed<number>(() => (comp.value?.props.maxValue as number) ?? 99)
-const hideBadge = computed<boolean>(() => (comp.value?.props.hidden as boolean) ?? false)
-const showZero = computed<boolean>(() => (comp.value?.props.showZero as boolean) ?? false)
-
-// 偏移量 [x, y]
-const badgeOffset = computed<[number, number]>(() => {
-  const offsetX = (comp.value?.props.offsetX as number) ?? 0
-  const offsetY = (comp.value?.props.offsetY as number) ?? 0
-  return [offsetX, offsetY]
-})
-
-// 插槽内容
-const showSlotContent = computed<boolean>(() => (comp.value?.props.showSlot as boolean) ?? true)
-const slotText = computed<string>(() => (comp.value?.props.slotText as string) ?? '')
-
 // 处理显示值
 const processedValue = computed(() => {
-  if (isDot.value) return ''
+  const isDot = (comp.value?.props.dot as boolean) ?? false
+  const maxValue = (comp.value?.props.maxValue as number) ?? 99
+  if (isDot) return ''
   const val = displayValue.value
-  if (typeof val === 'number' && val > maxValue.value) {
-    return `${maxValue.value}+`
+  if (typeof val === 'number' && val > maxValue) {
+    return `${maxValue}+`
   }
   return val
 })
 
-// 样式
-const containerStyle = computed<CSSProperties>(() => {
+// 聚合所有 Props 传递给 Base 组件
+const badgeProps = computed((): Record<string, unknown> => {
   const s = comp.value?.style || {}
+  const p = comp.value?.props || {}
   return {
-    opacity: ((s.opacity ?? 100) as number) / 100,
-    display: s.visible === false ? 'none' : 'inline-flex',
-    padding: `${(s.padding as number) ?? 4}px`,
-  }
-})
-
-// 插槽内容样式
-const slotContentStyle = computed<CSSProperties>(() => {
-  const s = comp.value?.style || {}
-  return {
-    fontSize: `${(s.slotFontSize as number) ?? 14}px`,
-    color: (s.slotColor as string) ?? '#303133',
-    padding: `${(s.slotPadding as number) ?? 8}px`,
+    value: processedValue.value,
+    type: p.type ?? 'primary',
+    isDot: p.dot ?? false,
+    max: p.maxValue ?? 99,
+    hidden: p.hidden ?? false,
+    showZero: p.showZero ?? false,
+    offset: [(p.offsetX as number) ?? 0, (p.offsetY as number) ?? 0],
+    slotText: hasChildren.value ? undefined : (p.slotText ?? ''),
+    // 容器样式
+    opacity: s.opacity ?? 100,
+    visible: s.visible !== false,
+    padding: s.padding ?? 4,
+    // 插槽内容样式
+    slotFontSize: s.slotFontSize ?? 14,
+    slotColor: s.slotColor ?? '#303133',
+    slotPadding: s.slotPadding ?? 8,
   }
 })
 
@@ -187,10 +173,7 @@ const childrenContainerStyle = computed<CSSProperties>(() => {
       }
     case 'absolute':
     default:
-      return {
-        ...baseStyle,
-        position: 'relative',
-      }
+      return baseStyle
   }
 })
 
@@ -201,7 +184,6 @@ const getChildItemStyle = (childId: string): CSSProperties => {
   const child = getChildComponent(childId)
 
   if (mode === 'absolute' && child) {
-    // 绝对定位模式：使用子组件的 position
     return {
       position: 'absolute',
       left: `${child.position.x}px`,
@@ -211,25 +193,11 @@ const getChildItemStyle = (childId: string): CSSProperties => {
     }
   }
 
-  // 其他布局模式：flex/grid 自动布局
   return {}
 }
 
 // 子组件内部样式
-const getChildComponentStyle = (childId: string): CSSProperties => {
-  const layout = comp.value?.layout
-  const mode = layout?.mode || 'absolute'
-  const child = getChildComponent(childId)
-
-  if (mode !== 'absolute' && child) {
-    // 非绝对定位：子组件撑满容器
-    return {
-      width: '100%',
-      height: '100%',
-    }
-  }
-
-  // 绝对定位：子组件使用自己的尺寸
+const getChildComponentStyle = (_childId: string): CSSProperties => {
   return {
     width: '100%',
     height: '100%',
@@ -238,24 +206,7 @@ const getChildComponentStyle = (childId: string): CSSProperties => {
 </script>
 
 <style scoped>
-.badge-container {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  box-sizing: border-box;
-}
-
-:deep(.el-badge) {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-}
-
-:deep(.el-badge__content) {
-  font-size: inherit !important;
-}
-
-.badge-slot-wrapper {
+.badge-children-wrapper {
   box-sizing: border-box;
 }
 
