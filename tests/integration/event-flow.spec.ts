@@ -370,7 +370,7 @@ describe('集成：事件冒泡与传递 (Event Bubbling)', () => {
     const wrapper = mount(TestHost)
     const context = wrapper.vm.context
 
-    return { componentStore, context, sourceComp, wrapper }
+    return { componentStore, context, parentComp, childComp, wrapper }
   }
 
   it('场景C: 子组件事件能被父组件监听', async () => {
