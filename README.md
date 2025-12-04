@@ -12,7 +12,9 @@
 
 ### 预览地址：https://webgis-lowcode-editor.vercel.app/ （需科学上网）
 
-### 后端地址：https://webgis-lowcode-editor.onrender.com
+### 后端地址：https://webgis-lowcode-editor.onrender.com （需科学上网）
+
+### 组件库文档地址：https://visual-lib-docs.vercel.app/ （需科学上网）
 
 <img width="2514" height="1275" alt="屏幕截图 2025-12-01 203042" src="https://github.com/user-attachments/assets/e99440b5-081d-4909-a040-f8331a123782" />
 
