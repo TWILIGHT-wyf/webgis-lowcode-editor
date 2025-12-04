@@ -4,7 +4,8 @@ export default defineConfig({
   title: '@twi1i9ht/visual-lib',
   description: '数据可视化组件库 - 图表、KPI、布局、地图等组件',
 
-  base: '/visual-lib/',
+  // Vercel 部署到根域名用 '/'，GitHub Pages 用 '/visual-lib/'
+  base: '/',
 
   themeConfig: {
     logo: '/logo.svg',
