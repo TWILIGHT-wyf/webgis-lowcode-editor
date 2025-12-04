@@ -36,3 +36,7 @@ coverage
 
 test-results/
 playwright-report/
+
+# VitePress cache
+packages/visual-lib/docs/.vitepress/cache/
+packages/visual-lib/docs/.vitepress/dist/
