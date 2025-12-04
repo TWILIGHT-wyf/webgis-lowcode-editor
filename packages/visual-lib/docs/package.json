@@ -1,0 +1,20 @@
+{
+  "name": "@twi1i9ht/visual-lib-docs",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "docs:dev": "vitepress dev",
+    "docs:build": "vitepress build",
+    "docs:preview": "vitepress preview"
+  },
+  "devDependencies": {
+    "vitepress": "^1.5.0",
+    "vue": "^3.5.0"
+  },
+  "dependencies": {
+    "@twi1i9ht/visual-lib": "workspace:*",
+    "echarts": "^6.0.0",
+    "vue-echarts": "^8.0.0",
+    "leaflet": "^1.9.4"
+  }
+}
