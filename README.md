@@ -17,6 +17,7 @@
 ### 组件库文档地址：https://visual-lib-docs.vercel.app/ （需科学上网）
 
 <img width="2514" height="1275" alt="屏幕截图 2025-12-01 203042" src="https://github.com/user-attachments/assets/e99440b5-081d-4909-a040-f8331a123782" />
+<img width="2505" height="1266" alt="屏幕截图 2025-12-10 212235" src="https://github.com/user-attachments/assets/2fdd8dee-dd0c-4f6c-974a-b14fc9ea2eca" />
 
 ## ✨ 特性
 
