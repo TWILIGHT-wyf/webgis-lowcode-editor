@@ -14,6 +14,7 @@ export default defineConfig({
         new URL('./packages/visual-lib/index.ts', import.meta.url),
       ),
     },
+    extensions: ['.mjs', '.js', '.mts', '.ts', '.jsx', '.tsx', '.json', '.vue'],
   },
   server: {
     host: 'localhost',
