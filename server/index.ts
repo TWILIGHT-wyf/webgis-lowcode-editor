@@ -106,7 +106,7 @@ process.on('SIGTERM', async () => {
   process.exit(0)
 })
 
-// 启动
+
 startServer().catch((error) => {
   console.error('启动失败:', error)
   process.exit(1)
