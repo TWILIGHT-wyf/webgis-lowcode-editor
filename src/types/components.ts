@@ -1,5 +1,7 @@
 // 组件相关类型定义
 
+import type { DataBinding } from '@/components/siderBar/relations/relations'
+
 export interface DataSource {
   enabled: boolean
   url: string
@@ -87,6 +89,9 @@ export interface Component {
     padding?: number
   }
   events?: ComponentEvents
+
+  /** 数据联动：target 默认为本组件，source 由 binding.sourceId 指定 */
+  dataBindings?: DataBinding[]
 }
 
 export interface ComponentPayload {

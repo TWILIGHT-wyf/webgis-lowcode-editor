@@ -13,6 +13,20 @@ export interface DataBinding {
   sourceId: string
   sourcePath: string
   targetPath: string
+  /**
+   * 数据转换器（可选）
+   * - 不填：直接复制源值 (target = source)
+   * - 表达式：value * 100 或 value.toFixed(2)
+   * - 模板字符串：当前温度: ${value}℃
+   * - 函数体：return value > 50 ? '高' : '低'
+   */
+  transformer?: string
+  /**
+   * 转换器类型
+   * - 'expression': JS 表达式（默认）
+   * - 'template': 模板字符串
+   */
+  transformerType?: 'expression' | 'template'
 }
 
 // 树节点接口
@@ -216,21 +230,46 @@ export function useComponentEvents() {
  * 数据联动管理
  */
 export function useDataBindings() {
-  const dataBindings = ref<DataBinding[]>([])
+  const componentStore = useComponent()
+  const { selectComponent } = storeToRefs(componentStore)
+
+  const dataBindings = computed<DataBinding[]>({
+    get: () => selectComponent.value?.dataBindings ?? [],
+    set: (value) => {
+      if (!selectComponent.value) return
+      selectComponent.value.dataBindings = value
+    },
+  })
+
+  function ensureBindings() {
+    if (!selectComponent.value) return
+    if (!selectComponent.value.dataBindings) selectComponent.value.dataBindings = []
+  }
 
   function addDataBinding() {
-    dataBindings.value.push({ sourceId: '', sourcePath: '', targetPath: '' })
+    ensureBindings()
+    if (!selectComponent.value) return
+    selectComponent.value.dataBindings!.push({ sourceId: '', sourcePath: '', targetPath: '' })
+    componentStore.commit()
   }
 
   function removeDataBinding(index: number) {
-    dataBindings.value.splice(index, 1)
+    if (!selectComponent.value?.dataBindings) return
+    selectComponent.value.dataBindings.splice(index, 1)
+    componentStore.commit()
   }
 
-  return {
-    dataBindings,
-    addDataBinding,
-    removeDataBinding,
-  }
+  // 编辑过程中自动提交（输入框 v-model 会直接改对象）
+  watch(
+    () => selectComponent.value?.dataBindings,
+    () => {
+      if (!selectComponent.value) return
+      componentStore.commitDebounced()
+    },
+    { deep: true },
+  )
+
+  return { dataBindings, addDataBinding, removeDataBinding }
 }
 
 /**

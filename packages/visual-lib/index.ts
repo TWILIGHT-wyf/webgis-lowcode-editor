@@ -91,6 +91,9 @@ export const vSearchBox = componentRegistry.vSearchBox
 export const vSelect = componentRegistry.vSelect
 export const vSlider = componentRegistry.vSlider
 export const vSwitch = componentRegistry.vSwitch
+export const vNavButton = componentRegistry.vNavButton
+export const vBreadcrumb = componentRegistry.vBreadcrumb
+export const vPagination = componentRegistry.vPagination
 
 // 内容组件
 export const vHtml = componentRegistry.vHtml

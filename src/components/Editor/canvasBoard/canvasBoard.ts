@@ -18,10 +18,14 @@ export function useCanvasInteraction(
     rootRefForAbs?: Ref<HTMLDivElement | null>
     onDragStart?: () => void
     onDragEnd?: (altPressed: boolean) => void
+    // 允许外部传入平移偏移，用于子组件拖拽时使用画布的真实平移值
+    externalPanX?: Ref<number>
+    externalPanY?: Ref<number>
   } = {},
 ) {
-  const panX = ref(0)
-  const panY = ref(0)
+  // 如果外部传入 pan 值则使用外部的，否则创建本地的（用于画布平移）
+  const panX = options.externalPanX ?? ref(0)
+  const panY = options.externalPanY ?? ref(0)
   const isPanning = ref(false)
   const isDragging = ref(false)
 

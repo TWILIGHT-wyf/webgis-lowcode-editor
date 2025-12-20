@@ -80,12 +80,12 @@ async function startServer() {
   // 启动 HTTP 服务
   app.listen(PORT, () => {
     console.log('═'.repeat(60))
-    console.log('🚀 WebGIS 后端服务已启动')
+    console.log(' WebGIS 后端服务已启动')
     console.log('═'.repeat(60))
-    console.log(`📍 地址: http://localhost:${PORT}`)
-    console.log(`🤖 AI Provider: ${process.env.AI_PROVIDER || 'gemini'}`)
+    console.log(` 地址: http://localhost:${PORT}`)
+    console.log(` AI Provider: ${process.env.AI_PROVIDER || 'gemini'}`)
     console.log('═'.repeat(60))
-    console.log('📝 API 端点:')
+    console.log(' API 端点:')
     console.log(`   GET  http://localhost:${PORT}/api/health`)
     console.log(`   GET  http://localhost:${PORT}/api/projects`)
     console.log(`   POST http://localhost:${PORT}/api/projects`)

@@ -91,28 +91,25 @@ export function useSnap() {
   }
 
   // 找邻居
-  function findSnapNeighbors(threshold: number = 10): Box[] {
-    const neighbors: Box[] = []
-    const me = meBox.value
+  function findSnapNeighbors(targetBox: Box, threshold: number = 10): { box: Box; id: string }[] {
+    const neighbors: { box: Box; id: string }[] = []
     const myId = meComp.value.id
     boxCache.value.forEach((box, id) => {
       if (!id || id === myId) return
-      // 中心距离或边距距离在阈值内
-      const dx = box.cx - me.cx
-      const dy = box.cy - me.cy
-      const centerDist = Math.hypot(dx, dy)
-      const horizontalDist = Math.min(
-        Math.abs(box.minx - me.maxx),
-        Math.abs(box.maxx - me.minx),
-        Math.abs(box.cx - me.cx),
-      )
-      const verticalDist = Math.min(
-        Math.abs(box.miny - me.maxy),
-        Math.abs(box.maxy - me.miny),
-        Math.abs(box.cy - me.cy),
-      )
-      if (centerDist < threshold || horizontalDist < threshold || verticalDist < threshold) {
-        neighbors.push(box)
+
+      // 稍微放宽一点阈值 (10px)，防止粗筛太严格把边缘的给漏了
+      const searchDist = threshold + 10
+      
+      // 算法公式：两个区间 [min1, max1] 和 [min2, max2] 是否重叠/接近
+      const isCloseX =
+        Math.abs(box.cx - targetBox.cx) <
+        (box.maxx - box.minx + targetBox.maxx - targetBox.minx) / 2 + searchDist
+      const isCloseY =
+        Math.abs(box.cy - targetBox.cy) <
+        (box.maxy - box.miny + targetBox.maxy - targetBox.miny) / 2 + searchDist
+
+      if (isCloseX && isCloseY) {
+        neighbors.push({ box, id })
       }
     })
     return neighbors
@@ -123,6 +120,7 @@ export function useSnap() {
     previewPos: { x: number; y: number },
     gridSize: number = 20,
   ): { position: { x: number; y: number }; lines: { x?: number; y?: number }[] } {
+    //
     const snappedX = Math.round(previewPos.x / gridSize) * gridSize
     const snappedY = Math.round(previewPos.y / gridSize) * gridSize
     const lines: { x?: number; y?: number }[] = []
@@ -156,11 +154,12 @@ export function useSnap() {
     let xLine: number | undefined
     let yLine: number | undefined
 
+    const candidateBoxes = findSnapNeighbors(me, threshold)
     // 获取当前组件的子组件ID列表(如果是容器)
     const currentComp = componentStore.value.find((c) => c.id === meComp.value.id)
     const childrenIds = currentComp?.children || []
 
-    boxCache.value.forEach((box, id) => {
+    candidateBoxes.forEach(({ box, id }) => {
       // 排除自己和自己的子组件
       if (!id || id === meComp.value.id || childrenIds.includes(id)) return
 

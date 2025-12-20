@@ -51,6 +51,7 @@ import { useComponent } from '@/stores/component'
 import { getComponent } from '@/customComponents/registry'
 import { useCanvasInteraction } from '@/components/Editor/canvasBoard/canvasBoard'
 import { useContextMenu } from '@/components/Editor/contextMenu/contextMenu'
+import { useDataBindingEngine } from '@/runtime/useDataBindingEngine'
 import Shape from '../shape/shape.vue'
 import Snap from '../snap/snap.vue'
 import ContextMenu from '../contextMenu/contextMenu.vue'
@@ -68,8 +69,10 @@ const { componentStore, isDragging } = storeToRefs(compStore)
 const { addComponent, selectedId, clearSelection } = compStore
 
 // 只渲染顶层组件(无父组件的组件)
+// 注意：当前设计中子组件使用绝对坐标，拖动 Group 时会同步移动子组件的绝对坐标
+// 因此所有组件都需要渲染，包括有 groupId 的子组件
 const topLevelComponents = computed(() => {
-  return componentStore.value.filter((c) => !c.groupId)
+  return componentStore.value
 })
 
 // 点击画布空白处清空选择
@@ -112,13 +115,20 @@ const {
   onCanvasContextMenu,
 } = useContextMenu(wrap)
 
+// 数据联动引擎（编辑模式下也启用，方便实时预览效果）
+const bindingEngine = useDataBindingEngine(componentStore)
+
 onMounted(() => {
   window.addEventListener('mousedown', handleGlobalClick)
   window.addEventListener('scroll', hideContextMenu, true)
+  // 启动数据联动引擎
+  bindingEngine.start()
 })
 onBeforeUnmount(() => {
   window.removeEventListener('mousedown', handleGlobalClick)
   window.removeEventListener('scroll', hideContextMenu, true)
+  // 停止数据联动引擎
+  bindingEngine.stop()
 })
 
 // 获取画布配置
@@ -177,6 +187,10 @@ const { panX, panY, isPanning } = useCanvasInteraction(wrap, scale, {
     })
   },
 })
+
+// 向子组件提供画布平移量，用于组件拖拽时坐标转换
+provide('canvasPanX', panX)
+provide('canvasPanY', panY)
 
 const worldStyle = computed(() => ({
   transform: `translate(${panX.value}px, ${panY.value}px) scale(${scale.value})`,

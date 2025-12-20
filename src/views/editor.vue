@@ -4,14 +4,16 @@ import { useRoute, useRouter } from 'vue-router'
 import { storeToRefs } from 'pinia'
 import { useSizeStore } from '@/stores/size'
 import { useProjectStore } from '@/stores/project'
+import { useComponent } from '@/stores/component'
 import headerNav from '../components/header/header.vue'
 import SiderBar from '../components/siderBar/siderBar.vue'
 import componentBar from '../components/componentBar/componentBar.vue'
 import CanvasBoard from '../components/Editor/canvasBoard/canvasBoard.vue'
+import RuntimeRenderer from '@/runtime/RuntimeRenderer.vue'
 import AIAssistDialog from '@/components/AIAssist/AIAssistDialog.vue'
 import { provideComponentEvents } from '@/components/siderBar/events/events'
 import { ElMessage } from 'element-plus'
-import { Loading } from '@element-plus/icons-vue'
+import { Loading, View, Edit, InfoFilled } from '@element-plus/icons-vue'
 import * as projectService from '@/services/projects'
 
 // 初始化事件系统
@@ -21,6 +23,7 @@ provideComponentEvents()
 const route = useRoute()
 const router = useRouter()
 const projectStore = useProjectStore()
+const { componentStore } = storeToRefs(useComponent())
 
 // 加载状态
 const isLoading = ref(true)
@@ -36,6 +39,9 @@ const rightSidebarWidth = ref(340)
 
 // AI 助手状态
 const aiVisible = ref(false)
+
+// 模拟运行模式开关
+const isSimulationMode = ref(false)
 
 // 拖拽调整宽度的状态
 const isResizingLeft = ref(false)
@@ -176,7 +182,35 @@ function startResizeRight(e: MouseEvent) {
       <div class="resize-handle" @mousedown="startResizeLeft"></div>
 
       <main class="floating-card canvas-card">
-        <CanvasBoard />
+        <!-- 模拟运行开关 -->
+        <div class="simulation-toolbar">
+          <el-switch
+            v-model="isSimulationMode"
+            active-text="模拟运行"
+            inactive-text="编辑模式"
+            :active-icon="View"
+            :inactive-icon="Edit"
+            size="default"
+          />
+          <el-tooltip
+            content="在编辑模式下可以选择和编辑组件，在模拟运行模式下可以测试交互效果"
+            placement="bottom"
+          >
+            <el-icon class="info-icon"><InfoFilled /></el-icon>
+          </el-tooltip>
+        </div>
+
+        <CanvasBoard v-if="!isSimulationMode" />
+
+        <!-- 模拟运行模式 -->
+        <RuntimeRenderer
+          v-else
+          :components="componentStore"
+          :pages="[]"
+          :is-project-mode="false"
+          mode="simulation"
+        />
+
         <div class="zoom-indicator">
           <span class="zoom-label">缩放:</span>
           <span class="zoom-value">{{ zoomPercentage }}%</span>
@@ -333,5 +367,28 @@ function startResizeRight(e: MouseEvent) {
   color: var(--el-text-color-secondary);
   font-size: 14px;
   margin: 0;
+}
+
+/* 模拟运行工具栏 */
+.simulation-toolbar {
+  position: absolute;
+  top: 12px;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 16px;
+  background-color: var(--el-bg-color);
+  border: 1px solid var(--el-border-color);
+  border-radius: 8px;
+  box-shadow: var(--el-box-shadow);
+  z-index: 200;
+}
+
+.simulation-toolbar .info-icon {
+  color: var(--el-color-info);
+  cursor: help;
+  font-size: 16px;
 }
 </style>

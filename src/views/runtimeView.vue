@@ -149,24 +149,12 @@
         <div v-show="activePreviewTab === 'runtime'" class="tab-content runtime-content">
           <div class="canvas-wrapper">
             <div class="preview-stage" ref="previewStage">
-              <div v-if="topLevelComponents.length === 0" class="empty-state">
-                <div class="empty-illustration">
-                  <el-icon :size="80"><DocumentRemove /></el-icon>
-                </div>
-                <h3 class="empty-title">当前页面为空</h3>
-                <p class="empty-desc">返回编辑器添加组件后再预览</p>
-                <el-button type="primary" plain @click="backToEditor">
-                  <el-icon><Back /></el-icon>
-                  返回编辑器
-                </el-button>
-              </div>
-
-              <RuntimeComponent
-                v-for="comp in topLevelComponents"
-                :key="comp.id"
-                :component="comp"
-                :allComponents="previewComponents"
-                @trigger-event="handleComponentEvent"
+              <!-- 使用 RuntimeRenderer 替代原有的渲染逻辑 -->
+              <RuntimeRenderer
+                :components="previewComponents"
+                :pages="allPages"
+                :is-project-mode="isProjectMode"
+                @navigate-page="navigateToPage"
               />
             </div>
           </div>
@@ -300,19 +288,21 @@
 </template>
 
 <script setup lang="ts">
-import { ref, reactive, computed, onMounted, watch } from 'vue'
+import { ref, reactive, computed, onMounted, watch, onBeforeUnmount, shallowRef } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { useProjectStore } from '@/stores/project'
 import { ElMessage } from 'element-plus'
-import RuntimeComponent from '@/views/RuntimeComponent.vue'
+import RuntimeRenderer from '@/runtime/RuntimeRenderer.vue'
 import * as projectService from '@/services/projects'
 import ExportConfigDialog from '@/components/dialogs/ExportConfigDialog.vue'
+import { useComponent } from '@/stores/component'
+import { storeToRefs } from 'pinia'
 import {
   generateProjectSourceFiles,
   type ExportOptions,
   type GeneratedSourceFile,
 } from '@/utils/projectGenerator'
-import type { Component, EventAction } from '@/types/components'
+import type { Component } from '@/types/components'
 import type { Page, Project } from '@/stores/project'
 import {
   Document,
@@ -353,6 +343,20 @@ const router = useRouter()
 const route = useRoute()
 
 const projectStore = useProjectStore()
+
+// 运行态：部分自定义组件依赖 Pinia componentStore 取数。
+// 预览页用 previewComponents 作为数据源时，需要同步到 store（并在离开时恢复），避免组件取不到数据。
+const componentStore = useComponent()
+const {
+  componentStore: runtimeStoreComponents,
+  selectComponent: runtimeSelectComponent,
+  selectedIds: runtimeSelectedIds,
+} = storeToRefs(componentStore)
+const storeSnapshot = shallowRef<{
+  components: Component[]
+  selectComponent: Component | null
+  selectedIds: string[]
+} | null>(null)
 
 // 主题模式
 const isDarkMode = ref(true)
@@ -446,6 +450,13 @@ async function loadPage(pageId: string) {
     currentPageName.value = page.name
     // 深拷贝页面组件数据到本地状态，避免直接引用
     previewComponents.value = JSON.parse(JSON.stringify(page.components || []))
+
+    // 同步到 Pinia store，供运行态组件读取（并让 DataBinding 更新能驱动这些组件）
+    runtimeStoreComponents.value = previewComponents.value
+    runtimeSelectComponent.value = null
+    runtimeSelectedIds.value = []
+
+    // 数据联动引擎已由 RuntimeRenderer 管理，无需手动启动
   }
 }
 
@@ -460,6 +471,15 @@ function navigateToPage(pageId: string) {
 
 // 加载预览数据
 onMounted(async () => {
+  // 进入预览前，快照编辑器 store 状态，离开时恢复
+  storeSnapshot.value = {
+    components: JSON.parse(JSON.stringify(runtimeStoreComponents.value || [])),
+    selectComponent: runtimeSelectComponent.value
+      ? JSON.parse(JSON.stringify(runtimeSelectComponent.value))
+      : null,
+    selectedIds: [...(runtimeSelectedIds.value || [])],
+  }
+
   if (!projectId.value) {
     ElMessage.error('缺少项目ID')
     router.push('/')
@@ -513,6 +533,15 @@ onMounted(async () => {
   isLoading.value = false
 })
 
+onBeforeUnmount(() => {
+  // 数据联动引擎的清理已由 RuntimeRenderer 自动处理
+  if (storeSnapshot.value) {
+    runtimeStoreComponents.value = storeSnapshot.value.components
+    runtimeSelectComponent.value = storeSnapshot.value.selectComponent
+    runtimeSelectedIds.value = storeSnapshot.value.selectedIds
+  }
+})
+
 // 监听路由变化（用于项目模式下的页面切换）
 watch(
   () => route.query.pageId,
@@ -523,134 +552,14 @@ watch(
   },
 )
 
-// 只渲染顶层组件
-const topLevelComponents = computed(() => {
-  return previewComponents.value.filter((c: Component) => !c.groupId)
-})
-
-// 处理组件事件
-async function handleComponentEvent(payload: {
-  componentId: string
-  eventType: string
-  actions: EventAction[]
-}) {
-  const { componentId, actions } = payload
-  const sourceComp = previewComponents.value.find((c: Component) => c.id === componentId)
-
-  for (const action of actions) {
-    await executeAction(action, sourceComp)
-  }
-}
-
-// 执行事件动作
-async function executeAction(action: EventAction, sourceComponent?: Component): Promise<void> {
-  // 延迟执行
-  if (action.delay && action.delay > 0) {
-    await new Promise((resolve) => setTimeout(resolve, action.delay))
-  }
-
-  switch (action.type) {
-    case 'toggle-visibility':
-      if (action.targetId) {
-        const target = previewComponents.value.find((c: Component) => c.id === action.targetId)
-        if (target) {
-          // 确保style对象存在
-          if (!target.style) {
-            target.style = { visible: true }
-          }
-          // 切换可见性: undefined默认为true(可见)
-          const currentVisible = target.style.visible !== false
-          target.style.visible = !currentVisible
-        }
-      }
-      break
-
-    case 'scroll-to':
-      if (action.targetId) {
-        const element = document.querySelector(`[data-component-id="${action.targetId}"]`)
-        if (element) {
-          element.scrollIntoView({ behavior: 'smooth', block: 'center' })
-        }
-      }
-      break
-
-    case 'show-tooltip':
-      if (action.content) {
-        ElMessage.info(action.content)
-      }
-      break
-
-    case 'navigate':
-      // 检查是否是内部页面跳转
-      if (action.content) {
-        // 如果内容是页面ID或路由，尝试内部跳转
-        const targetPage = allPages.value.find(
-          (p) => p.id === action.content || p.route === action.content || p.name === action.content,
-        )
-
-        if (targetPage && isProjectMode.value) {
-          // 项目模式下支持内部页面跳转
-          navigateToPage(targetPage.id)
-        } else if (action.content.startsWith('http') || action.content.startsWith('/')) {
-          // 外部链接或绝对路径
-          window.open(action.content, '_blank')
-        } else {
-          // 尝试作为相对路由处理
-          const pageByRoute = allPages.value.find((p) => p.route === `/${action.content}`)
-          if (pageByRoute && isProjectMode.value) {
-            navigateToPage(pageByRoute.id)
-          } else {
-            window.open(action.content, '_blank')
-          }
-        }
-      }
-      break
-
-    case 'navigate-page':
-      // 新增：专门用于页面间跳转的动作类型
-      if (action.targetId && isProjectMode.value) {
-        const targetPage = allPages.value.find((p) => p.id === action.targetId)
-        if (targetPage) {
-          navigateToPage(targetPage.id)
-        } else {
-          ElMessage.warning('目标页面不存在')
-        }
-      }
-      break
-
-    case 'fullscreen':
-      if (document.fullscreenElement) {
-        document.exitFullscreen()
-      } else {
-        document.documentElement.requestFullscreen()
-      }
-      break
-
-    case 'custom-script':
-      if (action.content) {
-        try {
-          // 提供页面导航能力给自定义脚本
-          const fn = new Function(
-            'component',
-            'components',
-            'navigateToPage',
-            'allPages',
-            action.content,
-          )
-          fn(sourceComponent, previewComponents.value, navigateToPage, allPages.value)
-        } catch (error) {
-          console.error('执行自定义脚本失败:', error)
-        }
-      }
-      break
-
-    default:
-      console.log(`执行动作: ${action.type}`, action)
-  }
-}
-
 // 返回编辑器
 function backToEditor() {
+  // 离开前恢复 store，避免预览污染编辑器
+  if (storeSnapshot.value) {
+    runtimeStoreComponents.value = storeSnapshot.value.components
+    runtimeSelectComponent.value = storeSnapshot.value.selectComponent
+    runtimeSelectedIds.value = storeSnapshot.value.selectedIds
+  }
   if (projectId.value) {
     router.push(`/editor/${projectId.value}`)
   } else {

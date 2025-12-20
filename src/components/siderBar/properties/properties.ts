@@ -3,6 +3,7 @@ import { useComponent } from '@/stores/component'
 import { useSizeStore } from '@/stores/size'
 import { storeToRefs } from 'pinia'
 import { useDataSource } from '@twi1i9ht/visual-lib'
+import { getSchema } from './schema'
 
 export function customProperties() {
   const componentStore = useComponent()
@@ -51,6 +52,14 @@ export function customProperties() {
   const styleSchema = computed<Field[]>(() => {
     const type = selectComponent.value?.type
     if (!type) return []
+
+    // 首先尝试从新的 schema 系统获取配置
+    const schema = getSchema(type)
+    if (schema?.styleSchema) {
+      return schema.styleSchema as Field[]
+    }
+
+    // 回退到原有的 switch-case 逻辑
     switch (type) {
       case 'Text':
         return [
@@ -3178,6 +3187,14 @@ export function customProperties() {
   const dataSourceSchema = computed<Field[]>(() => {
     const type = selectComponent.value?.type
     if (!type) return []
+
+    // 首先尝试从新的 schema 系统获取配置
+    const schema = getSchema(type)
+    if (schema?.dataSourceSchema) {
+      return schema.dataSourceSchema as Field[]
+    }
+
+    // 回退到原有的 switch-case 逻辑
     switch (type) {
       case 'Text':
         return [
@@ -5338,6 +5355,14 @@ export function customProperties() {
   const componentSchema = computed<Field[]>(() => {
     const type = selectComponent.value?.type
     if (!type) return []
+
+    // 首先尝试从新的 schema 系统获取配置
+    const schema = getSchema(type)
+    if (schema?.componentSchema) {
+      return schema.componentSchema as Field[]
+    }
+
+    // 回退到原有的 switch-case 逻辑
     switch (type) {
       case 'lineChart':
         return [

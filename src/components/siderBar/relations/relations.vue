@@ -179,59 +179,12 @@
           </div>
         </div>
 
+        <!-- 使用新的数据联动面板 -->
         <div class="section-card">
           <div class="card-header">
             <span class="title">数据联动</span>
-            <el-button circle size="small" icon="Plus" @click="addDataBinding" class="add-btn" />
           </div>
-
-          <div v-if="dataBindings.length" class="bindings-list">
-            <div v-for="(binding, index) in dataBindings" :key="index" class="binding-item">
-              <div class="binding-row source">
-                <span class="label">源组件</span>
-                <el-select
-                  v-model="binding.sourceId"
-                  placeholder="选择组件"
-                  filterable
-                  size="small"
-                  class="mini-select"
-                >
-                  <el-option
-                    v-for="c in otherComponents"
-                    :key="c.id"
-                    :label="c.name || `${c.type} ${c.id.slice(0, 4)}`"
-                    :value="c.id"
-                  />
-                </el-select>
-              </div>
-
-              <div class="binding-row path">
-                <el-input
-                  v-model="binding.sourcePath"
-                  placeholder="源属性 (如: value)"
-                  size="small"
-                  class="mini-input"
-                />
-                <el-icon class="arrow-icon"><Right /></el-icon>
-                <el-input
-                  v-model="binding.targetPath"
-                  placeholder="目标属性"
-                  size="small"
-                  class="mini-input"
-                />
-              </div>
-
-              <el-button
-                link
-                type="danger"
-                size="small"
-                icon="Delete"
-                class="remove-binding"
-                @click="removeDataBinding(index)"
-              />
-            </div>
-          </div>
-          <div v-else class="empty-state">暂无数据绑定关系</div>
+          <DataBindingPanel />
         </div>
 
         <div class="section-card">
@@ -312,26 +265,22 @@ import { Document, FolderOpened, InfoFilled } from '@element-plus/icons-vue'
 import type { ElTree } from 'element-plus'
 import {
   useComponentHierarchy,
-  useDataBindings,
   useDialogState,
   useTreeOperations,
   useLayoutConfig,
   type TreeNode,
 } from './relations'
+import DataBindingPanel from './DataBindingPanel.vue'
 
 // 组件层级关系
 const {
   childrenComponents,
   groupComponent,
   availableChildren,
-  otherComponents,
   addChild: addChildToComponent,
   removeFromGroup,
   selectComponentById,
 } = useComponentHierarchy()
-
-// 数据联动
-const { dataBindings, addDataBinding, removeDataBinding } = useDataBindings()
 
 // 对话框状态
 const { showAddChildDialog, selectedChildId, closeAddChildDialog } = useDialogState()
@@ -604,58 +553,6 @@ function openAddChild() {
         width: 100%;
       }
     }
-  }
-}
-
-.bindings-list {
-  padding: 16px 20px;
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-}
-
-.binding-item {
-  padding: 12px;
-  background: #fafafa;
-  border: 1px solid #e4e7ed;
-  border-radius: 6px;
-
-  .binding-row {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    margin-bottom: 8px;
-
-    &:last-child {
-      margin-bottom: 0;
-    }
-
-    &.source {
-      .label {
-        min-width: 60px;
-        font-size: 12px;
-        color: #909399;
-      }
-
-      .mini-select {
-        flex: 1;
-      }
-    }
-
-    &.path {
-      .mini-input {
-        flex: 1;
-      }
-
-      .arrow-icon {
-        color: #409eff;
-        font-size: 16px;
-      }
-    }
-  }
-
-  .remove-binding {
-    margin-top: 8px;
   }
 }
 

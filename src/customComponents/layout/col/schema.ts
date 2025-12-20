@@ -1,0 +1,160 @@
+/**
+ * Col 列布局组件属性配置
+ */
+import { registerSchema, type Field } from '@/components/siderBar/properties/schema/types'
+
+const styleSchema: Field[] = [
+  {
+    key: 'span',
+    label: '栅格占位',
+    type: 'number',
+    min: 1,
+    max: 24,
+    step: 1,
+    default: 12,
+  },
+  {
+    key: 'padding',
+    label: '内边距(px)',
+    type: 'number',
+    min: 0,
+    max: 50,
+    step: 1,
+    default: 16,
+  },
+  {
+    key: 'backgroundColor',
+    label: '背景颜色',
+    type: 'color',
+    default: '#ffffff',
+  },
+  {
+    key: 'border',
+    label: '边框',
+    type: 'text',
+    default: '1px solid #e5e7eb',
+  },
+  {
+    key: 'borderRadius',
+    label: '圆角(px)',
+    type: 'number',
+    min: 0,
+    max: 50,
+    step: 1,
+    default: 4,
+  },
+  {
+    key: 'minHeight',
+    label: '最小高度(px)',
+    type: 'number',
+    min: 0,
+    max: 1000,
+    step: 10,
+    default: 100,
+  },
+  {
+    key: 'textColor',
+    label: '文本颜色',
+    type: 'color',
+    default: '#333333',
+  },
+]
+
+const componentSchema: Field[] = [
+  {
+    key: 'span',
+    label: '栅格占位',
+    type: 'number',
+    min: 1,
+    max: 24,
+    step: 1,
+    default: 12,
+  },
+  {
+    key: 'offset',
+    label: '左偏移',
+    type: 'number',
+    min: 0,
+    max: 24,
+    step: 1,
+    default: 0,
+  },
+  {
+    key: 'push',
+    label: '向右推',
+    type: 'number',
+    min: 0,
+    max: 24,
+    step: 1,
+    default: 0,
+  },
+  {
+    key: 'pull',
+    label: '向左拉',
+    type: 'number',
+    min: 0,
+    max: 24,
+    step: 1,
+    default: 0,
+  },
+  {
+    key: 'xs',
+    label: '<768px',
+    type: 'number',
+    min: 1,
+    max: 24,
+    step: 1,
+  },
+  {
+    key: 'sm',
+    label: '≥768px',
+    type: 'number',
+    min: 1,
+    max: 24,
+    step: 1,
+  },
+  {
+    key: 'md',
+    label: '≥992px',
+    type: 'number',
+    min: 1,
+    max: 24,
+    step: 1,
+  },
+  {
+    key: 'lg',
+    label: '≥1200px',
+    type: 'number',
+    min: 1,
+    max: 24,
+    step: 1,
+  },
+  {
+    key: 'xl',
+    label: '≥1920px',
+    type: 'number',
+    min: 1,
+    max: 24,
+    step: 1,
+  },
+  {
+    key: 'tag',
+    label: 'HTML标签',
+    type: 'text',
+    placeholder: 'div',
+    default: 'div',
+  },
+  {
+    key: 'content',
+    label: '占位内容',
+    type: 'text',
+    placeholder: '请输入内容',
+    default: '',
+  },
+]
+
+registerSchema({
+  types: ['col', 'layout.col'],
+  styleSchema,
+  componentSchema,
+})

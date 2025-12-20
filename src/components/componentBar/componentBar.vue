@@ -73,22 +73,27 @@
     <el-dialog
       v-model="graphVisible"
       title="组件关系图谱"
-      width="70%"
-      top="10vh"
+      width="75%"
+      top="8vh"
       class="graph-modal"
       :append-to-body="true"
       @opened="initChart"
     >
       <div class="graph-toolbar">
         <el-radio-group v-model="graphType" size="small" @change="updateGraph">
-          <el-radio-button label="all">全部关系</el-radio-button>
-          <el-radio-button label="hierarchy">仅层级</el-radio-button>
-          <el-radio-button label="data">数据链路</el-radio-button>
+          <el-radio-button label="all">全部</el-radio-button>
+          <el-radio-button label="hierarchy">层级</el-radio-button>
+          <el-radio-button label="data">数据联动</el-radio-button>
+          <el-radio-button label="events">事件</el-radio-button>
         </el-radio-group>
         <div class="legend">
           <span class="legend-item"><i class="dot blue"></i> 组件</span>
           <span class="legend-item"><i class="dot green"></i> 容器</span>
-          <span class="legend-item"><i class="line"></i> 父子关系</span>
+          <span class="legend-item"><i class="dot orange"></i> 数据联动</span>
+          <span class="legend-item"><i class="dot red"></i> 事件</span>
+          <span class="legend-item"><i class="line solid"></i> 父子</span>
+          <span class="legend-item"><i class="line dashed"></i> 数据流</span>
+          <span class="legend-item"><i class="line dotted"></i> 事件触发</span>
         </div>
       </div>
 
@@ -136,12 +141,12 @@ interface GraphLink {
   source: string
   target: string
   relationName: string
-  lineStyle: { color: string; width: number }
+  lineStyle: { color: string; width: number; type?: 'solid' | 'dashed' | 'dotted' }
 }
 
 // --- 状态管理 ---
 const activeTab = ref('components')
-const activeNames = ref(['地图图层', '图表'])
+const activeNames = ref(['图表', '地图图层'])
 const pageTemplates = ref<PageTemplate[]>(templates)
 const componentStore = useComponent()
 const { componentStore: components } = storeToRefs(componentStore)
@@ -187,7 +192,7 @@ const getCategoryLabel = (category: PageTemplate['category']) => {
 // --- 关系图谱逻辑 (移至弹窗) ---
 const graphVisible = ref(false)
 const graphContainer = ref<HTMLElement>()
-const graphType = ref<'all' | 'hierarchy' | 'data'>('all')
+const graphType = ref<'all' | 'hierarchy' | 'data' | 'events'>('all')
 let chartInstance: echarts.ECharts | null = null
 
 function openGraphModal() {
@@ -200,7 +205,6 @@ function initChart() {
     chartInstance = echarts.init(graphContainer.value)
   }
   updateGraph()
-  // 窗口大小改变时重绘
   window.addEventListener('resize', () => chartInstance?.resize())
 }
 
@@ -210,26 +214,77 @@ function buildGraphData() {
 
   components.value.forEach((comp) => {
     const hasChildren = comp.children && comp.children.length > 0
+    const hasBindings = comp.dataBindings && comp.dataBindings.length > 0
+    const hasEvents = comp.events && (comp.events.click?.length || comp.events.hover?.length)
     const label = comp.name || comp.type
+
+    // 根据组件特性设置颜色
+    let color = '#4285F4' // 默认蓝色
+    if (hasChildren)
+      color = '#34A853' // 容器绿色
+    else if (hasBindings)
+      color = '#FBBC05' // 有数据联动橙色
+    else if (hasEvents) color = '#EA4335' // 有事件红色
+
     nodes.push({
       id: comp.id,
       name: label,
       type: comp.type,
-      symbolSize: hasChildren ? 45 : 30,
-      itemStyle: { color: hasChildren ? '#34A853' : '#4285F4' }, // Google Green & Blue
+      symbolSize: hasChildren ? 45 : hasBindings || hasEvents ? 38 : 30,
+      itemStyle: { color },
     })
   })
 
-  if (graphType.value !== 'data') {
+  // 父子关系（层级）
+  if (graphType.value === 'all' || graphType.value === 'hierarchy') {
     components.value.forEach((comp) => {
       if (comp.groupId) {
         links.push({
           source: comp.groupId,
           target: comp.id,
-          relationName: 'Parent',
+          relationName: '父子',
           lineStyle: { color: '#9AA0A6', width: 2 },
         })
       }
+    })
+  }
+
+  // 数据联动关系
+  if (graphType.value === 'all' || graphType.value === 'data') {
+    components.value.forEach((comp) => {
+      if (comp.dataBindings) {
+        comp.dataBindings.forEach((binding) => {
+          if (binding.sourceId && binding.sourceId !== comp.id) {
+            links.push({
+              source: binding.sourceId,
+              target: comp.id,
+              relationName: '数据',
+              lineStyle: { color: '#FBBC05', width: 2, type: 'dashed' as const },
+            })
+          }
+        })
+      }
+    })
+  }
+
+  // 事件关系
+  if (graphType.value === 'all' || graphType.value === 'events') {
+    components.value.forEach((comp) => {
+      const allActions = [
+        ...(comp.events?.click || []),
+        ...(comp.events?.hover || []),
+        ...(comp.events?.doubleClick || []),
+      ]
+      allActions.forEach((action) => {
+        if (action.targetId && action.targetId !== comp.id) {
+          links.push({
+            source: comp.id,
+            target: action.targetId,
+            relationName: '事件',
+            lineStyle: { color: '#EA4335', width: 2, type: 'dotted' as const },
+          })
+        }
+      })
     })
   }
 
@@ -241,7 +296,22 @@ function updateGraph() {
   const { nodes, links } = buildGraphData()
 
   const option: echarts.EChartsOption = {
-    tooltip: { trigger: 'item' },
+    tooltip: {
+      trigger: 'item',
+      formatter: (params: {
+        dataType: string
+        data: { relationName?: string; name?: string; type?: string }
+      }) => {
+        if (params.dataType === 'edge') {
+          return `${params.data.relationName}关系`
+        }
+        return `${params.data.name} (${params.data.type})`
+      },
+    },
+    legend: {
+      data: ['组件', '容器', '数据联动', '事件'],
+      bottom: 10,
+    },
     series: [
       {
         type: 'graph',
@@ -250,92 +320,20 @@ function updateGraph() {
         links: links,
         roam: true,
         label: { show: true, position: 'bottom', fontSize: 11, color: '#333' },
-        force: { repulsion: 200, edgeLength: 80, gravity: 0.1 },
-        lineStyle: { curveness: 0.2, opacity: 0.7 },
+        force: { repulsion: 250, edgeLength: 100, gravity: 0.08 },
+        lineStyle: { curveness: 0.3, opacity: 0.8 },
+        emphasis: {
+          focus: 'adjacency',
+          lineStyle: { width: 4 },
+        },
       },
     ],
   }
-  chartInstance.setOption(option)
+  chartInstance.setOption(option, true)
 }
 
 // 组件类型
 const categories = ref<Category[]>([
-  {
-    key: 'map',
-    title: '地图图层',
-    items: [
-      {
-        type: 'base',
-        label: '底图',
-        tags: ['tile', 'basemap'],
-        width: 300,
-        height: 200,
-      },
-      {
-        type: 'tile',
-        label: '瓦片图层',
-        tags: ['leaflet', 'tile'],
-        width: 300,
-        height: 200,
-      },
-      {
-        type: 'vector',
-        label: '矢量图层',
-        tags: ['point', 'line', 'polygon'],
-        width: 300,
-        height: 200,
-      },
-      {
-        type: 'geojson',
-        label: 'GeoJSON',
-        tags: ['geojson'],
-        width: 300,
-        height: 200,
-      },
-      {
-        type: 'marker',
-        label: '标记点',
-        tags: ['marker'],
-        width: 120,
-        height: 120,
-      },
-      {
-        type: 'cluster',
-        label: '聚合',
-        tags: ['cluster'],
-        width: 300,
-        height: 200,
-      },
-      {
-        type: 'heat',
-        label: '热力图',
-        tags: ['heat'],
-        width: 300,
-        height: 200,
-      },
-      {
-        type: 'legend',
-        label: '图例',
-        tags: ['legend'],
-        width: 160,
-        height: 120,
-      },
-      {
-        type: 'scale',
-        label: '比例尺',
-        tags: ['scale'],
-        width: 120,
-        height: 50,
-      },
-      {
-        type: 'layers',
-        label: '图层控制',
-        tags: ['layers'],
-        width: 160,
-        height: 160,
-      },
-    ],
-  },
   {
     key: 'chart',
     title: '图表',
@@ -409,6 +407,82 @@ const categories = ref<Category[]>([
         tags: ['echarts', 'sankey'],
         width: 360,
         height: 240,
+      },
+    ],
+  },
+  {
+    key: 'map',
+    title: '地图图层',
+    items: [
+      {
+        type: 'base',
+        label: '底图',
+        tags: ['tile', 'basemap'],
+        width: 300,
+        height: 200,
+      },
+      {
+        type: 'tile',
+        label: '瓦片图层',
+        tags: ['leaflet', 'tile'],
+        width: 300,
+        height: 200,
+      },
+      {
+        type: 'vector',
+        label: '矢量图层',
+        tags: ['point', 'line', 'polygon'],
+        width: 300,
+        height: 200,
+      },
+      {
+        type: 'geojson',
+        label: 'GeoJSON',
+        tags: ['geojson'],
+        width: 300,
+        height: 200,
+      },
+      {
+        type: 'marker',
+        label: '标记点',
+        tags: ['marker'],
+        width: 120,
+        height: 120,
+      },
+      {
+        type: 'cluster',
+        label: '聚合',
+        tags: ['cluster'],
+        width: 300,
+        height: 200,
+      },
+      {
+        type: 'heat',
+        label: '热力图',
+        tags: ['heat'],
+        width: 300,
+        height: 200,
+      },
+      {
+        type: 'legend',
+        label: '图例',
+        tags: ['legend'],
+        width: 160,
+        height: 120,
+      },
+      {
+        type: 'scale',
+        label: '比例尺',
+        tags: ['scale'],
+        width: 120,
+        height: 50,
+      },
+      {
+        type: 'layers',
+        label: '图层控制',
+        tags: ['layers'],
+        width: 160,
+        height: 160,
       },
     ],
   },
@@ -692,6 +766,47 @@ const categories = ref<Category[]>([
       },
     ],
   },
+  {
+    key: 'navigation',
+    title: '导航交互',
+    items: [
+      {
+        type: 'navButton',
+        label: '导航按钮',
+        tags: ['navigation', 'button', 'link'],
+        width: 140,
+        height: 48,
+      },
+      {
+        type: 'breadcrumb',
+        label: '面包屑',
+        tags: ['navigation', 'breadcrumb'],
+        width: 300,
+        height: 40,
+      },
+      {
+        type: 'menu',
+        label: '菜单',
+        tags: ['navigation', 'menu'],
+        width: 200,
+        height: 300,
+      },
+      {
+        type: 'pagination',
+        label: '分页器',
+        tags: ['navigation', 'pagination'],
+        width: 320,
+        height: 50,
+      },
+      {
+        type: 'anchor',
+        label: '锚点导航',
+        tags: ['navigation', 'anchor'],
+        width: 160,
+        height: 200,
+      },
+    ],
+  },
 ])
 </script>
 
@@ -901,7 +1016,8 @@ const categories = ref<Category[]>([
 
 .legend {
   display: flex;
-  gap: 12px;
+  flex-wrap: wrap;
+  gap: 10px;
   font-size: 12px;
   color: var(--text-secondary);
 }
@@ -924,11 +1040,37 @@ const categories = ref<Category[]>([
 .dot.green {
   background: #34a853;
 }
+.dot.orange {
+  background: #fbbc05;
+}
+.dot.red {
+  background: #ea4335;
+}
 .line {
   width: 20px;
   height: 2px;
-  background: #9aa0a6;
   display: inline-block;
+}
+.line.solid {
+  background: #9aa0a6;
+}
+.line.dashed {
+  background: repeating-linear-gradient(
+    90deg,
+    #fbbc05 0,
+    #fbbc05 4px,
+    transparent 4px,
+    transparent 8px
+  );
+}
+.line.dotted {
+  background: repeating-linear-gradient(
+    90deg,
+    #ea4335 0,
+    #ea4335 2px,
+    transparent 2px,
+    transparent 6px
+  );
 }
 
 /* 深度选择样式覆盖 */

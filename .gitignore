@@ -18,6 +18,15 @@ coverage
 .env
 .env.local
 .env.*.local
+.env.*
+!.env.example
+!server/.env.example
+
+# 本地开发：敏感配置/数据（不要提交）
+server/.env
+server/.env.*
+docker-compose.yml
+data/
 
 /cypress/videos/
 /cypress/screenshots/

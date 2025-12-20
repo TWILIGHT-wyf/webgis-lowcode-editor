@@ -31,6 +31,9 @@ export function useShape(id: string) {
   // 包装器与根容器
   const wrapperRef = ref<HTMLDivElement | null>(null)
   const canvasWrapRef = inject<Ref<HTMLDivElement | null>>('canvasWrapRef')
+  // 注入画布平移量，用于拖拽时正确计算坐标
+  const canvasPanX = inject<Ref<number>>('canvasPanX', ref(0))
+  const canvasPanY = inject<Ref<number>>('canvasPanY', ref(0))
 
   // 防抖更新位置（让 debounce 推断参数类型）
   const debouncedUpdatePosition = debounce(updateComponentPosition, 10)
@@ -47,6 +50,9 @@ export function useShape(id: string) {
     preventBubble: true,
     dragThreshold: 5,
     rootRefForAbs: canvasWrapRef,
+    // 传入画布平移量，确保拖拽时坐标计算正确
+    externalPanX: canvasPanX,
+    externalPanY: canvasPanY,
     dragCallback: (x, y, ctrlPressed) => {
       ;(setSelected as (id: string) => void)(id)
       const comp = currentComponent.value
