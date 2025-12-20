@@ -1,0 +1,272 @@
+/**
+ * List 列表组件属性配置
+ */
+import { registerSchema, type Field } from '@/components/siderBar/properties/schema/types'
+
+const styleSchema: Field[] = [
+  {
+    key: 'backgroundColor',
+    label: '背景颜色',
+    type: 'color',
+    default: '#ffffff',
+  },
+  {
+    key: 'borderRadius',
+    label: '圆角(px)',
+    type: 'number',
+    min: 0,
+    max: 20,
+    step: 1,
+    default: 4,
+  },
+  {
+    key: 'itemBackgroundColor',
+    label: '列表项背景色',
+    type: 'color',
+    default: '#ffffff',
+  },
+  {
+    key: 'itemPadding',
+    label: '列表项上下内边距(px)',
+    type: 'number',
+    min: 0,
+    max: 50,
+    step: 1,
+    default: 12,
+  },
+  {
+    key: 'itemPaddingX',
+    label: '列表项左右内边距(px)',
+    type: 'number',
+    min: 0,
+    max: 50,
+    step: 1,
+    default: 16,
+  },
+  {
+    key: 'borderColor',
+    label: '左侧边框颜色',
+    type: 'color',
+    default: 'transparent',
+  },
+  {
+    key: 'splitColor',
+    label: '分割线颜色',
+    type: 'color',
+    default: '#e4e7ed',
+  },
+  {
+    key: 'titleFontSize',
+    label: '标题字体大小(px)',
+    type: 'number',
+    min: 10,
+    max: 30,
+    step: 1,
+    default: 15,
+  },
+  {
+    key: 'titleColor',
+    label: '标题颜色',
+    type: 'color',
+    default: '#303133',
+  },
+  {
+    key: 'titleFontWeight',
+    label: '标题字重',
+    type: 'select',
+    options: [
+      { label: '常规', value: 'normal' },
+      { label: '中等', value: '500' },
+      { label: '加粗', value: 'bold' },
+    ],
+    default: '500',
+  },
+  {
+    key: 'descriptionFontSize',
+    label: '描述字体大小(px)',
+    type: 'number',
+    min: 10,
+    max: 24,
+    step: 1,
+    default: 13,
+  },
+  {
+    key: 'descriptionColor',
+    label: '描述颜色',
+    type: 'color',
+    default: '#909399',
+  },
+  {
+    key: 'extraFontSize',
+    label: '扩展信息字体大小(px)',
+    type: 'number',
+    min: 10,
+    max: 20,
+    step: 1,
+    default: 12,
+  },
+  {
+    key: 'extraColor',
+    label: '扩展信息颜色',
+    type: 'color',
+    default: '#409eff',
+  },
+  {
+    key: 'iconColor',
+    label: '图标颜色',
+    type: 'color',
+    default: '#909399',
+  },
+]
+
+const dataSourceSchema: Field[] = [
+  {
+    key: 'enabled',
+    label: '启用数据源',
+    type: 'switch',
+    default: false,
+  },
+  {
+    key: 'url',
+    label: 'API 地址',
+    type: 'text',
+    placeholder: 'http://localhost:3001/api/list-items',
+    default: '',
+  },
+  {
+    key: 'method',
+    label: '请求方法',
+    type: 'select',
+    options: [
+      { label: 'GET', value: 'GET' },
+      { label: 'POST', value: 'POST' },
+    ],
+    default: 'GET',
+  },
+  {
+    key: 'interval',
+    label: '自动刷新(秒)',
+    type: 'number',
+    min: 0,
+    max: 3600,
+    step: 1,
+    default: 0,
+  },
+  {
+    key: 'dataPath',
+    label: '数据路径',
+    type: 'text',
+    placeholder: '例: data 或 result.items',
+    default: '',
+  },
+  {
+    key: 'headers',
+    label: '请求头(JSON)',
+    type: 'text',
+    placeholder: '{"Authorization": "Bearer token"}',
+    default: '',
+  },
+]
+
+const componentSchema: Field[] = [
+  {
+    key: 'data',
+    label: '列表数据(JSON)',
+    type: 'text',
+    placeholder: '[{"title":"标题","description":"描述"}]',
+    default: '',
+  },
+  {
+    key: 'showIcon',
+    label: '显示图标',
+    type: 'switch',
+    default: false,
+  },
+  {
+    key: 'showTitle',
+    label: '显示标题',
+    type: 'switch',
+    default: true,
+  },
+  {
+    key: 'showDescription',
+    label: '显示描述',
+    type: 'switch',
+    default: true,
+  },
+  {
+    key: 'showExtra',
+    label: '显示扩展信息',
+    type: 'switch',
+    default: false,
+  },
+  {
+    key: 'showAction',
+    label: '显示右侧箭头',
+    type: 'switch',
+    default: true,
+  },
+  {
+    key: 'showBorder',
+    label: '显示左侧边框',
+    type: 'switch',
+    default: true,
+  },
+  {
+    key: 'showSplit',
+    label: '显示分割线',
+    type: 'switch',
+    default: true,
+  },
+  {
+    key: 'emptyText',
+    label: '空数据文本',
+    type: 'text',
+    placeholder: '暂无数据',
+    default: '暂无数据',
+  },
+  {
+    key: 'iconSize',
+    label: '图标大小(px)',
+    type: 'number',
+    min: 12,
+    max: 50,
+    step: 1,
+    default: 20,
+  },
+  {
+    key: 'scrollHeight',
+    label: '滚动容器高度',
+    type: 'text',
+    placeholder: '100% 或 300px',
+    default: '100%',
+  },
+  {
+    key: 'titleField',
+    label: '标题字段名',
+    type: 'text',
+    placeholder: 'title',
+    default: 'title',
+  },
+  {
+    key: 'descriptionField',
+    label: '描述字段名',
+    type: 'text',
+    placeholder: 'description',
+    default: 'description',
+  },
+  {
+    key: 'extraField',
+    label: '扩展信息字段名',
+    type: 'text',
+    placeholder: 'extra',
+    default: 'extra',
+  },
+]
+
+registerSchema({
+  types: ['list'],
+  styleSchema,
+  dataSourceSchema,
+  componentSchema,
+})
