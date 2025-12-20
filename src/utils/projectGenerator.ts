@@ -4,6 +4,8 @@ import { transform } from 'sucrase'
 import { generateVueCode } from './toCode'
 import type { Project, Page } from '@/stores/project'
 import type { Component } from '@/types/components'
+import useEventExecutorSource from '@/runtime/useEventExecutor.ts?raw'
+import useDataBindingEngineSource from '@/runtime/useDataBindingEngine.ts?raw'
 
 export interface ExportOptions {
   language: 'ts' | 'js' // 输出语言
@@ -198,6 +200,20 @@ function assembleProjectFiles(
       { path: 'src/env.d.ts', content: createEnvDeclaration(), shouldProcess: true },
     )
   }
+
+  // 添加运行时库文件
+  files.push(
+    {
+      path: 'src/runtime/useEventExecutor.ts',
+      content: useEventExecutorSource,
+      shouldProcess: true,
+    },
+    {
+      path: 'src/runtime/useDataBindingEngine.ts',
+      content: useDataBindingEngineSource,
+      shouldProcess: true,
+    },
+  )
 
   for (const page of pages) {
     files.push({ path: `src/pages/${page.fileName}`, content: page.source, shouldProcess: true })

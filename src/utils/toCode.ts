@@ -152,25 +152,28 @@ function generateComponentTemplate(
   const tagName = getComponentTagName(comp.type)
 
   let html = `${indentStr}<${tagName}\n`
+  // 添加组件 ID 属性（用于事件执行器定位元素）
+  html += `${indentStr}  :id="'${comp.id}'"\n`
+  html += `${indentStr}  :data-component-id="'${comp.id}'"\n`
   // 使用辅助函数设置 ref，避免模板中的类型问题
   html += `${indentStr}  :ref="setComponentRef('${comp.id}')"\n`
 
-  // 添加动画相关class和事件
+  // 添加动画相关class和事件（与 RuntimeComponent.vue 保持一致）
   if (animationInfo.class && 'trigger' in animationInfo) {
-    const classes = ['animated', animationInfo.class]
-    if (animationInfo.trigger === 'hover' || animationInfo.trigger === 'click') {
-      classes.push('animation-paused')
+    // load 触发的动画直接添加 class，hover/click 通过动态绑定控制
+    if (animationInfo.trigger === 'load') {
+      html += `${indentStr}  :class="['animated', '${animationInfo.class}']"\n`
+    } else {
+      // hover/click 使用响应式变量控制动画播放
+      html += `${indentStr}  :class="animationPlaying_${comp.id} ? ['animated', '${animationInfo.class}'] : []"\n`
     }
-    // 使用单引号避免冲突
-    const classStr = `['${classes.join("', '")}']`
-    html += `${indentStr}  :class='${classStr}'\n`
 
     // 根据trigger添加动画触发事件
     if (animationInfo.trigger === 'hover') {
       html += `${indentStr}  @mouseenter="playAnimation_${comp.id}"\n`
       html += `${indentStr}  @mouseleave="resetAnimation_${comp.id}"\n`
     } else if (animationInfo.trigger === 'click') {
-      html += `${indentStr}  @click.stop="playAnimation_${comp.id}"\n`
+      html += `${indentStr}  @click.capture="playAnimation_${comp.id}"\n`
     }
 
     // 添加style属性(包含动画配置) - 使用单引号
@@ -245,7 +248,7 @@ function getComponentTagName(type: string): string {
 }
 
 /**
- * 生成组件样式对象字符串
+ * 生成组件样式对象字符串（与 RuntimeComponent.vue 的 computedStyle 保持一致）
  */
 function generateComponentStyle(comp: Component): string {
   const styleObj: Record<string, string | number> = {
@@ -268,29 +271,47 @@ function generateComponentStyle(comp: Component): string {
     if (comp.style.letterSpacing) styleObj.letterSpacing = `${comp.style.letterSpacing}px`
   }
 
-  // 添加样式属性
+  // 通用样式属性（与 RuntimeComponent.vue 保持一致）
   if (comp.style) {
+    // 透明度
     if (comp.style.opacity !== undefined) {
       styleObj.opacity = Number(comp.style.opacity) / 100
     }
+    // 可见性处理 - 显式设置 display 以确保 toggle 正常工作
     if (comp.style.visible === false) {
       styleObj.display = 'none'
+    } else if (comp.style.visible === true || comp.style.visible === undefined) {
+      // 显式设置为空字符串，移除 display 限制
+      // 注：在生成代码时不设置 display，让浏览器使用默认值
     }
+    // 背景色
     if (comp.style.backgroundColor) {
       styleObj.backgroundColor = String(comp.style.backgroundColor)
     }
+    // 圆角
     if (comp.style.borderRadius) {
       styleObj.borderRadius = `${comp.style.borderRadius}px`
     }
+    // 边框
     if (comp.style.border) {
       styleObj.border = String(comp.style.border)
     }
+    // 阴影
     if (comp.style.boxShadow) {
       styleObj.boxShadow = String(comp.style.boxShadow)
     }
+    // 内边距
     if (comp.style.padding) {
       styleObj.padding = `${comp.style.padding}px`
     }
+  }
+
+  // 动画样式（与 RuntimeComponent.vue 保持一致）
+  if (comp.animation && comp.animation.class) {
+    styleObj.animationDuration = `${comp.animation.duration || 0.7}s`
+    styleObj.animationDelay = `${comp.animation.delay || 0}s`
+    styleObj.animationIterationCount = comp.animation.iterationCount || 1
+    styleObj.animationTimingFunction = comp.animation.timingFunction || 'ease'
   }
 
   return JSON.stringify(styleObj)
@@ -347,16 +368,20 @@ function generateComponentEvents(comp: Component): string {
 }
 
 /**
- * 生成Script代码
+ * 生成Script代码（使用运行时 Hook）
  */
 function generateScript(components: Component[]): string {
   const imports = generateImports(components)
   const animationHandlers = generateAnimationHandlers(components)
   const eventHandlers = generateEventHandlers(components)
+  const hasDataBindings = components.some((c) => c.dataBindings && c.dataBindings.length > 0)
 
   return `<script setup lang="ts">
-import { ref, onMounted, nextTick } from 'vue'
+import { ref, reactive, onMounted, onBeforeUnmount, nextTick } from 'vue'
 import type { ComponentPublicInstance } from 'vue'
+import { useRouter } from 'vue-router'
+import { useEventExecutor } from '@/runtime/useEventExecutor'
+import { useDataBindingEngine } from '@/runtime/useDataBindingEngine'
 ${imports}
 
 // 组件 Ref 类型定义
@@ -370,14 +395,46 @@ const setComponentRef = (id: string) => (el: ComponentRef) => {
   if (el) componentRefs.value[id] = el
 }
 
-// 组件数据
+// 组件数据（响应式）
 ${generateComponentData(components)}
+
+// 动画状态
+${generateAnimationStates(components)}
 
 // 动画样式对象
 ${generateAnimationStyles(components)}
 
 // 动画处理函数
 ${animationHandlers}
+
+// 初始化运行时 Hook
+const router = useRouter()
+
+// 包装 componentsData 为 ref 以兼容运行时 Hook
+const componentsDataRef = ref(componentsData)
+
+// 事件执行器
+const { executeAction } = useEventExecutor({
+  components: componentsDataRef,
+  pages: ref([]), // 注：生成的代码中需要根据实际情况注入 pages 数据
+  isProjectMode: ref(false),
+  router,
+})
+
+// 数据联动引擎
+${
+  hasDataBindings
+    ? `const bindingEngine = useDataBindingEngine(componentsDataRef)
+
+onMounted(() => {
+  bindingEngine.start()
+})
+
+onBeforeUnmount(() => {
+  bindingEngine.stop()
+})`
+    : '// 无数据联动配置'
+}
 
 // 页面加载时触发的动画
 onMounted(() => {
@@ -386,7 +443,7 @@ ${generateOnMountAnimations(components)}
   })
 })
 
-// 事件处理函数
+// 事件处理函数（代理调用）
 ${eventHandlers}
 </script>`
 }
@@ -420,11 +477,29 @@ function generateImports(components: Component[]): string {
 }
 
 /**
- * 生成组件数据
+ * 生成组件数据（响应式组件状态）
  */
 function generateComponentData(components: Component[]): string {
   let dataStr = ''
 
+  // 生成组件响应式数据对象
+  dataStr += `// 组件响应式数据
+const componentsData = reactive(${JSON.stringify(
+    components.map((c) => ({
+      id: c.id,
+      props: c.props || {},
+      style: c.style || {},
+      dataBindings: c.dataBindings || [],
+    })),
+    null,
+    2,
+  )})\n\n`
+
+  // 生成组件索引 Map
+  dataStr += `// 组件索引 Map
+const compById = new Map(componentsData.map((c: { id: string }) => [c.id, c] as const))\n`
+
+  // 数据源相关的 ref
   for (const comp of components) {
     if (comp.dataSource?.enabled) {
       dataStr += `const data_${comp.id} = ref(null)\n`
@@ -432,6 +507,25 @@ function generateComponentData(components: Component[]): string {
   }
 
   return dataStr
+}
+
+/**
+ * 生成动画播放状态
+ */
+function generateAnimationStates(components: Component[]): string {
+  let statesStr = ''
+
+  for (const comp of components) {
+    if (comp.animation && comp.animation.class) {
+      const trigger = comp.animation.trigger || 'load'
+      // hover/click 需要响应式控制动画播放
+      if (trigger === 'hover' || trigger === 'click') {
+        statesStr += `const animationPlaying_${comp.id} = ref(false)\n`
+      }
+    }
+  }
+
+  return statesStr || '// 无需动画状态控制'
 }
 
 /**
@@ -456,11 +550,15 @@ function generateAnimationStyles(components: Component[]): string {
     }
   }
 
-  return stylesStr
+  return stylesStr || '// 无动画样式配置'
 }
 
 /**
- * 生成动画处理函数
+ * 生成数据联动引擎（与 useDataBindingEngine.ts 保持一致）
+ */
+
+/**
+ * 生成动画处理函数（与 RuntimeComponent.vue 保持一致）
  */
 function generateAnimationHandlers(components: Component[]): string {
   let handlersStr = ''
@@ -474,18 +572,24 @@ function generateAnimationHandlers(components: Component[]): string {
       if (trigger === 'hover') {
         handlersStr += `
 function playAnimation_${comp.id}() {
-  const ref = componentRefs.value['${comp.id}']
-  if (ref) {
-    const el = ${needsEl ? 'ref.$el || ref' : 'ref'}
-    el.style.animationPlayState = 'running'
-  }
+  animationPlaying_${comp.id}.value = true
+  nextTick(() => {
+    const ref = componentRefs.value['${comp.id}']
+    if (ref) {
+      const el = ${needsEl ? '(ref as any).$el || ref' : 'ref'} as HTMLElement
+      el.style.animation = 'none'
+      setTimeout(() => {
+        el.style.animation = ''
+      }, 10)
+    }
+  })
 }
 
 function resetAnimation_${comp.id}() {
   const ref = componentRefs.value['${comp.id}']
   if (ref) {
-    const el = ${needsEl ? 'ref.$el || ref' : 'ref'}
-    el.style.animationPlayState = 'paused'
+    const el = ${needsEl ? '(ref as any).$el || ref' : 'ref'} as HTMLElement
+    animationPlaying_${comp.id}.value = false
     el.style.animation = 'none'
     setTimeout(() => {
       el.style.animation = ''
@@ -496,22 +600,24 @@ function resetAnimation_${comp.id}() {
       } else if (trigger === 'click') {
         handlersStr += `
 function playAnimation_${comp.id}() {
-  const ref = componentRefs.value['${comp.id}']
-  if (ref) {
-    const el = ${needsEl ? 'ref.$el || ref' : 'ref'}
-    el.classList.remove('animation-paused')
-    el.style.animation = 'none'
-    setTimeout(() => {
-      el.style.animation = ''
-    }, 10)
-  }
+  animationPlaying_${comp.id}.value = true
+  nextTick(() => {
+    const ref = componentRefs.value['${comp.id}']
+    if (ref) {
+      const el = ${needsEl ? '(ref as any).$el || ref' : 'ref'} as HTMLElement
+      el.style.animation = 'none'
+      setTimeout(() => {
+        el.style.animation = ''
+      }, 10)
+    }
+  })
 }
 `
       }
     }
   }
 
-  return handlersStr
+  return handlersStr || '// 无需动画处理函数'
 }
 
 /**
@@ -530,7 +636,7 @@ function generateOnMountAnimations(components: Component[]): string {
 }
 
 /**
- * 生成事件处理函数
+ * 生成事件处理函数（代理调用运行时 Hook）
  */
 function generateEventHandlers(components: Component[]): string {
   let handlersStr = ''
@@ -539,180 +645,48 @@ function generateEventHandlers(components: Component[]): string {
     if (comp.events) {
       // Click事件
       if (comp.events.click && comp.events.click.length > 0) {
-        handlersStr += `\nfunction handleEvent_${comp.id}_click() {\n`
+        const isAsync = comp.events.click.some((a) => a.delay && a.delay > 0)
+        handlersStr += `\n${isAsync ? 'async ' : ''}function handleEvent_${comp.id}_click() {\n`
+        handlersStr += `  // 代理调用运行时执行器\n`
         for (const action of comp.events.click) {
-          handlersStr += `  // ${action.type}\n`
-          handlersStr += generateEventActionCode(action, 2)
+          handlersStr += `  ${isAsync ? 'await ' : ''}executeAction(${JSON.stringify(action)})\n`
         }
         handlersStr += `}\n`
       }
 
       // Hover事件
       if (comp.events.hover && comp.events.hover.length > 0) {
-        handlersStr += `\nfunction handleEvent_${comp.id}_hover() {\n`
+        const isAsync = comp.events.hover.some((a) => a.delay && a.delay > 0)
+        handlersStr += `\n${isAsync ? 'async ' : ''}function handleEvent_${comp.id}_hover() {\n`
+        handlersStr += `  // 代理调用运行时执行器\n`
         for (const action of comp.events.hover) {
-          handlersStr += `  // ${action.type}\n`
-          handlersStr += generateEventActionCode(action, 2)
+          handlersStr += `  ${isAsync ? 'await ' : ''}executeAction(${JSON.stringify(action)})\n`
         }
         handlersStr += `}\n`
       }
 
       // DoubleClick事件
       if (comp.events.doubleClick && comp.events.doubleClick.length > 0) {
-        handlersStr += `\nfunction handleEvent_${comp.id}_doubleclick() {\n`
+        const isAsync = comp.events.doubleClick.some((a) => a.delay && a.delay > 0)
+        handlersStr += `\n${isAsync ? 'async ' : ''}function handleEvent_${comp.id}_doubleclick() {\n`
+        handlersStr += `  // 代理调用运行时执行器\n`
         for (const action of comp.events.doubleClick) {
-          handlersStr += `  // ${action.type}\n`
-          handlersStr += generateEventActionCode(action, 2)
+          handlersStr += `  ${isAsync ? 'await ' : ''}executeAction(${JSON.stringify(action)})\n`
         }
         handlersStr += `}\n`
       }
     }
   }
 
-  return handlersStr
+  return handlersStr || '// 无事件处理函数'
 }
 
 /**
- * 生成事件动作代码
+ * 生成事件动作代码（与 useEventExecutor.ts 保持一致）
  */
-function generateEventActionCode(
-  action: {
-    type: string
-    targetId?: string
-    content?: string
-    eventName?: string
-    eventParams?: string
-  },
-  indent: number,
-): string {
-  const indentStr = ' '.repeat(indent)
-  let code = ''
-
-  switch (action.type) {
-    case 'navigate':
-      code += `${indentStr}window.location.href = '${action.content}'\n`
-      break
-
-    case 'toggle-visibility':
-      if (action.targetId) {
-        code += `${indentStr}const target_${action.targetId} = componentRefs.value['${action.targetId}']\n`
-        code += `${indentStr}if (target_${action.targetId}) {\n`
-        code += `${indentStr}  const el = target_${action.targetId}.$el || target_${action.targetId}\n`
-        code += `${indentStr}  el.style.display = el.style.display === 'none' ? '' : 'none'\n`
-        code += `${indentStr}}\n`
-      }
-      break
-
-    case 'scroll-to':
-      if (action.targetId) {
-        code += `${indentStr}const scrollTarget_${action.targetId} = componentRefs.value['${action.targetId}']\n`
-        code += `${indentStr}if (scrollTarget_${action.targetId}) {\n`
-        code += `${indentStr}  const el = scrollTarget_${action.targetId}.$el || scrollTarget_${action.targetId}\n`
-        code += `${indentStr}  el.scrollIntoView({ behavior: 'smooth', block: 'center' })\n`
-        code += `${indentStr}}\n`
-      }
-      break
-
-    case 'refresh-data':
-      code += `${indentStr}// TODO: 实现数据刷新逻辑\n`
-      code += `${indentStr}console.log('刷新数据')\n`
-      break
-
-    case 'play-animation':
-      if (action.targetId) {
-        code += `${indentStr}const animTarget_${action.targetId} = componentRefs.value['${action.targetId}']\n`
-        code += `${indentStr}if (animTarget_${action.targetId}) {\n`
-        code += `${indentStr}  const el = animTarget_${action.targetId}.$el || animTarget_${action.targetId}\n`
-        code += `${indentStr}  el.style.animation = 'none'\n`
-        code += `${indentStr}  setTimeout(() => { el.style.animation = '' }, 10)\n`
-        code += `${indentStr}}\n`
-      }
-      break
-
-    case 'open-modal':
-      if (action.targetId) {
-        code += `${indentStr}const modal_${action.targetId} = componentRefs.value['${action.targetId}']\n`
-        code += `${indentStr}if (modal_${action.targetId}) {\n`
-        code += `${indentStr}  const el = modal_${action.targetId}.$el || modal_${action.targetId}\n`
-        code += `${indentStr}  el.style.display = 'block'\n`
-        code += `${indentStr}  el.style.visibility = 'visible'\n`
-        code += `${indentStr}}\n`
-      }
-      break
-
-    case 'show-tooltip':
-      code += `${indentStr}console.log('${action.content || '提示信息'}')\n`
-      code += `${indentStr}// TODO: 实现tooltip显示逻辑\n`
-      break
-
-    case 'highlight':
-      if (action.targetId) {
-        code += `${indentStr}const hlTarget_${action.targetId} = componentRefs.value['${action.targetId}']\n`
-        code += `${indentStr}if (hlTarget_${action.targetId}) {\n`
-        code += `${indentStr}  const el = hlTarget_${action.targetId}.$el || hlTarget_${action.targetId}\n`
-        code += `${indentStr}  el.classList.add('highlight-effect')\n`
-        code += `${indentStr}  setTimeout(() => el.classList.remove('highlight-effect'), 2000)\n`
-        code += `${indentStr}}\n`
-      }
-      break
-
-    case 'show-detail':
-    case 'preview':
-      code += `${indentStr}// TODO: 实现${action.type}逻辑\n`
-      code += `${indentStr}console.log('${action.type}: ${action.targetId}')\n`
-      break
-
-    case 'fullscreen':
-      code += `${indentStr}if (document.fullscreenElement) {\n`
-      code += `${indentStr}  document.exitFullscreen()\n`
-      code += `${indentStr}} else {\n`
-      code += `${indentStr}  document.documentElement.requestFullscreen()\n`
-      code += `${indentStr}}\n`
-      break
-
-    case 'edit-mode':
-      code += `${indentStr}// TODO: 实现编辑模式切换\n`
-      code += `${indentStr}console.log('切换编辑模式')\n`
-      break
-
-    case 'expand-detail':
-      if (action.targetId) {
-        code += `${indentStr}const expandTarget_${action.targetId} = componentRefs.value['${action.targetId}']\n`
-        code += `${indentStr}if (expandTarget_${action.targetId}) {\n`
-        code += `${indentStr}  const el = expandTarget_${action.targetId}.$el || expandTarget_${action.targetId}\n`
-        code += `${indentStr}  el.classList.toggle('expanded')\n`
-        code += `${indentStr}}\n`
-      }
-      break
-
-    case 'custom-event':
-      if (action.eventName) {
-        code += `${indentStr}// 自定义事件: ${action.eventName}\n`
-        if (action.eventParams) {
-          code += `${indentStr}const params = ${action.eventParams}\n`
-          code += `${indentStr}console.log('触发自定义事件', params)\n`
-        } else {
-          code += `${indentStr}console.log('触发自定义事件: ${action.eventName}')\n`
-        }
-      }
-      break
-
-    case 'custom-script':
-      if (action.content) {
-        code += `${indentStr}${action.content}\n`
-      }
-      break
-
-    default:
-      code += `${indentStr}// TODO: 实现${action.type}逻辑\n`
-      code += `${indentStr}console.log('未实现的动作类型: ${action.type}')\n`
-  }
-
-  return code
-}
 
 /**
- * 生成样式代码
+ * 生成样式代码（与 RuntimeComponent.vue 保持一致）
  */
 function generateStyle(): string {
   return `<style scoped>
@@ -724,62 +698,95 @@ function generateStyle(): string {
   background-color: #f5f5f5;
 }
 
-/* 动画效果 */
+/* 动画效果（与 RuntimeComponent.vue 保持一致） */
 @keyframes fadeIn {
-  from { opacity: 0; }
-  to { opacity: 1; }
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
 }
 .anim-fade {
   animation: fadeIn 0.8s ease both;
 }
 
 @keyframes zoomIn {
-  0% { transform: scale(0.3); opacity: 0; }
-  60% { opacity: 1; }
-  100% { transform: scale(1); }
+  0% {
+    transform: scale(0.3);
+    opacity: 0;
+  }
+  60% {
+    opacity: 1;
+  }
+  100% {
+    transform: scale(1);
+  }
 }
 .anim-zoom {
   animation: zoomIn 0.7s cubic-bezier(0.4, 0, 0.2, 1) both;
 }
 
 @keyframes slideLeft {
-  0% { transform: translateX(40px); opacity: 0; }
-  100% { transform: translateX(0); opacity: 1; }
+  0% {
+    transform: translateX(40px);
+    opacity: 0;
+  }
+  100% {
+    transform: translateX(0);
+    opacity: 1;
+  }
 }
 .anim-slide-left {
   animation: slideLeft 0.6s ease-out both;
 }
 
 @keyframes slideUp {
-  0% { transform: translateY(40px); opacity: 0; }
-  100% { transform: translateY(0); opacity: 1; }
+  0% {
+    transform: translateY(40px);
+    opacity: 0;
+  }
+  100% {
+    transform: translateY(0);
+    opacity: 1;
+  }
 }
 .anim-slide-up {
   animation: slideUp 0.6s ease-out both;
 }
 
 @keyframes bounceIn {
-  0% { transform: scale(0.5); opacity: 0; }
-  60% { transform: scale(1.1); opacity: 1; }
-  80% { transform: scale(0.95); }
-  100% { transform: scale(1); }
+  0% {
+    transform: scale(0.5);
+    opacity: 0;
+  }
+  60% {
+    transform: scale(1.1);
+    opacity: 1;
+  }
+  80% {
+    transform: scale(0.95);
+  }
+  100% {
+    transform: scale(1);
+  }
 }
 .anim-bounce {
   animation: bounceIn 0.7s cubic-bezier(0.68, -0.55, 0.27, 1.55) both;
 }
 
 @keyframes rotateIn {
-  0% { transform: rotate(-180deg); opacity: 0; }
-  100% { transform: rotate(0deg); opacity: 1; }
+  0% {
+    transform: rotate(-180deg);
+    opacity: 0;
+  }
+  100% {
+    transform: rotate(0deg);
+    opacity: 1;
+  }
 }
 .anim-rotate {
   animation: rotateIn 0.7s ease-out both;
-}
-
-/* 动画触发类 */
-.animation-trigger-hover:hover .animated,
-.animation-trigger-click.clicked .animated {
-  animation-play-state: running;
 }
 
 .animation-paused {
@@ -790,12 +797,45 @@ function generateStyle(): string {
   animation-fill-mode: both;
 }
 
-/* 高亮效果 */
+/* 高亮效果（与 useEventExecutor.ts 保持一致） */
+@keyframes editor-highlight-pulse {
+  0% {
+    box-shadow: 0 0 0 0 rgba(64, 158, 255, 0.7);
+  }
+  50% {
+    box-shadow: 0 0 0 12px rgba(64, 158, 255, 0);
+  }
+  100% {
+    box-shadow: 0 0 0 0 rgba(64, 158, 255, 0);
+  }
+}
+
+@keyframes editor-highlight-border {
+  0%, 100% {
+    border-color: rgba(64, 158, 255, 0.8);
+  }
+  50% {
+    border-color: rgba(64, 158, 255, 0.3);
+  }
+}
+
 .highlight-effect {
-  outline: 3px solid #409eff;
+  position: relative;
+  animation: editor-highlight-pulse 1s ease-in-out infinite;
+  outline: 3px solid rgba(64, 158, 255, 0.8);
   outline-offset: 2px;
-  box-shadow: 0 0 10px rgba(64, 158, 255, 0.5);
-  transition: all 0.3s ease;
+  border-radius: 4px;
+  z-index: 9999;
+}
+
+.highlight-effect::before {
+  content: '';
+  position: absolute;
+  inset: -6px;
+  border: 2px dashed rgba(64, 158, 255, 0.6);
+  border-radius: 8px;
+  animation: editor-highlight-border 1s ease-in-out infinite;
+  pointer-events: none;
 }
 
 /* 展开效果 */

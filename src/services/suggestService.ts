@@ -12,6 +12,35 @@ import type {
 import type { Component } from '@/types/components'
 import { nanoid } from 'nanoid'
 import http from '@/services/http'
+import { getAllSchemas, type ComponentSchema } from '@/components/siderBar/properties/schema/types'
+import '@/components/siderBar/properties/schema/index'
+
+/**
+ * 构建组件能力文档（基于 Schema）
+ */
+function buildComponentCapabilityDoc(): string {
+  const schemas = getAllSchemas()
+  const capabilities: string[] = []
+
+  schemas.forEach((schema: ComponentSchema, type: string) => {
+    const mainType = schema.types[0] || type
+    const props: string[] = []
+
+    // 提取组件属性
+    if (schema.componentSchema) {
+      props.push(...schema.componentSchema.map((f) => `${f.key}(${f.type})`))
+    }
+
+    // 数据源支持
+    const hasDataSource = schema.dataSourceSchema && schema.dataSourceSchema.length > 0
+
+    capabilities.push(
+      `- ${mainType}: ${props.slice(0, 8).join(', ')}${props.length > 8 ? '...' : ''} ${hasDataSource ? '[支持数据源]' : ''}`,
+    )
+  })
+
+  return capabilities.join('\n')
+}
 
 /**
  * 默认白名单配置
@@ -227,69 +256,56 @@ function validateDiff(diff: DiffItem): { valid: boolean; errors: string[] } {
 const AGENT_CONFIG = {
   endpoint: '/ai/generate',
   timeout: 60000,
+  maxRetries: 2, // 最大重试次数
+  retryDelay: 2000, // 重试延迟(毫秒)
+}
+
+/**
+ * 请求频率限制检查
+ */
+let lastRequestTime = 0
+const MIN_REQUEST_INTERVAL = 1000 // 最小请求间隔 1 秒
+
+function checkRateLimit(): { allowed: boolean; waitTime?: number } {
+  const now = Date.now()
+  const timeSinceLastRequest = now - lastRequestTime
+
+  if (timeSinceLastRequest < MIN_REQUEST_INTERVAL) {
+    return {
+      allowed: false,
+      waitTime: MIN_REQUEST_INTERVAL - timeSinceLastRequest,
+    }
+  }
+
+  lastRequestTime = now
+  return { allowed: true }
 }
 
 /**
  * 构建发送给 Agent 的系统提示词
  */
-function buildSystemPrompt(): string {
+function buildSystemPrompt(canvasWidth: number, canvasHeight: number): string {
+  const capabilityDoc = buildComponentCapabilityDoc()
+
   return `你是一个专业的 WebGIS 可视化大屏设计助手。用户会描述他们想要的组件或布局需求，你需要根据需求生成对应的组件配置。
 
-## 可用组件类型
-### 图表类
-- lineChart: 折线图（用于趋势分析）
-- barChart: 柱状图（用于数据对比）
-- stackedBarChart: 堆叠柱状图
-- pieChart: 饼图（用于占比分析）
-- doughnutChart: 环形图
-- scatterChart: 散点图
-- radarChart: 雷达图
-- gaugeChart: 仪表盘
-- funnelChart: 漏斗图
-- sankeyChart: 桑基图
+## 【组件能力文档】
+以下是系统中所有可用组件及其核心属性，请严格参考此文档生成配置：
 
-### KPI 指标类
-- stat: 统计指标卡
-- countUp: 数字滚动
-- progress: 进度条
-- badge: 徽章
-- box: 信息盒子
-- Text: 文本
+${capabilityDoc}
 
-### 数据展示类
-- table: 数据表格
-- list: 列表
-- timeline: 时间线
-- cardGrid: 卡片网格
-- pivot: 透视表
+## 【画布尺寸】
+当前画布：${canvasWidth}x${canvasHeight}
 
-### 控件类
-- select: 下拉选择
-- multiSelect: 多选
-- dateRange: 日期范围
-- searchBox: 搜索框
-- slider: 滑块
-- switch: 开关
-- checkboxGroup: 复选框组
-- buttonGroup: 按钮组
+## 【核心规则】
+1. **严禁臆造属性**：只能使用【组件能力文档】中列出的属性名
+2. position.x 范围：0 到 ${canvasWidth - 50}
+3. position.y 范围：0 到 ${canvasHeight - 50}
+4. size 合理范围：宽度 50-${Math.min(canvasWidth, 800)}，高度 50-${Math.min(canvasHeight, 600)}
+5. 多组件布局时错开位置，避免重叠
+6. 支持数据源的组件可配置 dataSource.enabled = true
 
-### 布局类
-- row, col, flex, grid: 布局容器
-- panel: 面板
-- tabs: 标签页
-- modal: 弹窗
-
-### 媒体类
-- image: 图片
-- video: 视频
-
-### 地图类
-- base: 基础地图
-- tile: 瓦片图层
-- marker: 标记点
-- heat: 热力图
-
-## 输出格式
+## 【输出格式】
 请严格按照以下 JSON 格式返回，不要包含任何其他文字：
 {
   "diffs": [
@@ -325,10 +341,10 @@ function buildSystemPrompt(): string {
  */
 function buildUserMessage(request: SuggestionRequest): string {
   const contextInfo = request.context
-    ? `\n当前画布尺寸: ${request.context.canvasSize?.width || 1920}x${request.context.canvasSize?.height || 1080}\n已有组件数量: ${request.context.components?.length || 0}`
+    ? `\n\n【上下文信息】\n- 画布尺寸: ${request.context.canvasSize?.width || 1920}x${request.context.canvasSize?.height || 1080}\n- 已有组件: ${request.context.components?.length || 0} 个`
     : ''
 
-  return `用户需求: ${request.prompt}${contextInfo}`
+  return `【用户需求】\n${request.prompt}${contextInfo}`
 }
 
 /**
@@ -394,6 +410,39 @@ function parseAgentResponse(
  * 调用真实 Agent API
  */
 async function callAgent(request: SuggestionRequest): Promise<Omit<SuggestionResult, 'id'>> {
+  // 频率限制检查
+  const rateLimitCheck = checkRateLimit()
+  if (!rateLimitCheck.allowed) {
+    console.warn('[SuggestService] 请求过于频繁，请稍候')
+    return {
+      request,
+      diffs: [
+        {
+          action: 'add',
+          componentType: 'Text',
+          component: {
+            type: 'Text',
+            name: '频率限制提示',
+            position: { x: 50, y: 50 },
+            size: { width: 500, height: 80 },
+            rotation: 0,
+            zindex: 1,
+            style: { visible: true, locked: false },
+            props: {
+              content: `请求过于频繁，请等待 ${Math.ceil((rateLimitCheck.waitTime || 0) / 1000)} 秒后重试`,
+            },
+          },
+          description: '频率限制提示',
+        },
+      ],
+      summary: '请求频率限制',
+      confidence: 0,
+      agentVersion: 'rate-limited',
+      timestamp: Date.now(),
+      validated: false,
+    }
+  }
+
   // 检查 API 配置
   if (!AGENT_CONFIG.endpoint) {
     console.warn('[SuggestService] Agent API 未配置，请设置 AGENT_CONFIG')
@@ -412,7 +461,7 @@ async function callAgent(request: SuggestionRequest): Promise<Omit<SuggestionRes
             zindex: 1,
             style: { visible: true, locked: false },
             props: {
-              content: '⚠️ Agent API 未配置。请确保后端服务器运行并配置 AI API 密钥。',
+              content: 'Agent API 未配置。请确保后端服务器运行并配置 AI API 密钥。',
             },
           },
           description: 'API 配置提示',
@@ -433,11 +482,14 @@ async function callAgent(request: SuggestionRequest): Promise<Omit<SuggestionRes
 
     timeoutId = window.setTimeout(() => controller.abort(), AGENT_CONFIG.timeout)
 
+    const canvasWidth = request.context?.canvasSize?.width || 1920
+    const canvasHeight = request.context?.canvasSize?.height || 1080
+
     const resp = await http.post(
       AGENT_CONFIG.endpoint,
       {
         messages: [
-          { role: 'system', content: buildSystemPrompt() },
+          { role: 'system', content: buildSystemPrompt(canvasWidth, canvasHeight) },
           { role: 'user', content: buildUserMessage(request) },
         ],
         temperature: 0.7,
@@ -468,11 +520,28 @@ async function callAgent(request: SuggestionRequest): Promise<Omit<SuggestionRes
 
     console.error('[SuggestService] Agent 调用失败:', err)
 
-    // 超时/取消/其它错误处理
+    // 错误分类处理
     let errorMessage = '未知错误'
+    let errorTip = ''
+
     const errCode = (err as { code?: string })?.code
-    if (errCode === 'ECONNABORTED' || errCode === 'ERR_CANCELED') {
-      errorMessage = '请求超时或已取消，请检查网络连接'
+    const errStatus = (err as { response?: { status?: number } })?.response?.status
+
+    if (errStatus === 429) {
+      errorMessage = 'API 请求频率超限'
+      errorTip = '建议：等待 30-60 秒后重试，或联系管理员提升配额'
+    } else if (errStatus === 401 || errStatus === 403) {
+      errorMessage = 'API 认证失败'
+      errorTip = '建议：检查后端 AI API 密钥配置是否正确'
+    } else if (errStatus === 500 || errStatus === 502 || errStatus === 503) {
+      errorMessage = '后端服务异常'
+      errorTip = '建议：检查后端服务是否正常运行'
+    } else if (errCode === 'ECONNABORTED' || errCode === 'ERR_CANCELED') {
+      errorMessage = '请求超时或已取消'
+      errorTip = '建议：检查网络连接或增加超时时间'
+    } else if (errCode === 'ERR_NETWORK') {
+      errorMessage = '网络连接失败'
+      errorTip = '建议：检查后端服务是否启动（http://localhost:3001）'
     } else if (err instanceof Error) {
       errorMessage = err.message
     }
@@ -487,12 +556,12 @@ async function callAgent(request: SuggestionRequest): Promise<Omit<SuggestionRes
             type: 'Text',
             name: '错误提示',
             position: { x: 50, y: 50 },
-            size: { width: 500, height: 80 },
+            size: { width: 600, height: errorTip ? 120 : 80 },
             rotation: 0,
             zindex: 1,
             style: { visible: true, locked: false },
             props: {
-              content: `❌ Agent 调用失败: ${errorMessage}`,
+              content: `AI 建议失败: ${errorMessage}\n${errorTip}`,
             },
           },
           description: '错误提示',
@@ -514,20 +583,36 @@ export async function generateSuggestion(request: SuggestionRequest): Promise<Su
   // 调用 Agent
   const rawResult = await callAgent(request)
 
+  const totalDiffs = rawResult.diffs.length
+  let validDiffsCount = 0
+
   // 校验每个差异项
   const validationErrors: string[] = []
+  const validDiffs: DiffItem[] = []
+
   for (const diff of rawResult.diffs) {
     const result = validateDiff(diff)
-    if (!result.valid) {
+    if (result.valid) {
+      validDiffs.push(diff)
+      validDiffsCount++
+    } else {
       validationErrors.push(...result.errors)
+      console.warn('[AI 校验] 差异项未通过:', diff, result.errors)
     }
   }
 
   const validated = validationErrors.length === 0
 
+  // 真实置信度计算
+  const baseConfidence = 0.9
+  const validationRate = totalDiffs > 0 ? validDiffsCount / totalDiffs : 0
+  const confidence = baseConfidence * validationRate
+
   return {
     id: nanoid(),
     ...rawResult,
+    diffs: validDiffs, // 只保留通过校验的差异
+    confidence: Math.round(confidence * 100) / 100,
     validated,
     validationErrors: validated ? undefined : validationErrors,
   }
@@ -558,7 +643,7 @@ export function applyDiffs(
         const targetIndex = newComponents.findIndex((c) => c.id === diff.componentId)
         if (targetIndex !== -1) {
           const target = newComponents[targetIndex]
-          // 简化的路径设置（实际项目可用 lodash.set）
+          // 简化的路径设置
           const pathParts = diff.path.split('.')
           let current: unknown = target
           for (let i = 0; i < pathParts.length - 1; i++) {

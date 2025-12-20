@@ -35,11 +35,23 @@ export interface Project {
   pages: Page[]
 }
 
+// 数据转换工具
+function transformServerProject(serverProject: ServerProject): Project {
+  return {
+    id: serverProject._id,
+    name: serverProject.name,
+    cover: serverProject.cover,
+    description: serverProject.description,
+    createdAt: new Date(serverProject.createdAt).getTime(),
+    updatedAt: new Date(serverProject.updatedAt).getTime(),
+    pages: serverProject.pages || [],
+  }
+}
+
 export const useProjectStore = defineStore('project', () => {
   const componentStore = useComponent()
 
   // —— State ——
-  // 所有项目列表 (实际开发中应从后端获取)
   const projectList = ref<Project[]>([])
 
   // 当前激活的项目 ID
@@ -65,7 +77,7 @@ export const useProjectStore = defineStore('project', () => {
 
   // —— 三层保存策略核心逻辑 ——
 
-  // Layer 3: 后端持久化保存（模拟 API 请求）
+  // Layer 3: 后端持久化保存
   async function saveToBackend(): Promise<void> {
     if (!currentProjectId.value || !activePageId.value || !activePage.value) {
       return
@@ -74,9 +86,6 @@ export const useProjectStore = defineStore('project', () => {
     saveStatus.value = 'saving'
 
     try {
-      // 模拟 API 请求延迟 500ms
-      await new Promise((resolve) => setTimeout(resolve, 500))
-
       // 获取当前画布数据
       const currentComponents = JSON.parse(JSON.stringify(componentStore.componentStore))
 
@@ -85,28 +94,30 @@ export const useProjectStore = defineStore('project', () => {
         activePage.value.components = currentComponents
       }
 
-      // 更新项目修改时间
-      if (currentProject.value) {
-        currentProject.value.updatedAt = Date.now()
+      // 调用真实 API 保存到后端
+      const serverProject = await projectService.updateProject(currentProjectId.value, {
+        name: currentProject.value!.name,
+        description: currentProject.value!.description,
+        pages: currentProject.value!.pages,
+      })
+
+      // 更新本地项目数据
+      const updatedProject = transformServerProject(serverProject)
+      const index = projectList.value.findIndex((p) => p.id === currentProjectId.value)
+      if (index > -1) {
+        projectList.value[index] = updatedProject
       }
 
-      // 持久化到 localStorage（项目列表）
-      saveToLocalStorage()
-
-      // 清除草稿（后端已同步）
+      // 清除草稿
       clearDraft()
 
       // 更新状态
       saveStatus.value = 'saved'
       lastSavedTime.value = Date.now()
 
-      console.log('[SaveStrategy] 后端同步成功:', {
-        projectId: currentProjectId.value,
-        pageId: activePageId.value,
-        time: new Date().toLocaleTimeString(),
-      })
+      console.log('[API] 保存成功:', currentProjectId.value)
     } catch (error) {
-      console.error('[SaveStrategy] 后端同步失败:', error)
+      console.error('[API] 保存失败:', error)
       saveStatus.value = 'unsaved'
       ElMessage.error('保存失败，请重试')
     }
@@ -223,34 +234,44 @@ export const useProjectStore = defineStore('project', () => {
 
   // —— Actions ——
 
-  // 1. 初始化/加载项目
-  function loadProject(projectId: string) {
-    const project = projectList.value.find((p) => p.id === projectId)
-    if (!project) {
-      console.error(`Project ${projectId} not found`)
+  // 1. 加载项目（从后端获取最新数据）
+  async function loadProject(projectId: string) {
+    try {
+      const serverProject = await projectService.getProject(projectId)
+      if (!serverProject) {
+        ElMessage.error('项目不存在')
+        return false
+      }
+
+      // 转换并更新到本地列表
+      const project = transformServerProject(serverProject)
+      const index = projectList.value.findIndex((p) => p.id === projectId)
+      if (index > -1) {
+        projectList.value[index] = project
+      } else {
+        projectList.value.push(project)
+      }
+
+      currentProjectId.value = projectId
+
+      // 加载第一个页面
+      const firstPage = project.pages[0]
+      if (project.pages.length > 0 && firstPage) {
+        activePageId.value = firstPage.id
+        componentStore.reset()
+        componentStore.loadTemplate(firstPage.components)
+
+        initWatcher()
+
+        saveStatus.value = 'saved'
+        lastSavedTime.value = project.updatedAt
+      }
+      return true
+    } catch (error) {
+      console.error('[API] 加载项目失败:', error)
+      ElMessage.error('加载项目失败')
       return false
     }
-
-    currentProjectId.value = projectId
-
-    // 默认选中第一个页面
-    const firstPage = project.pages[0]
-    if (project.pages.length > 0 && firstPage) {
-      // 这里不直接调用 switchPage，避免重复保存空状态
-      activePageId.value = firstPage.id
-      // 将页面数据加载到画布 Store
-      componentStore.reset() // 先清空
-      // 这里的 loadTemplate 是借用现有的方法来填充数据
-      componentStore.loadTemplate(firstPage.components)
-
-      // 初始化 watcher（仅在首次加载项目时）
-      initWatcher()
-
-      // 重置保存状态
-      saveStatus.value = 'saved'
-      lastSavedTime.value = project.updatedAt
-    }
-    return true
   }
 
   // 2. 切换页面 (核心联动逻辑)
@@ -295,47 +316,43 @@ export const useProjectStore = defineStore('project', () => {
     saveStatus.value = 'saved'
   }
 
-  // 3. 保存当前画布快照 (用于自动保存或切换前保存)
+  // 3. 保存当前画布快照
   function saveCurrentPageSnapshot() {
     if (!activePage.value) return
 
-    // 从 componentStore 获取当前所有组件
-    // 注意：这里需要深拷贝，或者确保 componentStore.value 是纯数据
     const currentComponents = JSON.parse(JSON.stringify(componentStore.componentStore))
-
     activePage.value.components = currentComponents
 
-    // 更新项目修改时间
     if (currentProject.value) {
       currentProject.value.updatedAt = Date.now()
-      saveToLocalStorage() // 持久化
     }
   }
 
-  // 4. 创建新项目（优先使用远程 API）
+  // 4. 创建新项目
   async function createProject(name: string) {
     try {
-      // 尝试调用远程 API
       const serverProject = await projectService.createProject({
         name: name || '未命名项目',
       })
 
-      // 转换为本地格式
-      const localProject: Project = {
-        id: (serverProject as unknown as ServerProject)._id || nanoid(),
-        name: serverProject.name,
-        cover: serverProject.cover,
-        description: serverProject.description,
-        createdAt: new Date((serverProject as unknown as ServerProject).createdAt).getTime(),
-        updatedAt: new Date((serverProject as unknown as ServerProject).updatedAt).getTime(),
-        pages: serverProject.pages || [],
+      const localProject = transformServerProject(serverProject)
+
+      // 确保新项目至少有一个页面
+      if (!localProject.pages || localProject.pages.length === 0) {
+        localProject.pages = [
+          {
+            id: nanoid(),
+            name: '主页面',
+            components: [],
+          },
+        ]
       }
 
       projectList.value.unshift(localProject)
-      saveToLocalStorage()
       return localProject.id
     } catch (error) {
-      console.warn('远程创建失败，使用本地模式:', error)
+      console.error('[API] 创建项目失败:', error)
+      ElMessage.error('创建项目失败')
       // 降级为本地模式
       const newProject: Project = {
         id: nanoid(),
@@ -351,7 +368,6 @@ export const useProjectStore = defineStore('project', () => {
         ],
       }
       projectList.value.unshift(newProject)
-      saveToLocalStorage()
       return newProject.id
     }
   }
@@ -368,9 +384,10 @@ export const useProjectStore = defineStore('project', () => {
     }
     currentProject.value.pages.push(newPage)
 
-    // 自动切换到新页面
+    // 自动切换到新页面并触发保存
     switchPage(newPage.id)
-    saveToLocalStorage()
+    saveStatus.value = 'unsaved'
+    saveToBackendDebounced()
   }
 
   // 6. 重命名页面
@@ -383,11 +400,9 @@ export const useProjectStore = defineStore('project', () => {
         page.route = newRoute
       }
 
-      // 更新保存状态和时间戳
       saveStatus.value = 'unsaved'
       currentProject.value.updatedAt = Date.now()
-
-      saveToLocalStorage()
+      saveToBackendDebounced()
     }
   }
 
@@ -403,7 +418,6 @@ export const useProjectStore = defineStore('project', () => {
     if (index > -1) {
       currentProject.value.pages.splice(index, 1)
 
-      // 更新保存状态和时间戳
       saveStatus.value = 'unsaved'
       currentProject.value.updatedAt = Date.now()
 
@@ -414,37 +428,39 @@ export const useProjectStore = defineStore('project', () => {
           switchPage(firstPage.id)
         }
       }
-      saveToLocalStorage()
+      saveToBackendDebounced()
     }
   }
 
   // 8. 删除项目
-  function deleteProject(id: string) {
-    const index = projectList.value.findIndex((p) => p.id === id)
-    if (index > -1) {
-      projectList.value.splice(index, 1)
-      saveToLocalStorage()
-    }
-  }
-
-  // —— 持久化 (Mock Database) ——
-  function saveToLocalStorage() {
-    localStorage.setItem('webgis_projects', JSON.stringify(projectList.value))
-  }
-
-  function initFromLocalStorage() {
-    const localData = localStorage.getItem('webgis_projects')
-    if (localData) {
-      try {
-        projectList.value = JSON.parse(localData)
-      } catch (e) {
-        console.error('Failed to load projects', e)
+  async function deleteProject(id: string) {
+    try {
+      await projectService.deleteProject(id)
+      const index = projectList.value.findIndex((p) => p.id === id)
+      if (index > -1) {
+        projectList.value.splice(index, 1)
       }
+      ElMessage.success('删除成功')
+    } catch (error) {
+      console.error('[API] 删除项目失败:', error)
+      ElMessage.error('删除失败')
     }
   }
 
-  // 初始化
-  initFromLocalStorage()
+  // —— 初始化 ——
+  async function fetchProjectList() {
+    try {
+      const serverProjects = await projectService.listProjects()
+      projectList.value = serverProjects.map(transformServerProject)
+      console.log('[API] 项目列表加载成功:', projectList.value.length)
+    } catch (error) {
+      console.error('[API] 加载项目列表失败:', error)
+      ElMessage.warning('加载项目列表失败，使用本地缓存')
+    }
+  }
+
+  // 自动初始化
+  fetchProjectList()
 
   return {
     // State
@@ -462,6 +478,7 @@ export const useProjectStore = defineStore('project', () => {
     loadProject,
     createProject,
     deleteProject,
+    fetchProjectList,
 
     // Actions - 页面管理
     switchPage,

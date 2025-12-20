@@ -14,6 +14,7 @@ import type {
 import type { Component } from '@/types/components'
 import { generateSuggestion, applyDiffs } from '@/services/suggestService'
 import { useComponent } from '@/stores/component'
+import { useSizeStore } from '@/stores/size'
 import { nanoid } from 'nanoid'
 
 export const useSuggestion = defineStore('suggestion', () => {
@@ -37,6 +38,7 @@ export const useSuggestion = defineStore('suggestion', () => {
    */
   async function generate(prompt: string) {
     const componentStore = useComponent()
+    const sizeStore = useSizeStore()
 
     isGenerating.value = true
     try {
@@ -45,8 +47,8 @@ export const useSuggestion = defineStore('suggestion', () => {
         context: {
           components: componentStore.componentStore as Component[],
           canvasSize: {
-            width: 1920,
-            height: 1080,
+            width: sizeStore.width,
+            height: sizeStore.height,
           },
         },
         timestamp: Date.now(),
