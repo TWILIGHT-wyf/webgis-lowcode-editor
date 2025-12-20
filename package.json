@@ -9,10 +9,10 @@
   "scripts": {
     "dev": "run-p dev:server dev:client",
     "dev:client": "vite",
-    "dev:server": "cd server && npm run dev",
+    "dev:server": "cd server && pnpm run dev",
     "build": "run-p type-check build:client build:server",
     "build:client": "vite build",
-    "build:server": "cd server && npm run build",
+    "build:server": "cd server && pnpm run build",
     "preview": "vite preview",
     "test": "vitest",
     "test:e2e": "playwright test",

@@ -52,7 +52,7 @@ jobs:
 
       # 3. Unit Test
       - name: Run unit tests
-        run: pnpm run test:unit -- --run
+        run: pnpm run test -- --run
 
       # 4. Build Frontend
       - name: Build frontend
@@ -60,12 +60,9 @@ jobs:
 
       # 5. Build Server (type check)
       - name: Build server
-        run: |
-          cd server
-          npm install
-          npm run build
+        run: cd server && pnpm run build
 
-      # 6. Playwright E2E 
+      # 6. Playwright E2E
       - name: Install Playwright browsers
         run: pnpm exec playwright install --with-deps
 
@@ -73,5 +70,3 @@ jobs:
         run: pnpm run test:e2e
         env:
           CI: true
-
-  
