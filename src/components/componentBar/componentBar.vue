@@ -298,14 +298,15 @@ function updateGraph() {
   const option: echarts.EChartsOption = {
     tooltip: {
       trigger: 'item',
-      formatter: (params: {
-        dataType: string
-        data: { relationName?: string; name?: string; type?: string }
-      }) => {
-        if (params.dataType === 'edge') {
-          return `${params.data.relationName}关系`
+      formatter: (params) => {
+        const p = params as {
+          dataType?: string
+          data: { relationName?: string; name?: string; type?: string }
         }
-        return `${params.data.name} (${params.data.type})`
+        if (p.dataType === 'edge') {
+          return `${p.data.relationName}关系`
+        }
+        return `${p.data.name} (${p.data.type})`
       },
     },
     legend: {

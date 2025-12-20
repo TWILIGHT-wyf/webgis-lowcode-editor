@@ -1,10 +1,10 @@
-import { describe, it, expect, beforeEach } from 'vitest'
-import { ref, nextTick } from 'vue'
+import { describe, it, expect, beforeEach, vi, afterEach } from 'vitest'
+import { ref, nextTick, reactive } from 'vue'
 import type { Component } from '../../src/types/components'
-import { useDataBindingEngine } from '../../src/stores/dataLinkage'
+import { useDataBindingEngine } from '../../src/stores/dataLinkage/engine'
 
 function makeComp(partial: Partial<Component> & Pick<Component, 'id' | 'type'>): Component {
-  return {
+  return reactive({
     id: partial.id,
     type: partial.type,
     position: partial.position ?? { x: 0, y: 0 },
@@ -20,12 +20,16 @@ function makeComp(partial: Partial<Component> & Pick<Component, 'id' | 'type'>):
     layout: partial.layout,
     events: partial.events,
     dataBindings: partial.dataBindings,
-  }
+  }) as Component
 }
 
 describe('DataBindingEngine', () => {
   beforeEach(() => {
-    // nothing
+    vi.useFakeTimers()
+  })
+
+  afterEach(() => {
+    vi.useRealTimers()
   })
 
   it('把 sourcePath 的值同步到 targetPath', async () => {
@@ -42,10 +46,12 @@ describe('DataBindingEngine', () => {
     engine.start()
 
     await nextTick()
+    vi.runAllTimers()
     expect(target.props.text).toBe(1)
 
     source.props.value = 42
     await nextTick()
+    vi.runAllTimers()
     expect(target.props.text).toBe(42)
 
     engine.stop()

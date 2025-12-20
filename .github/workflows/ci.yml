@@ -2,13 +2,27 @@ name: CI
 
 on:
   push:
-    branches: [ master ]
+    branches: [master]
   pull_request:
-    branches: [ master ]
+    branches: [master]
 
 jobs:
   build-and-test:
     runs-on: ubuntu-latest
+
+    services:
+      mongodb:
+        image: mongo:6.0
+        ports:
+          - 27017:27017
+        options: >-
+          --health-cmd "mongosh --eval 'db.runCommand({ ping: 1 })'"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    env:
+      MONGODB_URI: mongodb://localhost:27017/webgis_test
 
     steps:
       - name: Checkout source
@@ -40,13 +54,24 @@ jobs:
       - name: Run unit tests
         run: pnpm run test:unit -- --run
 
-      # 4. Build
-      - name: Build project
+      # 4. Build Frontend
+      - name: Build frontend
         run: pnpm run build
 
-      # 5. Playwright E2E
+      # 5. Build Server (type check)
+      - name: Build server
+        run: |
+          cd server
+          npm install
+          npm run build
+
+      # 6. Playwright E2E 
       - name: Install Playwright browsers
         run: pnpm exec playwright install --with-deps
 
       - name: Run e2e tests
         run: pnpm run test:e2e
+        env:
+          CI: true
+
+  

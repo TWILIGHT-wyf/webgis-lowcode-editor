@@ -53,7 +53,6 @@ function createPage(id: string, name: string, route: string): Page {
     name,
     route,
     components: [],
-    isHome: false,
   }
 }
 

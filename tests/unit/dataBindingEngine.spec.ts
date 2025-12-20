@@ -111,7 +111,7 @@ describe('数据联动引擎 (useDataBindingEngine)', () => {
       await nextTick()
       vi.runAllTimers()
 
-      expect(target.props.title).toBe('10')
+      expect(target.props.title).toBe(10) // 数值类型绑定保持原类型
       expect(target.props.value).toBe(20)
 
       engine.stop()

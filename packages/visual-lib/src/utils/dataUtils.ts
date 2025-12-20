@@ -62,7 +62,7 @@ export function setValueByPath(obj: unknown, path: string, value: unknown): bool
 
     // 遍历路径创建中间容器
     for (let i = 0; i < tokens.length - 1; i++) {
-      const key = tokens[i]
+      const key = tokens[i] as string | number
       const nextKey = tokens[i + 1]
 
       if (cur[key] == null || typeof cur[key] !== 'object') {
@@ -73,7 +73,7 @@ export function setValueByPath(obj: unknown, path: string, value: unknown): bool
     }
 
     // 设置最后一个键的值
-    const lastKey = tokens[tokens.length - 1]
+    const lastKey = tokens[tokens.length - 1] as string | number
     cur[lastKey] = value
     return true
   } catch {

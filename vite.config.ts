@@ -16,6 +16,9 @@ export default defineConfig({
     },
   },
   server: {
+    host: 'localhost',
+    port: 8080,
+    strictPort: false, // 如果端口被占用，尝试下一个可用端口
     proxy: {
       '/api': {
         target: 'http://localhost:3001',
