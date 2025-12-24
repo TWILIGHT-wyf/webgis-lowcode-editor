@@ -27,6 +27,18 @@ export default mergeConfig(
       // exclude e2e from unit/component runs
       exclude: [...configDefaults.exclude, 'tests/e2e/**', 'e2e/**'],
       root: fileURLToPath(new URL('./', import.meta.url)),
+      // CSS 处理配置
+      css: {
+        modules: {
+          classNameStrategy: 'non-scoped',
+        },
+      },
+      // 服务器配置
+      server: {
+        deps: {
+          inline: ['element-plus'],
+        },
+      },
     },
   }),
 )
