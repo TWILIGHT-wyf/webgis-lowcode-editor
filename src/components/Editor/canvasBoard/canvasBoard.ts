@@ -44,6 +44,10 @@ export function useCanvasInteraction(
     startMouseY = 0
   let startPanX = 0,
     startPanY = 0
+  let rafId: number | null = null
+  let pendingPanX = 0
+  let pendingPanY = 0
+
   const onPanStart = (e: MouseEvent) => {
     if (e.button !== 0 || !options.enablePan) return
     isPanning.value = true
@@ -55,13 +59,32 @@ export function useCanvasInteraction(
     window.addEventListener('mouseup', onPanEnd)
     e.preventDefault()
   }
+
   const onPanMove = (e: MouseEvent) => {
     if (!isPanning.value) return
-    panX.value = startPanX + (e.clientX - startMouseX)
-    panY.value = startPanY + (e.clientY - startMouseY)
+    // 缓存待应用的偏移量
+    pendingPanX = startPanX + (e.clientX - startMouseX)
+    pendingPanY = startPanY + (e.clientY - startMouseY)
+
+    // 使用 requestAnimationFrame 批量更新
+    if (rafId === null) {
+      rafId = requestAnimationFrame(() => {
+        panX.value = pendingPanX
+        panY.value = pendingPanY
+        rafId = null
+      })
+    }
   }
+
   const onPanEnd = () => {
     isPanning.value = false
+    // 确保最后一次更新被应用
+    if (rafId !== null) {
+      cancelAnimationFrame(rafId)
+      panX.value = pendingPanX
+      panY.value = pendingPanY
+      rafId = null
+    }
     window.removeEventListener('mousemove', onPanMove)
     window.removeEventListener('mouseup', onPanEnd)
   }

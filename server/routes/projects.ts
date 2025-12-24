@@ -7,10 +7,13 @@ const router = Router()
 // 获取所有项目列表
 router.get('/', async (req, res) => {
   try {
+    console.log('📋 开始查询项目列表...')
     const projects = await Project.find()
       .select('name cover description createdAt updatedAt pages')
       .sort({ updatedAt: -1 })
       .lean()
+
+    console.log(`✅ 查询到 ${projects.length} 个项目`)
 
     // 为每个项目添加页面数量统计
     const projectsWithStats = projects.map((p) => ({
@@ -23,7 +26,12 @@ router.get('/', async (req, res) => {
       data: projectsWithStats,
     })
   } catch (error) {
-    console.error('获取项目列表失败:', error)
+    console.error('❌ 获取项目列表失败:', error)
+    console.error('错误详情:', {
+      name: (error as Error).name,
+      message: (error as Error).message,
+      stack: (error as Error).stack,
+    })
     res.status(500).json({
       success: false,
       error: '获取项目列表失败',

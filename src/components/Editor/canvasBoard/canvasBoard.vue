@@ -71,8 +71,34 @@ const { addComponent, selectedId, clearSelection } = compStore
 // 只渲染顶层组件(无父组件的组件)
 // 注意：当前设计中子组件使用绝对坐标，拖动 Group 时会同步移动子组件的绝对坐标
 // 因此所有组件都需要渲染，包括有 groupId 的子组件
+// 性能优化：只渲染视口内的组件（增加边距以避免边界闪烁）
 const topLevelComponents = computed(() => {
-  return componentStore.value
+  // 对于小数量组件，直接返回所有组件
+  if (componentStore.value.length <= 50) {
+    return componentStore.value
+  }
+
+  // 大数量组件时，进行视口裁剪
+  const viewportPadding = 200 // 增加边距，提前渲染即将进入视口的组件
+  const el = wrap.value
+  if (!el) return componentStore.value
+
+  const rect = el.getBoundingClientRect()
+  const scaleValue = scale.value || 1
+
+  // 计算视口在 stage 坐标系中的范围
+  const viewLeft = (-panX.value - viewportPadding) / scaleValue
+  const viewTop = (-panY.value - viewportPadding) / scaleValue
+  const viewRight = (rect.width - panX.value + viewportPadding) / scaleValue
+  const viewBottom = (rect.height - panY.value + viewportPadding) / scaleValue
+
+  // 过滤出视口内的组件
+  return componentStore.value.filter((com) => {
+    const { x, y } = com.position
+    const { width, height } = com.size
+    // AABB 碰撞检测
+    return !(x + width < viewLeft || x > viewRight || y + height < viewTop || y > viewBottom)
+  })
 })
 
 // 点击画布空白处清空选择
@@ -193,8 +219,9 @@ provide('canvasPanX', panX)
 provide('canvasPanY', panY)
 
 const worldStyle = computed(() => ({
-  transform: `translate(${panX.value}px, ${panY.value}px) scale(${scale.value})`,
+  transform: `translate3d(${panX.value}px, ${panY.value}px, 0) scale(${scale.value})`,
   transformOrigin: '0 0',
+  willChange: isPanning.value ? 'transform' : 'auto',
 }))
 </script>
 
@@ -207,6 +234,8 @@ const worldStyle = computed(() => ({
   border: 1px solid #ebeef5;
   border-radius: 6px;
   cursor: grab;
+  /* 性能优化：启用 GPU 加速 */
+  transform: translateZ(0);
 }
 .canvas-wrap.dragging {
   cursor: grabbing;
@@ -215,6 +244,13 @@ const worldStyle = computed(() => ({
 .world {
   will-change: transform;
   transform-origin: 0 0;
+  /* 性能优化：启用合成层，减少重绘 */
+  contain: layout style;
+}
+
+/* 拖拽时禁用子元素事件，提升性能 */
+.canvas-wrap.dragging .world {
+  pointer-events: none;
 }
 
 .stage {
@@ -236,5 +272,7 @@ const worldStyle = computed(() => ({
     0 0;
   display: grid;
   position: relative;
+  /* 性能优化：限制布局计算范围 */
+  contain: layout style paint;
 }
 </style>

@@ -1,24 +1,32 @@
 import { createApp } from 'vue'
 import { createPinia } from 'pinia'
-import ElementPlus from 'element-plus'
-import 'element-plus/dist/index.css'
+// 按需导入 Element Plus 样式（配合 unplugin-vue-components 自动导入组件）
+import 'element-plus/es/components/message/style/css'
+import 'element-plus/es/components/notification/style/css'
+import 'element-plus/es/components/message-box/style/css'
+import 'element-plus/es/components/loading/style/css'
 import App from './App.vue'
 import router from './router'
 import 'leaflet/dist/leaflet.css'
-import * as ElementPlusIconsVue from '@element-plus/icons-vue'
 import './styles/animations.css'
 import './styles/theme.css'
-import VueECharts from 'vue-echarts'
 
-
-
-const app = createApp(App)
-for (const [key, component] of Object.entries(ElementPlusIconsVue)) {
-  app.component(key, component)
+// 异步加载非关键 Icons，减少首屏体积
+const loadIcons = async () => {
+  const ElementPlusIconsVue = await import('@element-plus/icons-vue')
+  for (const [key, component] of Object.entries(ElementPlusIconsVue)) {
+    if (key !== 'default') {
+      app.component(key, component as Parameters<typeof app.component>[1])
+    }
+  }
 }
 
-app.use(ElementPlus)
+const app = createApp(App)
+
 app.use(createPinia())
 app.use(router)
-app.component('v-chart', VueECharts)
+
+// 延迟加载图标，不阻塞首屏渲染
+loadIcons()
+
 app.mount('#app')

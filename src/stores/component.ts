@@ -1,5 +1,5 @@
 import { defineStore } from 'pinia'
-import { ref } from 'vue'
+import { ref, shallowRef, triggerRef, computed } from 'vue'
 import { nanoid } from 'nanoid'
 import { createHistory, createClipboard, createGrouping, createZOrder } from '@/stores/componentOps'
 import type { Component, DataSource, PropValue } from '@/types/components'
@@ -9,6 +9,26 @@ export const useComponent = defineStore('component', () => {
   const selectComponent = ref<Component | null>(null)
   const selectedIds = ref<string[]>([])
   const isDragging = ref<boolean>(false)
+
+  // 性能优化：组件ID索引，O(1) 查找复杂度
+  const componentIndex = shallowRef<Map<string, Component>>(new Map())
+
+  // 重建索引
+  function rebuildIndex() {
+    const newIndex = new Map<string, Component>()
+    componentStore.value.forEach((c) => newIndex.set(c.id, c))
+    componentIndex.value = newIndex
+  }
+
+  // 高效获取组件 - O(1) 复杂度
+  function getComponentById(id: string): Component | undefined {
+    return componentIndex.value.get(id)
+  }
+
+  // 批量获取组件
+  function getComponentsByIds(ids: string[]): Component[] {
+    return ids.map((id) => componentIndex.value.get(id)).filter(Boolean) as Component[]
+  }
 
   // —— 历史快照（撤销/重做）—— 抽离到模块
   const {
@@ -24,10 +44,12 @@ export const useComponent = defineStore('component', () => {
 
   function undo() {
     _undo()
+    rebuildIndex()
     clearSelection()
   }
   function redo() {
     _redo()
+    rebuildIndex()
     clearSelection()
   }
 
@@ -1820,6 +1842,8 @@ export const useComponent = defineStore('component', () => {
       animation: component.animation || defaultAnimationByType(),
     }
     componentStore.value.push(newComponent)
+    // 性能优化：更新索引
+    componentIndex.value.set(newComponent.id, newComponent)
     commit()
   }
 
@@ -1958,6 +1982,8 @@ export const useComponent = defineStore('component', () => {
     selectedIds.value = []
     clipboard.value.length = 0
     isDragging.value = false
+    // 性能优化：清空索引
+    componentIndex.value.clear()
     commit()
   }
 
@@ -1967,6 +1993,8 @@ export const useComponent = defineStore('component', () => {
     reset()
     // 加载模板组件(使用深拷贝避免引用问题)
     componentStore.value = JSON.parse(JSON.stringify(templateComponents))
+    // 性能优化：重建索引
+    rebuildIndex()
     // 提交到历史
     commit()
   }
@@ -2010,5 +2038,9 @@ export const useComponent = defineStore('component', () => {
     commitDebounced,
     commitThrottled,
     reset,
+    // 性能优化：暴露高效查找方法
+    getComponentById,
+    getComponentsByIds,
+    rebuildIndex,
   }
 })

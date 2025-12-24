@@ -93,6 +93,12 @@ async function handleMouseEnter() {
 </script>
 
 <style>
+/* 性能优化：shape-wrapper 启用独立合成层 */
+.shape-wrapper {
+  contain: layout style;
+  will-change: transform;
+}
+
 .shape-box {
   position: relative;
   width: 100%;
@@ -101,6 +107,8 @@ async function handleMouseEnter() {
 .shape-content {
   width: 100%;
   height: 100%;
+  /* 性能优化：限制内容重绘范围 */
+  contain: content;
 }
 .shape-handle {
   position: absolute;

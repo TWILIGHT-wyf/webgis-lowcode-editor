@@ -138,14 +138,17 @@ export type { TriggerLog } from './src/components/advanced/trigger/Trigger.vue'
 export type { GroupProps } from './src/components/group/Group.vue'
 export type { MapProps } from './src/components/map/Map.vue'
 export type { MarkerProps } from './src/components/map/Marker.vue'
-export type { HeatPoint, HeatLayerProps } from './src/components/map/HeatLayer.vue'
+export type { HeatLayerProps } from './src/components/map/HeatLayer.vue'
 export type { GeoJsonLayerProps } from './src/components/map/GeoJsonLayer.vue'
-export type { ClusterMarkerData, ClusterLayerProps } from './src/components/map/ClusterLayer.vue'
+export type { ClusterLayerProps } from './src/components/map/ClusterLayer.vue'
 export type { TileLayerProps } from './src/components/map/TileLayer.vue'
 export type { VectorFeature, VectorLayerProps } from './src/components/map/VectorLayer.vue'
 export type { LegendItem, LegendProps } from './src/components/map/Legend.vue'
 export type { ScaleProps } from './src/components/map/Scale.vue'
 export type { LayerItem, LayersProps } from './src/components/map/Layers.vue'
+
+// 导出 GIS 类型
+export * from './src/types/gis'
 
 // 提供 Vue 插件式的安装方法
 export default {

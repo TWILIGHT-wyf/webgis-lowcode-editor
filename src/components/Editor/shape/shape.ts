@@ -1,10 +1,36 @@
 import { computed, type CSSProperties, ref, inject, type Ref } from 'vue'
 import { useComponent } from '@/stores/component'
+import type { Component } from '@/types/components'
 import { useSizeStore } from '@/stores/size'
 import { storeToRefs } from 'pinia'
 import { useCanvasInteraction } from '@/components/Editor/canvasBoard/canvasBoard'
 import { debounce, throttle } from 'lodash-es'
 import { useSnap } from '../snap/snap'
+
+// 全局缓存组件查找结果，避免重复遍历
+const componentCache = new WeakMap<object, Map<string, Component | undefined>>()
+
+// 获取组件缓存或创建新的
+function getComponentById(store: Component[], id: string) {
+  let cache = componentCache.get(store)
+  if (!cache) {
+    cache = new Map()
+    componentCache.set(store, cache)
+  }
+
+  if (!cache.has(id)) {
+    cache.set(
+      id,
+      store.find((c: Component) => c.id === id),
+    )
+  }
+  return cache.get(id)
+}
+
+// 清理缓存（当组件列表变化时调用）
+export function clearComponentCache() {
+  componentCache.delete(componentCache)
+}
 
 export function useShape(id: string) {
   const compStore = useComponent()
@@ -16,8 +42,8 @@ export function useShape(id: string) {
     updateComponentPosition,
   } = compStore
 
-  // 当前组件实例与数据
-  const currentComponent = computed(() => compStore.componentStore.find((comp) => comp.id === id))
+  // 当前组件实例与数据 - 使用缓存优化查找
+  const currentComponent = computed(() => getComponentById(compStore.componentStore, id))
   const position = computed(() => currentComponent.value?.position || { x: 0, y: 0 })
   const size = computed(() => currentComponent.value?.size || { width: 100, height: 100 })
   const rotation = computed(() => currentComponent.value?.rotation ?? 0)
@@ -80,8 +106,8 @@ export function useShape(id: string) {
       if (comp.type === 'Group' && comp.children) {
         const actualDx = finalPosition.x - dragStartPos.x
         const actualDy = finalPosition.y - dragStartPos.y
-        comp.children.forEach((childId) => {
-          const child = compStore.componentStore.find((c) => c.id === childId)
+        comp.children.forEach((childId: string) => {
+          const child = getComponentById(compStore.componentStore, childId)
           const startPos = childrenStartPos[childId]
           if (child && startPos) {
             child.position.x = startPos.x + actualDx
@@ -98,8 +124,8 @@ export function useShape(id: string) {
         // 只有拖拽组合本身时，才保存子组件的初始位置
         if (comp.type === 'Group' && comp.children) {
           childrenStartPos = {}
-          comp.children.forEach((childId) => {
-            const child = compStore.componentStore.find((c) => c.id === childId)
+          comp.children.forEach((childId: string) => {
+            const child = getComponentById(compStore.componentStore, childId)
             if (child) {
               childrenStartPos[childId] = { ...child.position }
             }
@@ -271,7 +297,7 @@ export function useShape(id: string) {
     const comp = currentComponent.value
     if (comp && comp.type === 'Group' && comp.children) {
       childrenStartState = {}
-      comp.children.forEach((childId) => {
+      comp.children.forEach((childId: string) => {
         const child = compStore.componentStore.find((c) => c.id === childId)
         if (child) {
           childrenStartState[childId] = {
@@ -433,8 +459,8 @@ export function useShape(id: string) {
       const scaleX = newWidth / startSize.width
       const scaleY = newHeight / startSize.height
 
-      comp.children.forEach((childId) => {
-        const child = compStore.componentStore.find((c) => c.id === childId)
+      comp.children.forEach((childId: string) => {
+        const child = getComponentById(compStore.componentStore, childId)
         const childStart = childrenStartState[childId]
         if (child && childStart) {
           // 计算子组件相对于组合的偏移（使用初始状态）

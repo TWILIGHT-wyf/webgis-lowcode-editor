@@ -1,10 +1,13 @@
 <template>
   <BaseMap
     v-bind="mapProps"
+    :bounds="computedBounds"
     @ready="handleMapReady"
     @click="handleMapClick"
     @moveend="handleMoveEnd"
     @zoomend="handleZoomEnd"
+    @layeradd="handleLayerAdd"
+    @layerremove="handleLayerRemove"
   >
     <template #placeholder>
       <div class="map-placeholder">
@@ -17,32 +20,46 @@
 </template>
 
 <script setup lang="ts">
-import { computed } from 'vue'
+import { computed, ref } from 'vue'
 import { storeToRefs } from 'pinia'
 import { Location } from '@element-plus/icons-vue'
 import type L from 'leaflet'
 import { useComponent } from '@/stores/component'
 import { vMap as BaseMap, useDataSource, extractWithFallback } from '@twi1i9ht/visual-lib'
+import type { GISPoint, MapBounds, TileLayerConfig, LayerVisibility } from '@twi1i9ht/visual-lib'
 
+// ==================== Props & Emits ====================
 const props = defineProps<{
   id: string
 }>()
 
 const emit = defineEmits<{
   ready: [map: L.Map]
-  click: [e: L.LeafletMouseEvent]
-  moveend: [center: { lat: number; lng: number }, zoom: number]
+  click: [event: { latlng: GISPoint; layerPoint: L.Point; containerPoint: L.Point }]
+  moveend: [center: GISPoint, zoom: number]
   zoomend: [zoom: number]
+  layerVisibilityChange: [layers: LayerVisibility[]]
 }>()
 
+// ==================== Store 数据 ====================
 const { componentStore } = storeToRefs(useComponent())
 const comp = computed(() => componentStore.value.find((c) => c.id === props.id))
 
-// 数据源处理
+// ==================== 数据源处理 ====================
 const dataSourceRef = computed(() => comp.value?.dataSource)
-const { data: dataSourceData } = useDataSource(dataSourceRef)
+const {
+  data: dataSourceData,
+  loading: dataLoading,
+  error: dataError,
+} = useDataSource(dataSourceRef)
 
-// 合并属性和数据源
+// ==================== 图层管理状态 ====================
+const layerVisibility = ref<LayerVisibility[]>([])
+const mapRef = ref<L.Map | null>(null)
+
+// ==================== 数据适配器：从数据源提取配置 ====================
+
+/** 提取中心点纬度 */
 const centerLat = computed(() => {
   if (dataSourceData.value) {
     const field = (comp.value?.dataSource?.centerLatField as string) || 'centerLat'
@@ -51,6 +68,7 @@ const centerLat = computed(() => {
   return (comp.value?.props?.centerLat as number) ?? 39.9
 })
 
+/** 提取中心点经度 */
 const centerLng = computed(() => {
   if (dataSourceData.value) {
     const field = (comp.value?.dataSource?.centerLngField as string) || 'centerLng'
@@ -59,6 +77,7 @@ const centerLng = computed(() => {
   return (comp.value?.props?.centerLng as number) ?? 116.4
 })
 
+/** 提取缩放级别 */
 const zoom = computed(() => {
   if (dataSourceData.value) {
     const field = (comp.value?.dataSource?.zoomField as string) || 'zoom'
@@ -67,6 +86,7 @@ const zoom = computed(() => {
   return (comp.value?.props?.zoom as number) ?? 13
 })
 
+/** 提取瓦片 URL */
 const tileUrl = computed(() => {
   if (dataSourceData.value) {
     const field = (comp.value?.dataSource?.tileUrlField as string) || 'tileUrl'
@@ -81,11 +101,46 @@ const tileUrl = computed(() => {
   )
 })
 
-const placeholder = computed(
-  () => (comp.value?.props?.placeholder as string) || '配置地图中心点以显示底图',
-)
+/** 占位文本 */
+const placeholder = computed(() => {
+  if (dataLoading.value) return '地图数据加载中...'
+  if (dataError.value) return '地图数据加载失败'
+  return (comp.value?.props?.placeholder as string) || '配置地图中心点以显示底图'
+})
 
-// 聚合 Map 属性
+/** 从数据源提取边界 */
+const computedBounds = computed((): MapBounds | undefined => {
+  // 优先使用数据源中的边界配置
+  if (dataSourceData.value) {
+    const boundsField = comp.value?.dataSource?.boundsField as string | undefined
+    if (boundsField) {
+      const bounds = extractWithFallback<MapBounds | undefined>(
+        dataSourceData.value,
+        boundsField,
+        undefined,
+      )
+      if (bounds) return bounds
+    }
+  }
+
+  // 使用 props 中的边界配置
+  const propsBounds = comp.value?.props?.bounds as MapBounds | undefined
+  return propsBounds
+})
+
+/** 瓦片图层配置 */
+const tileConfig = computed((): TileLayerConfig => {
+  const p = comp.value?.props || {}
+  return {
+    url: tileUrl.value,
+    attribution: (p.attribution as string) || '&copy; OpenStreetMap contributors',
+    minZoom: (p.minZoom as number) ?? 1,
+    maxZoom: (p.maxZoom as number) ?? 18,
+    opacity: (p.tileOpacity as number) ?? 1,
+  }
+})
+
+// ==================== 聚合 Map Props ====================
 const mapProps = computed(() => {
   const p = comp.value?.props || {}
   const s = comp.value?.style || {}
@@ -96,8 +151,7 @@ const mapProps = computed(() => {
     zoom: zoom.value,
     minZoom: (p.minZoom as number) ?? 1,
     maxZoom: (p.maxZoom as number) ?? 18,
-    tileUrl: tileUrl.value,
-    attribution: (p.attribution as string) || '&copy; OpenStreetMap contributors',
+    tileConfig: tileConfig.value,
     zoomControl: (p.zoomControl as boolean) ?? true,
     dragging: (p.dragging as boolean) ?? true,
     scrollWheelZoom: (p.scrollWheelZoom as boolean) ?? true,
@@ -105,25 +159,82 @@ const mapProps = computed(() => {
     placeholder: placeholder.value,
     borderRadius: Number(s.borderRadius || 0),
     border: String(s.border || 'none'),
+    preferCanvas: (p.preferCanvas as boolean) ?? true,
+    showScale: (p.showScale as boolean) ?? false,
+    boundsPadding: (p.boundsPadding as [number, number]) ?? [50, 50],
   }
 })
 
-// 事件处理
+// ==================== 图层管理 ====================
+
+/** 注册图层 */
+function registerLayer(id: string, name: string, type: LayerVisibility['type'], visible = true) {
+  const existing = layerVisibility.value.find((l) => l.id === id)
+  if (!existing) {
+    layerVisibility.value.push({ id, name, type, visible })
+  }
+}
+
+/** 切换图层可见性 */
+function toggleLayerVisibility(layerId: string, visible?: boolean) {
+  const layer = layerVisibility.value.find((l) => l.id === layerId)
+  if (layer) {
+    layer.visible = visible ?? !layer.visible
+    emit('layerVisibilityChange', [...layerVisibility.value])
+  }
+}
+
+/** 获取图层可见性状态 */
+function getLayerVisibility(layerId: string): boolean {
+  return layerVisibility.value.find((l) => l.id === layerId)?.visible ?? true
+}
+
+// ==================== 事件处理 ====================
 const handleMapReady = (map: L.Map) => {
+  mapRef.value = map
   emit('ready', map)
 }
 
-const handleMapClick = (e: L.LeafletMouseEvent) => {
-  emit('click', e)
+const handleMapClick = (event: {
+  latlng: GISPoint
+  layerPoint: L.Point
+  containerPoint: L.Point
+}) => {
+  emit('click', event)
 }
 
-const handleMoveEnd = (center: { lat: number; lng: number }, zoomLevel: number) => {
+const handleMoveEnd = (center: GISPoint, zoomLevel: number) => {
   emit('moveend', center, zoomLevel)
 }
 
 const handleZoomEnd = (zoomLevel: number) => {
   emit('zoomend', zoomLevel)
 }
+
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+const handleLayerAdd = (_layer: L.Layer) => {
+  // 可以在这里追踪添加的图层
+}
+
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+const handleLayerRemove = (_layer: L.Layer) => {
+  // 可以在这里追踪移除的图层
+}
+
+// ==================== 暴露给父组件的方法 ====================
+defineExpose({
+  /** 获取地图实例 */
+  getMap: () => mapRef.value,
+  /** 图层管理 */
+  registerLayer,
+  toggleLayerVisibility,
+  getLayerVisibility,
+  /** 获取所有图层状态 */
+  getLayers: () => [...layerVisibility.value],
+  /** 数据状态 */
+  isLoading: () => dataLoading.value,
+  hasError: () => !!dataError.value,
+})
 </script>
 
 <style scoped lang="scss">

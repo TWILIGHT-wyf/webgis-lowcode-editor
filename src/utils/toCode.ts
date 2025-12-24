@@ -282,7 +282,7 @@ function generateComponentStyle(comp: Component): string {
       styleObj.display = 'none'
     } else if (comp.style.visible === true || comp.style.visible === undefined) {
       // 显式设置为空字符串，移除 display 限制
-      // 注：在生成代码时不设置 display，让浏览器使用默认值
+      // 在生成代码时不设置 display，让浏览器使用默认值
     }
     // 背景色
     if (comp.style.backgroundColor) {

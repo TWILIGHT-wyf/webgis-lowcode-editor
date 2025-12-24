@@ -7,6 +7,7 @@
  */
 
 import express from 'express'
+import http from 'http'
 import cors from 'cors'
 import dotenv from 'dotenv'
 import { connectDB } from './db.js'
@@ -18,7 +19,7 @@ import mockRouter from './routes/mock.js'
 dotenv.config()
 
 const app = express()
-const PORT = parseInt(process.env.PORT || process.env.PROXY_PORT || '3001', 10)
+const PORT = parseInt(process.env.PORT || process.env.PROXY_PORT || '3002', 10)
 
 // ==================== 中间件 ====================
 app.use(cors())
@@ -39,7 +40,7 @@ app.get('/api/health', (req, res) => {
     status: 'ok',
     timestamp: new Date().toISOString(),
     services: {
-      mongodb: 'connected', // 简化版，实际应检查 mongoose.connection.readyState
+      mongodb: 'connected', 
       ai: process.env.AI_API_KEY ? 'configured' : 'not configured',
     },
   })
@@ -77,8 +78,27 @@ async function startServer() {
   // 连接 MongoDB
   await connectDB()
 
-  // 启动 HTTP 服务
-  app.listen(PORT, () => {
+  // 启动 HTTP 服务（使用 http.Server 以便监听错误事件）
+  const server = http.createServer(app)
+
+  server.on('error', (err: NodeJS.ErrnoException) => {
+    if (err.code === 'EACCES') {
+      console.error(`\n EACCES: 无法监听端口 ${PORT}，请尝试：`)
+      console.error(`   1. 使用管理员权限运行`)
+      console.error(`   2. 更换端口: PORT=3002 pnpm run dev`)
+      console.error(`   3. 检查防火墙/杀毒软件设置\n`)
+      process.exit(1)
+    }
+    if (err.code === 'EADDRINUSE') {
+      console.error(`\n EADDRINUSE: 端口 ${PORT} 已被占用，请尝试：`)
+      console.error(`   1. 结束占用进程: netstat -ano | findstr :${PORT}`)
+      console.error(`   2. 更换端口: PORT=3003 pnpm run dev\n`)
+      process.exit(1)
+    }
+    throw err
+  })
+
+  server.listen(PORT, '0.0.0.0', () => {
     console.log('═'.repeat(60))
     console.log(' WebGIS 后端服务已启动')
     console.log('═'.repeat(60))
@@ -105,7 +125,6 @@ process.on('SIGTERM', async () => {
   console.log('\n正在关闭服务器...')
   process.exit(0)
 })
-
 
 startServer().catch((error) => {
   console.error('启动失败:', error)
