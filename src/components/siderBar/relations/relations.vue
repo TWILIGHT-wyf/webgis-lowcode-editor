@@ -26,15 +26,15 @@
               @node-drop="handleNodeDrop"
               class="modern-tree"
             >
-              <template #default="{ data }: { data: TreeNode }">
+              <template #default="{ data }: any">
                 <div class="tree-node-content">
                   <div class="node-main">
                     <el-icon class="node-icon">
-                      <component :is="getComponentIcon(data.type)" />
+                      <component :is="getComponentIcon((data as TreeNode).type)" />
                     </el-icon>
-                    <span class="node-label">{{ data.label }}</span>
-                    <span v-if="data.children?.length" class="child-count">
-                      {{ data.children.length }}
+                    <span class="node-label">{{ (data as TreeNode).label }}</span>
+                    <span v-if="(data as TreeNode).children?.length" class="child-count">
+                      {{ (data as TreeNode).children?.length }}
                     </span>
                   </div>
 
@@ -47,7 +47,7 @@
                       title="添加子组件"
                     />
                     <el-button
-                      v-if="data.groupId"
+                      v-if="(data as TreeNode).groupId"
                       link
                       size="small"
                       icon="Back"
@@ -286,7 +286,7 @@ const {
 const { showAddChildDialog, selectedChildId, closeAddChildDialog } = useDialogState()
 
 // 树形结构
-const treeRef = ref<InstanceType<typeof ElTree>>()
+const treeRef = ref<InstanceType<typeof ElTree> | null>(null)
 const allExpanded = ref(false)
 
 // 树操作

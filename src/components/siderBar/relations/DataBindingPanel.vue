@@ -198,6 +198,8 @@ interface PropertyOption {
   example?: string // 示例值
   icon?: VueComponent
   children?: PropertyOption[]
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  [key: string]: any // 兼容 CascaderOption
 }
 
 // 获取组件图标

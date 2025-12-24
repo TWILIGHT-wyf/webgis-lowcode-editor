@@ -399,11 +399,12 @@ export function useTreeOperations() {
     data: TreeNode
   }
 
-  function allowDrop(draggingNode: TreeNodeInstance, dropNode: TreeNodeInstance, type: string) {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  function allowDrop(draggingNode: any, dropNode: any, type: string) {
     // 只允许拖入容器组件内部
     if (type === 'inner') {
-      const dropNodeData = dropNode.data
-      const draggingNodeData = draggingNode.data
+      const dropNodeData = (dropNode as TreeNodeInstance).data
+      const draggingNodeData = (draggingNode as TreeNodeInstance).data
 
       // 不能拖入自己
       if (dropNodeData.id === draggingNodeData.id) return false
@@ -428,14 +429,17 @@ export function useTreeOperations() {
     return true
   }
 
+   
   function handleNodeDrop(
-    draggingNode: TreeNodeInstance,
-    dropNode: TreeNodeInstance,
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    draggingNode: any,
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    dropNode: any,
     dropType: string,
   ) {
     if (dropType === 'inner') {
-      const draggingNodeData = draggingNode.data
-      const dropNodeData = dropNode.data
+      const draggingNodeData = (draggingNode as TreeNodeInstance).data
+      const dropNodeData = (dropNode as TreeNodeInstance).data
 
       const child = components.value.find((c) => c.id === draggingNodeData.id)
       const parent = components.value.find((c) => c.id === dropNodeData.id)

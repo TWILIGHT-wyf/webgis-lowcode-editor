@@ -104,11 +104,11 @@
                     <el-checkbox
                       :model-value="action.condition?.enabled || false"
                       @update:model-value="
-                        (value: boolean) => {
+                        (value: unknown) => {
                           if (!action.condition) {
                             action.condition = { enabled: false, expression: '' }
                           }
-                          action.condition.enabled = value
+                          action.condition.enabled = !!value
                           componentStore.commitDebounced()
                         }
                       "

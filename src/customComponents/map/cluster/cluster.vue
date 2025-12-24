@@ -44,6 +44,8 @@ import {
 import type {
   MarkerPoint,
   GeoJSONFeatureCollection,
+  MapBounds,
+  ClusterLayerConfig,
   ClusterIconConfig,
   ClusterStyleConfig,
   MarkerClickEvent,

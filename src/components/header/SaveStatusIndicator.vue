@@ -49,7 +49,7 @@ const { saveStatus, lastSavedTime } = storeToRefs(projectStore)
 // 状态配置
 interface StatusConfig {
   text: string
-  tagType: 'success' | 'warning' | 'info' | 'danger' | ''
+  tagType: 'success' | 'warning' | 'info' | 'danger'
   effect: 'dark' | 'light' | 'plain'
   icon: typeof Check | typeof Loading | typeof EditPen
 }
@@ -59,23 +59,23 @@ const statusConfig = computed<StatusConfig>(() => {
     case 'saved':
       return {
         text: '所有更改已保存',
-        tagType: 'success',
-        effect: 'light',
+        tagType: 'success' as const,
+        effect: 'light' as const,
         icon: Check,
       }
     case 'saving':
       return {
         text: '正在保存...',
-        tagType: 'warning',
-        effect: 'light',
+        tagType: 'warning' as const,
+        effect: 'light' as const,
         icon: Loading,
       }
     case 'unsaved':
     default:
       return {
         text: '有未保存的更改',
-        tagType: 'info',
-        effect: 'plain',
+        tagType: 'info' as const,
+        effect: 'plain' as const,
         icon: EditPen,
       }
   }

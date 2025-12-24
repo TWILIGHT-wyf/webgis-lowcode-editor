@@ -10,7 +10,7 @@
               <el-form-item label="宽度">
                 <el-input-number
                   :model-value="canvasWidth"
-                  @update:model-value="setCanvasSize($event, canvasHeight)"
+                  @update:model-value="(val) => setCanvasSize(val ?? canvasWidth, canvasHeight)"
                   :min="100"
                   :max="10000"
                   :controls="false"
@@ -20,7 +20,7 @@
               <el-form-item label="高度">
                 <el-input-number
                   :model-value="canvasHeight"
-                  @update:model-value="setCanvasSize(canvasWidth, $event)"
+                  @update:model-value="(val) => setCanvasSize(canvasWidth, val ?? canvasHeight)"
                   :min="100"
                   :max="10000"
                   :controls="false"
@@ -242,13 +242,15 @@
                     <el-form-item :label="field.label">
                       <el-input
                         v-if="field.type === 'text'"
-                        v-model="getStyleValue(field.key).value"
+                        :model-value="String(getStyleValue(field.key).value ?? '')"
+                        @update:model-value="(val) => { getStyleValue(field.key).value = val; storeComponent.commitDebounced() }"
                         :placeholder="field.placeholder"
                         class="modern-input"
                       />
                       <el-input-number
                         v-else-if="field.type === 'number'"
-                        v-model="getStyleValue(field.key).value"
+                        :model-value="Number(getStyleValue(field.key).value ?? 0)"
+                        @update:model-value="(val) => { getStyleValue(field.key).value = val; storeComponent.commitDebounced() }"
                         :min="field.min"
                         :max="field.max"
                         :step="field.step ?? 1"
@@ -256,24 +258,30 @@
                         class="modern-input"
                       />
                       <div v-else-if="field.type === 'color'" class="color-picker-row">
-                        <el-color-picker v-model="getStyleValue(field.key).value" show-alpha />
+                        <el-color-picker 
+                          :model-value="String(getStyleValue(field.key).value ?? '#000000')"
+                          @update:model-value="(val) => { getStyleValue(field.key).value = val; storeComponent.commitDebounced() }"
+                          show-alpha 
+                        />
                         <span class="color-text">{{ getStyleValue(field.key).value }}</span>
                       </div>
                       <el-select
                         v-else-if="field.type === 'select'"
-                        v-model="getStyleValue(field.key).value"
+                        :model-value="(getStyleValue(field.key).value as (string | number | boolean))"
+                        @update:model-value="(val) => { getStyleValue(field.key).value = val; storeComponent.commitDebounced() }"
                         class="modern-select"
                       >
                         <el-option
                           v-for="opt in field.options"
-                          :key="opt.value"
+                          :key="String(opt.value ?? '')"
                           :label="opt.label"
-                          :value="opt.value"
+                          :value="opt.value!"
                         />
                       </el-select>
                       <el-switch
                         v-else-if="field.type === 'switch'"
-                        v-model="getStyleValue(field.key).value"
+                        :model-value="Boolean(getStyleValue(field.key).value)"
+                        @update:model-value="(val) => { getStyleValue(field.key).value = val; storeComponent.commitDebounced() }"
                       />
                     </el-form-item>
                   </template>
@@ -298,41 +306,41 @@
                       />
                       <el-input
                         v-else
-                        v-model="selectComponent.dataSource[field.key]"
+                        :model-value="String(selectComponent!.dataSource![field.key] ?? '')"
+                        @update:model-value="(val) => { if (selectComponent?.dataSource) { selectComponent.dataSource[field.key] = val; storeComponent.commitDebounced() } }"
                         :placeholder="field.placeholder"
                         class="modern-input"
-                        @change="storeComponent.commitDebounced()"
                         @blur="storeComponent.commitDebounced()"
                       />
                     </template>
                     <el-input-number
                       v-else-if="field.type === 'number' && selectComponent.dataSource"
-                      v-model="selectComponent.dataSource[field.key]"
+                      :model-value="Number(selectComponent!.dataSource![field.key] ?? 0)"
+                      @update:model-value="(val) => { if (selectComponent?.dataSource) { selectComponent.dataSource[field.key] = val; storeComponent.commitDebounced() } }"
                       :min="field.min"
                       :max="field.max"
                       :step="field.step ?? 1"
                       :controls="false"
                       class="modern-input"
-                      @change="storeComponent.commitDebounced()"
                       @blur="storeComponent.commitDebounced()"
                     />
                     <el-select
                       v-else-if="field.type === 'select' && selectComponent.dataSource"
-                      v-model="selectComponent.dataSource[field.key]"
+                      :model-value="(selectComponent!.dataSource![field.key] as (string | number | boolean))"
+                      @update:model-value="(val) => { if (selectComponent?.dataSource) { selectComponent.dataSource[field.key] = val; storeComponent.commitDebounced() } }"
                       class="modern-select"
-                      @change="storeComponent.commitDebounced()"
                     >
                       <el-option
                         v-for="opt in field.options"
-                        :key="opt.value"
+                        :key="String(opt.value ?? '')"
                         :label="opt.label"
-                        :value="opt.value"
+                        :value="opt.value!"
                       />
                     </el-select>
                     <el-switch
                       v-else-if="field.type === 'switch' && selectComponent.dataSource"
-                      v-model="selectComponent.dataSource[field.key]"
-                      @change="storeComponent.commitDebounced()"
+                      :model-value="Boolean(selectComponent!.dataSource![field.key])"
+                      @update:model-value="(val) => { if (selectComponent?.dataSource) { selectComponent.dataSource[field.key] = val; storeComponent.commitDebounced() } }"
                     />
                   </el-form-item>
                 </template>
@@ -365,38 +373,38 @@
                     </template>
                     <div v-else-if="field.type === 'color'" class="color-picker-row">
                       <el-color-picker
-                        v-model="selectComponent.props[field.key]"
+                        :model-value="String(selectComponent!.props[field.key] ?? '#000000')"
+                        @update:model-value="(val) => { if (selectComponent) { selectComponent.props[field.key] = val; storeComponent.commitDebounced() } }"
                         show-alpha
-                        @change="storeComponent.commitDebounced()"
                       />
                     </div>
                     <el-input-number
                       v-else-if="field.type === 'number'"
-                      v-model="selectComponent.props[field.key]"
+                      :model-value="Number(selectComponent!.props[field.key] ?? 0)"
+                      @update:model-value="(val) => { if (selectComponent) { selectComponent.props[field.key] = val; storeComponent.commitDebounced() } }"
                       :min="field.min"
                       :max="field.max"
                       :step="field.step ?? 1"
                       :controls="false"
                       class="modern-input"
-                      @change="storeComponent.commitDebounced()"
                     />
                     <el-select
                       v-else-if="field.type === 'select'"
-                      v-model="selectComponent.props[field.key]"
+                      :model-value="(selectComponent!.props[field.key] as (string | number | boolean))"
+                      @update:model-value="(val) => { if (selectComponent) { selectComponent.props[field.key] = val; storeComponent.commitDebounced() } }"
                       class="modern-select"
-                      @change="storeComponent.commitDebounced()"
                     >
                       <el-option
                         v-for="opt in field.options"
-                        :key="opt.value"
+                        :key="String(opt.value ?? '')"
                         :label="opt.label"
-                        :value="opt.value"
+                        :value="opt.value!"
                       />
                     </el-select>
                     <el-switch
                       v-else-if="field.type === 'switch'"
-                      v-model="selectComponent.props[field.key]"
-                      @change="storeComponent.commitDebounced()"
+                      :model-value="Boolean(selectComponent!.props[field.key])"
+                      @update:model-value="(val) => { if (selectComponent) { selectComponent.props[field.key] = val; storeComponent.commitDebounced() } }"
                     />
                   </el-form-item>
                 </template>
@@ -407,7 +415,8 @@
           <div v-if="selectComponent.type === 'Text'" class="text-content-section">
             <div class="section-title">文本内容</div>
             <el-input
-              v-model="selectComponent.props.text"
+              :model-value="String(selectComponent!.props.text ?? '')"
+              @update:model-value="(val) => { if (selectComponent) { selectComponent.props.text = val; storeComponent.commitDebounced() } }"
               type="textarea"
               :rows="4"
               placeholder="请输入文本内容"
