@@ -237,11 +237,11 @@ const mapProps = computed(() => {
 })
 
 // ==================== 事件处理 ====================
-const handleHeatLayerReady = (layer: unknown) => {
+const handleHeatLayerReady = () => {
   // 热力图层就绪
 }
 
-const handleHeatDataUpdate = (pointCount: number) => {
+const handleHeatDataUpdate = () => {
   // 热力数据更新
 }
 

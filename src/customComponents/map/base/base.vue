@@ -26,7 +26,7 @@ import { Location } from '@element-plus/icons-vue'
 import type L from 'leaflet'
 import { useComponent } from '@/stores/component'
 import { vMap as BaseMap, useDataSource, extractWithFallback } from '@twi1i9ht/visual-lib'
-import type { GISPoint, MapBounds, TileLayerConfig, LayerVisibility } from '@twi1i9ht/visual-lib'
+import type { GISPoint, TileLayerConfig, LayerVisibility, MapBounds } from '@twi1i9ht/visual-lib'
 
 // ==================== Props & Emits ====================
 const props = defineProps<{

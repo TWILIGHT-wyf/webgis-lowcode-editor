@@ -40,13 +40,10 @@ import {
   vClusterLayer as BaseClusterLayer,
   useDataSource,
   getValueByPath,
-  extractWithFallback,
 } from '@twi1i9ht/visual-lib'
 import type {
   MarkerPoint,
   GeoJSONFeatureCollection,
-  MapBounds,
-  ClusterLayerConfig,
   ClusterIconConfig,
   ClusterStyleConfig,
   MarkerClickEvent,
@@ -307,9 +304,8 @@ const mapProps = computed(() => {
 
 // ==================== 事件处理 ====================
 
-const handleClusterReady = (layer: any) => {
+const handleClusterReady = () => {
   // 聚合图层就绪
-  // layer: MarkerClusterGroup instance
 }
 
 const handleMarkerClick = (event: MarkerClickEvent) => {

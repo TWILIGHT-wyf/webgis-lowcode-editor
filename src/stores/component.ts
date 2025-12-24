@@ -1,5 +1,5 @@
 import { defineStore } from 'pinia'
-import { ref, shallowRef, triggerRef, computed } from 'vue'
+import { ref, shallowRef } from 'vue'
 import { nanoid } from 'nanoid'
 import { createHistory, createClipboard, createGrouping, createZOrder } from '@/stores/componentOps'
 import type { Component, DataSource, PropValue } from '@/types/components'

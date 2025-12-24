@@ -1,6 +1,6 @@
 {
   "name": "@twi1i9ht/visual-lib",
-  "version": "1.0.5",
+  "version": "1.0.6",
   "type": "module",
   "main": "./dist/visual-lib.js",
   "module": "./dist/visual-lib.js",

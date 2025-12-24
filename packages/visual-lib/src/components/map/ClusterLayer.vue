@@ -11,10 +11,8 @@ import 'leaflet.markercluster/dist/MarkerCluster.Default.css'
 import type {
   MarkerPoint,
   GeoJSONFeatureCollection,
-  ClusterLayerConfig,
   ClusterIconConfig,
   ClusterStyleConfig,
-  MapBounds,
   ClusterClickEvent,
   MarkerClickEvent,
 } from '../../types/gis'
@@ -80,7 +78,6 @@ let defaultIcon: L.Icon | null = null
 // 标记实例映射（用于增量更新和选中状态）
 const markerMap = new Map<string | number, L.Marker>()
 
-let lastDataVersion = -1
 let lastDataLength = -1
 
 // ==================== Icon 管理 ====================
@@ -298,7 +295,6 @@ function createClusterLayer() {
 
   map.addLayer(markerClusterGroup.value)
   lastDataLength = markers.length
-  lastDataVersion = props.dataVersion ?? -1
 
   emit('ready', markerClusterGroup.value)
 }
