@@ -1,6 +1,7 @@
 import { ref, onMounted, onBeforeUnmount, type Ref } from 'vue'
 import { throttle } from 'lodash-es'
 import type { ComponentPayload } from '@/types/components'
+import { MIN_SCALE, MAX_SCALE, ZOOM_FACTOR } from '@/constants/editor'
 
 export function useCanvasInteraction(
   wrapRef: Ref<HTMLDivElement | null>,
@@ -35,8 +36,8 @@ export function useCanvasInteraction(
   const handleWheel = (e: WheelEvent) => {
     if (options.enableZoom === false) return
     e.preventDefault()
-    const factor = Math.pow(1.0015, e.deltaY)
-    scaleRef.value = clamp(scaleRef.value * factor, 0.1, 5)
+    const factor = Math.pow(ZOOM_FACTOR, e.deltaY)
+    scaleRef.value = clamp(scaleRef.value * factor, MIN_SCALE, MAX_SCALE)
   }
 
   // 拖拽平移

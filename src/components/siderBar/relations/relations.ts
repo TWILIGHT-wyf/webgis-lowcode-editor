@@ -429,7 +429,6 @@ export function useTreeOperations() {
     return true
   }
 
-   
   function handleNodeDrop(
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     draggingNode: any,

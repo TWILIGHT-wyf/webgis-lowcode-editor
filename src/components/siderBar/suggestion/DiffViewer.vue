@@ -67,7 +67,9 @@
     </div>
 
     <div v-if="selectable" class="diff-footer">
-      <el-checkbox v-model="selected" @change="(val: unknown) => handleSelectChange(!!val)"> 应用此变更 </el-checkbox>
+      <el-checkbox v-model="selected" @change="(val: unknown) => handleSelectChange(!!val)">
+        应用此变更
+      </el-checkbox>
     </div>
   </div>
 </template>

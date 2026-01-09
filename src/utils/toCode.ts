@@ -162,7 +162,7 @@ function generateComponentTemplate(
   if (animationInfo.class && 'trigger' in animationInfo) {
     // load 触发的动画直接添加 class，hover/click 通过动态绑定控制
     if (animationInfo.trigger === 'load') {
-      html += `${indentStr}  :class="['animated', '${animationInfo.class}']"\n`
+       html += `${indentStr}  :class="['animated', '${animationInfo.class}']"\n`
     } else {
       // hover/click 使用响应式变量控制动画播放
       html += `${indentStr}  :class="animationPlaying_${comp.id} ? ['animated', '${animationInfo.class}'] : []"\n`
@@ -375,6 +375,7 @@ function generateScript(components: Component[]): string {
   const animationHandlers = generateAnimationHandlers(components)
   const eventHandlers = generateEventHandlers(components)
   const hasDataBindings = components.some((c) => c.dataBindings && c.dataBindings.length > 0)
+  const hasDataSource = components.some((c) => c.dataSource?.enabled)
 
   return `<script setup lang="ts">
 import { ref, reactive, onMounted, onBeforeUnmount, nextTick } from 'vue'
@@ -382,6 +383,7 @@ import type { ComponentPublicInstance } from 'vue'
 import { useRouter } from 'vue-router'
 import { useEventExecutor } from '@/runtime/useEventExecutor'
 import { useDataBindingEngine } from '@/runtime/useDataBindingEngine'
+${hasDataSource ? "import { useDataSource } from '@/datasource/useDataSource'" : ''}
 ${imports}
 
 // 组件 Ref 类型定义
@@ -497,12 +499,20 @@ const componentsData = reactive(${JSON.stringify(
 
   // 生成组件索引 Map
   dataStr += `// 组件索引 Map
-const compById = new Map(componentsData.map((c: { id: string }) => [c.id, c] as const))\n`
+const compById = new Map(componentsData.map((c: { id: string }) => [c.id, c] as const))\n\n`
 
-  // 数据源相关的 ref
-  for (const comp of components) {
-    if (comp.dataSource?.enabled) {
-      dataStr += `const data_${comp.id} = ref(null)\n`
+  // 数据源相关配置和 Hook 调用
+  const componentsWithDataSource = components.filter((c) => c.dataSource?.enabled)
+
+  if (componentsWithDataSource.length > 0) {
+    dataStr += `// 数据源配置和 Hook 调用\n`
+
+    for (const comp of componentsWithDataSource) {
+      // 生成数据源配置 ref
+      dataStr += `const dsConfig_${comp.id} = ref(${JSON.stringify(comp.dataSource, null, 2)})\n`
+
+      // 调用 useDataSource Hook 并解构 data
+      dataStr += `const { data: data_${comp.id}, loading: loading_${comp.id}, error: error_${comp.id}, refetch: refetch_${comp.id} } = useDataSource(dsConfig_${comp.id})\n\n`
     }
   }
 
@@ -552,10 +562,6 @@ function generateAnimationStyles(components: Component[]): string {
 
   return stylesStr || '// 无动画样式配置'
 }
-
-/**
- * 生成数据联动引擎（与 useDataBindingEngine.ts 保持一致）
- */
 
 /**
  * 生成动画处理函数（与 RuntimeComponent.vue 保持一致）
@@ -680,10 +686,6 @@ function generateEventHandlers(components: Component[]): string {
 
   return handlersStr || '// 无事件处理函数'
 }
-
-/**
- * 生成事件动作代码（与 useEventExecutor.ts 保持一致）
- */
 
 /**
  * 生成样式代码（与 RuntimeComponent.vue 保持一致）

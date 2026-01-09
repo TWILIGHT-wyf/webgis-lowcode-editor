@@ -1,5 +1,5 @@
 /**
- * WebGIS 低代码平台后端服务
+ * 低代码平台后端服务
  * 集成功能：
  * - MongoDB 项目数据存储
  * - AI 代理（支持多模型）
@@ -40,7 +40,7 @@ app.get('/api/health', (req, res) => {
     status: 'ok',
     timestamp: new Date().toISOString(),
     services: {
-      mongodb: 'connected', 
+      mongodb: 'connected',
       ai: process.env.AI_API_KEY ? 'configured' : 'not configured',
     },
   })

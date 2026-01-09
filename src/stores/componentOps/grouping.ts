@@ -1,21 +1,9 @@
 import type { Ref } from 'vue'
 import { nanoid } from 'nanoid'
 import type { GroupingApi } from '@/types/store'
+import type { BaseComponent } from './types'
 
-export function createGrouping<
-  C extends {
-    id: string
-    type: string
-    position: { x: number; y: number }
-    size: { width: number; height: number }
-    rotation: number
-    zindex: number
-    style: Record<string, unknown>
-    props: Record<string, unknown>
-    groupId?: string
-    children?: string[]
-  },
->(
+export function createGrouping<C extends BaseComponent>(
   componentStore: Ref<C[]>,
   deps: {
     selectedId: (id: string) => void
@@ -28,7 +16,7 @@ export function createGrouping<
 
     const members = ids
       .map((id) => componentStore.value.find((c) => c.id === id))
-      .filter(Boolean) as C[]
+      .filter((c): c is C => c !== undefined)
     if (members.length < 2) return
 
     const minX = Math.min(...members.map((c) => c.position.x))
@@ -38,6 +26,7 @@ export function createGrouping<
 
     const groupId = `group_${nanoid()}`
 
+    // 创建 Group 组件，使用 as unknown as C 确保类型安全
     const groupComponent = {
       id: groupId,
       type: 'Group',
@@ -51,7 +40,7 @@ export function createGrouping<
     } as unknown as C
 
     members.forEach((comp) => {
-      ;(comp as C & { groupId?: string }).groupId = groupId
+      comp.groupId = groupId
     })
 
     componentStore.value.push(groupComponent)
@@ -72,7 +61,7 @@ export function createGrouping<
     group.children.forEach((childId) => {
       const child = componentStore.value.find((c) => c.id === childId)
       if (child) {
-        delete (child as C & { groupId?: string }).groupId
+        delete child.groupId
       }
     })
 

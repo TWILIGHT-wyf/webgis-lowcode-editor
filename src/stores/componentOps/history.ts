@@ -2,29 +2,48 @@ import { ref } from 'vue'
 import type { Ref } from 'vue'
 import { debounce, throttle } from 'lodash-es'
 import type { HistoryApi } from '@/types/store'
+import { cloneDeep } from 'lodash-es'
+import {
+  MAX_HISTORY_SIZE,
+  HISTORY_DEBOUNCE_DELAY,
+  HISTORY_THROTTLE_INTERVAL,
+} from '@/constants/editor'
 
-function deepClone<T>(v: T): T {
-  return JSON.parse(JSON.stringify(v)) as T
+export interface HistoryOptions {
+  /** 历史记录最大栈深度，默认 50 */
+  maxSize?: number
 }
 
-export function createHistory<T extends object>(source: Ref<T[]>): HistoryApi {
+export function createHistory<T extends object>(
+  source: Ref<T[]>,
+  options: HistoryOptions = {},
+): HistoryApi {
+  const maxSize = options.maxSize ?? MAX_HISTORY_SIZE
+
   const history = ref<T[][]>([]) as Ref<T[][]>
   const future = ref<T[][]>([]) as Ref<T[][]>
   let lastSerialized = ''
 
   function createSnapshot(): T[] {
-    return deepClone(source.value)
+    return cloneDeep(source.value)
   }
 
   function applySnapshot(snap: T[]) {
-    source.value = deepClone(snap)
+    source.value = cloneDeep(snap)
   }
 
   function commit(force = false) {
     const snap = createSnapshot()
     const serialized = JSON.stringify(snap)
     if (!force && serialized === lastSerialized) return
+
     history.value.push(snap)
+
+    // 限制历史栈深度，超出时移除最早的记录
+    while (history.value.length > maxSize) {
+      history.value.shift()
+    }
+
     future.value.length = 0
     lastSerialized = serialized
   }
@@ -53,8 +72,8 @@ export function createHistory<T extends object>(source: Ref<T[]>): HistoryApi {
     lastSerialized = JSON.stringify(next)
   }
 
-  const commitDebounced = debounce(() => commit(), 120)
-  const commitThrottled = throttle(() => commit(), 200)
+  const commitDebounced = debounce(() => commit(), HISTORY_DEBOUNCE_DELAY)
+  const commitThrottled = throttle(() => commit(), HISTORY_THROTTLE_INTERVAL)
 
   function init() {
     commit(true)

@@ -6,6 +6,13 @@ import { storeToRefs } from 'pinia'
 import { useCanvasInteraction } from '@/components/Editor/canvasBoard/canvasBoard'
 import { debounce, throttle } from 'lodash-es'
 import { useSnap } from '../snap/snap'
+import {
+  DRAG_THRESHOLD,
+  SNAP_THRESHOLD,
+  GRID_SIZE,
+  MIN_COMPONENT_WIDTH,
+  MIN_COMPONENT_HEIGHT,
+} from '@/constants/editor'
 
 // 全局缓存组件查找结果，避免重复遍历
 const componentCache = new WeakMap<object, Map<string, Component | undefined>>()
@@ -74,7 +81,7 @@ export function useShape(id: string) {
   useCanvasInteraction(wrapperRef, scale, {
     enableDrag: true,
     preventBubble: true,
-    dragThreshold: 5,
+    dragThreshold: DRAG_THRESHOLD,
     rootRefForAbs: canvasWrapRef,
     // 传入画布平移量，确保拖拽时坐标计算正确
     externalPanX: canvasPanX,
@@ -90,10 +97,10 @@ export function useShape(id: string) {
       // 按住 Ctrl 时对齐网格，否则吸附邻居
       let finalPosition = { x, y }
       if (ctrlPressed) {
-        const gridSnap = snapToGrid({ x, y }, 20)
+        const gridSnap = snapToGrid({ x, y }, GRID_SIZE)
         finalPosition = gridSnap.position
       } else {
-        const snap = snapToNeighbors(10, { x, y })
+        const snap = snapToNeighbors(SNAP_THRESHOLD, { x, y })
         if (snap) {
           finalPosition = snap.position
         }
@@ -333,22 +340,22 @@ export function useShape(id: string) {
     }
 
     // 最小尺寸限制
-    if (newWidth < 10) {
+    if (newWidth < MIN_COMPONENT_WIDTH) {
       if (currentHandle.includes('w')) {
-        newX = startPos.x + (startSize.width - 10)
+        newX = startPos.x + (startSize.width - MIN_COMPONENT_WIDTH)
       }
-      newWidth = 10
+      newWidth = MIN_COMPONENT_WIDTH
     }
-    if (newHeight < 10) {
+    if (newHeight < MIN_COMPONENT_HEIGHT) {
       if (currentHandle.includes('n')) {
-        newY = startPos.y + (startSize.height - 10)
+        newY = startPos.y + (startSize.height - MIN_COMPONENT_HEIGHT)
       }
-      newHeight = 10
+      newHeight = MIN_COMPONENT_HEIGHT
     }
 
     // —— 缩放吸附 ——
-    const SNAP_TOL = 10
-    const GRID_SIZE = 20
+    const SNAP_TOL = SNAP_THRESHOLD
+    const gridSize = GRID_SIZE
     const myId = meComp.value.id
     const guideXs: number[] = []
     const guideYs: number[] = []
@@ -356,26 +363,26 @@ export function useShape(id: string) {
     // 按住Ctrl时优先吸附网格
     if (isCtrlPressed) {
       // 对网格吸附
-      const gridX = Math.round(newX / GRID_SIZE) * GRID_SIZE
-      const gridY = Math.round(newY / GRID_SIZE) * GRID_SIZE
-      const gridRight = Math.round((newX + newWidth) / GRID_SIZE) * GRID_SIZE
-      const gridBottom = Math.round((newY + newHeight) / GRID_SIZE) * GRID_SIZE
+      const gridX = Math.round(newX / gridSize) * gridSize
+      const gridY = Math.round(newY / gridSize) * gridSize
+      const gridRight = Math.round((newX + newWidth) / gridSize) * gridSize
+      const gridBottom = Math.round((newY + newHeight) / gridSize) * gridSize
 
       if (currentHandle.includes('w') && Math.abs(newX - gridX) < SNAP_TOL) {
         const rightFixed = startPos.x + startSize.width
         newX = gridX
-        newWidth = Math.max(10, rightFixed - newX)
+        newWidth = Math.max(MIN_COMPONENT_WIDTH, rightFixed - newX)
       }
       if (currentHandle.includes('e') && Math.abs(newX + newWidth - gridRight) < SNAP_TOL) {
-        newWidth = Math.max(10, gridRight - newX)
+        newWidth = Math.max(MIN_COMPONENT_WIDTH, gridRight - newX)
       }
       if (currentHandle.includes('n') && Math.abs(newY - gridY) < SNAP_TOL) {
         const bottomFixed = startPos.y + startSize.height
         newY = gridY
-        newHeight = Math.max(10, bottomFixed - newY)
+        newHeight = Math.max(MIN_COMPONENT_HEIGHT, bottomFixed - newY)
       }
       if (currentHandle.includes('s') && Math.abs(newY + newHeight - gridBottom) < SNAP_TOL) {
-        newHeight = Math.max(10, gridBottom - newY)
+        newHeight = Math.max(MIN_COMPONENT_HEIGHT, gridBottom - newY)
       }
     } else {
       // 吸附到其他组件
@@ -396,7 +403,7 @@ export function useShape(id: string) {
           }
           if (best.dist <= SNAP_TOL) {
             const snappedRight = best.gx
-            newWidth = Math.max(10, snappedRight - newX)
+            newWidth = Math.max(MIN_COMPONENT_WIDTH, snappedRight - newX)
           }
         }
         if (currentHandle.includes('w')) {
@@ -409,9 +416,9 @@ export function useShape(id: string) {
           }
           if (best.dist <= SNAP_TOL) {
             newX = best.gx
-            newWidth = Math.max(10, rightFixed - newX)
-            if (newWidth === 10) {
-              newX = rightFixed - 10
+            newWidth = Math.max(MIN_COMPONENT_WIDTH, rightFixed - newX)
+            if (newWidth === MIN_COMPONENT_WIDTH) {
+              newX = rightFixed - MIN_COMPONENT_WIDTH
             }
           }
         }
@@ -428,7 +435,7 @@ export function useShape(id: string) {
           }
           if (best.dist <= SNAP_TOL) {
             const snappedBottom = best.gy
-            newHeight = Math.max(10, snappedBottom - newY)
+            newHeight = Math.max(MIN_COMPONENT_HEIGHT, snappedBottom - newY)
           }
         }
         if (currentHandle.includes('n')) {
@@ -441,9 +448,9 @@ export function useShape(id: string) {
           }
           if (best.dist <= SNAP_TOL) {
             newY = best.gy
-            newHeight = Math.max(10, bottomFixed - newY)
-            if (newHeight === 10) {
-              newY = bottomFixed - 10
+            newHeight = Math.max(MIN_COMPONENT_HEIGHT, bottomFixed - newY)
+            if (newHeight === MIN_COMPONENT_HEIGHT) {
+              newY = bottomFixed - MIN_COMPONENT_HEIGHT
             }
           }
         }

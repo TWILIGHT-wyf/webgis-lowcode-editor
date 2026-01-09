@@ -52,6 +52,7 @@ import { getComponent } from '@/customComponents/registry'
 import { useCanvasInteraction } from '@/components/Editor/canvasBoard/canvasBoard'
 import { useContextMenu } from '@/components/Editor/contextMenu/contextMenu'
 import { useDataBindingEngine } from '@/runtime/useDataBindingEngine'
+import { VIEWPORT_PADDING, VIEWPORT_CULLING_THRESHOLD } from '@/constants/editor'
 import Shape from '../shape/shape.vue'
 import Snap from '../snap/snap.vue'
 import ContextMenu from '../contextMenu/contextMenu.vue'
@@ -74,12 +75,11 @@ const { addComponent, selectedId, clearSelection } = compStore
 // 性能优化：只渲染视口内的组件（增加边距以避免边界闪烁）
 const topLevelComponents = computed(() => {
   // 对于小数量组件，直接返回所有组件
-  if (componentStore.value.length <= 50) {
+  if (componentStore.value.length <= VIEWPORT_CULLING_THRESHOLD) {
     return componentStore.value
   }
 
   // 大数量组件时，进行视口裁剪
-  const viewportPadding = 200 // 增加边距，提前渲染即将进入视口的组件
   const el = wrap.value
   if (!el) return componentStore.value
 
@@ -87,10 +87,10 @@ const topLevelComponents = computed(() => {
   const scaleValue = scale.value || 1
 
   // 计算视口在 stage 坐标系中的范围
-  const viewLeft = (-panX.value - viewportPadding) / scaleValue
-  const viewTop = (-panY.value - viewportPadding) / scaleValue
-  const viewRight = (rect.width - panX.value + viewportPadding) / scaleValue
-  const viewBottom = (rect.height - panY.value + viewportPadding) / scaleValue
+  const viewLeft = (-panX.value - VIEWPORT_PADDING) / scaleValue
+  const viewTop = (-panY.value - VIEWPORT_PADDING) / scaleValue
+  const viewRight = (rect.width - panX.value + VIEWPORT_PADDING) / scaleValue
+  const viewBottom = (rect.height - panY.value + VIEWPORT_PADDING) / scaleValue
 
   // 过滤出视口内的组件
   return componentStore.value.filter((com) => {

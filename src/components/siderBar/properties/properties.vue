@@ -10,7 +10,9 @@
               <el-form-item label="宽度">
                 <el-input-number
                   :model-value="canvasWidth"
-                  @update:model-value="(val: number | undefined) => setCanvasSize(val ?? canvasWidth, canvasHeight)"
+                  @update:model-value="
+                    (val: number | undefined) => setCanvasSize(val ?? canvasWidth, canvasHeight)
+                  "
                   :min="100"
                   :max="10000"
                   :controls="false"
@@ -20,7 +22,9 @@
               <el-form-item label="高度">
                 <el-input-number
                   :model-value="canvasHeight"
-                  @update:model-value="(val: number | undefined) => setCanvasSize(canvasWidth, val ?? canvasHeight)"
+                  @update:model-value="
+                    (val: number | undefined) => setCanvasSize(canvasWidth, val ?? canvasHeight)
+                  "
                   :min="100"
                   :max="10000"
                   :controls="false"
@@ -243,14 +247,24 @@
                       <el-input
                         v-if="field.type === 'text'"
                         :model-value="String(getStyleValue(field.key).value ?? '')"
-                        @update:model-value="(val: string) => { getStyleValue(field.key).value = val; storeComponent.commitDebounced() }"
+                        @update:model-value="
+                          (val: string) => {
+                            getStyleValue(field.key).value = val
+                            storeComponent.commitDebounced()
+                          }
+                        "
                         :placeholder="field.placeholder"
                         class="modern-input"
                       />
                       <el-input-number
                         v-else-if="field.type === 'number'"
                         :model-value="Number(getStyleValue(field.key).value ?? 0)"
-                        @update:model-value="(val: number | undefined) => { getStyleValue(field.key).value = val; storeComponent.commitDebounced() }"
+                        @update:model-value="
+                          (val: number | undefined) => {
+                            getStyleValue(field.key).value = val
+                            storeComponent.commitDebounced()
+                          }
+                        "
                         :min="field.min"
                         :max="field.max"
                         :step="field.step ?? 1"
@@ -258,17 +272,28 @@
                         class="modern-input"
                       />
                       <div v-else-if="field.type === 'color'" class="color-picker-row">
-                        <el-color-picker 
+                        <el-color-picker
                           :model-value="String(getStyleValue(field.key).value ?? '#000000')"
-                          @update:model-value="(val: string | null) => { getStyleValue(field.key).value = val; storeComponent.commitDebounced() }"
-                          show-alpha 
+                          @update:model-value="
+                            (val: string | null) => {
+                              getStyleValue(field.key).value = val
+                              storeComponent.commitDebounced()
+                            }
+                          "
+                          show-alpha
                         />
                         <span class="color-text">{{ getStyleValue(field.key).value }}</span>
                       </div>
+                      <!-- eslint-disable-next-line vue/no-deprecated-filter -->
                       <el-select
                         v-else-if="field.type === 'select'"
-                        :model-value="(getStyleValue(field.key).value as (string | number | boolean))"
-                        @update:model-value="(val: string | number | boolean) => { getStyleValue(field.key).value = val; storeComponent.commitDebounced() }"
+                        :model-value="getStyleValue(field.key).value as string | number | boolean"
+                        @update:model-value="
+                          (val: string | number | boolean) => {
+                            getStyleValue(field.key).value = val
+                            storeComponent.commitDebounced()
+                          }
+                        "
                         class="modern-select"
                       >
                         <el-option
@@ -281,7 +306,12 @@
                       <el-switch
                         v-else-if="field.type === 'switch'"
                         :model-value="Boolean(getStyleValue(field.key).value)"
-                        @update:model-value="(val: boolean | string | number) => { getStyleValue(field.key).value = val; storeComponent.commitDebounced() }"
+                        @update:model-value="
+                          (val: boolean | string | number) => {
+                            getStyleValue(field.key).value = val
+                            storeComponent.commitDebounced()
+                          }
+                        "
                       />
                     </el-form-item>
                   </template>
@@ -307,7 +337,14 @@
                       <el-input
                         v-else
                         :model-value="String(selectComponent!.dataSource![field.key] ?? '')"
-                        @update:model-value="(val: string) => { if (selectComponent?.dataSource) { selectComponent.dataSource[field.key] = val; storeComponent.commitDebounced() } }"
+                        @update:model-value="
+                          (val: string) => {
+                            if (selectComponent?.dataSource) {
+                              selectComponent.dataSource[field.key] = val
+                              storeComponent.commitDebounced()
+                            }
+                          }
+                        "
                         :placeholder="field.placeholder"
                         class="modern-input"
                         @blur="storeComponent.commitDebounced()"
@@ -316,7 +353,14 @@
                     <el-input-number
                       v-else-if="field.type === 'number' && selectComponent.dataSource"
                       :model-value="Number(selectComponent!.dataSource![field.key] ?? 0)"
-                      @update:model-value="(val: number | undefined) => { if (selectComponent?.dataSource) { selectComponent.dataSource[field.key] = val; storeComponent.commitDebounced() } }"
+                      @update:model-value="
+                        (val: number | undefined) => {
+                          if (selectComponent?.dataSource) {
+                            selectComponent.dataSource[field.key] = val
+                            storeComponent.commitDebounced()
+                          }
+                        }
+                      "
                       :min="field.min"
                       :max="field.max"
                       :step="field.step ?? 1"
@@ -324,10 +368,20 @@
                       class="modern-input"
                       @blur="storeComponent.commitDebounced()"
                     />
+                    <!-- eslint-disable-next-line vue/no-deprecated-filter -->
                     <el-select
                       v-else-if="field.type === 'select' && selectComponent.dataSource"
-                      :model-value="(selectComponent!.dataSource![field.key] as (string | number | boolean))"
-                      @update:model-value="(val: string | number | boolean) => { if (selectComponent?.dataSource) { selectComponent.dataSource[field.key] = val; storeComponent.commitDebounced() } }"
+                      :model-value="
+                        selectComponent!.dataSource![field.key] as string | number | boolean
+                      "
+                      @update:model-value="
+                        (val: string | number | boolean) => {
+                          if (selectComponent?.dataSource) {
+                            selectComponent.dataSource[field.key] = val
+                            storeComponent.commitDebounced()
+                          }
+                        }
+                      "
                       class="modern-select"
                     >
                       <el-option
@@ -340,7 +394,14 @@
                     <el-switch
                       v-else-if="field.type === 'switch' && selectComponent.dataSource"
                       :model-value="Boolean(selectComponent!.dataSource![field.key])"
-                      @update:model-value="(val: boolean | string | number) => { if (selectComponent?.dataSource) { selectComponent.dataSource[field.key] = val; storeComponent.commitDebounced() } }"
+                      @update:model-value="
+                        (val: boolean | string | number) => {
+                          if (selectComponent?.dataSource) {
+                            selectComponent.dataSource[field.key] = val
+                            storeComponent.commitDebounced()
+                          }
+                        }
+                      "
                     />
                   </el-form-item>
                 </template>
@@ -374,24 +435,46 @@
                     <div v-else-if="field.type === 'color'" class="color-picker-row">
                       <el-color-picker
                         :model-value="String(selectComponent!.props[field.key] ?? '#000000')"
-                        @update:model-value="(val: string | null) => { if (selectComponent) { selectComponent.props[field.key] = val; storeComponent.commitDebounced() } }"
+                        @update:model-value="
+                          (val: string | null) => {
+                            if (selectComponent) {
+                              selectComponent.props[field.key] = val
+                              storeComponent.commitDebounced()
+                            }
+                          }
+                        "
                         show-alpha
                       />
                     </div>
                     <el-input-number
                       v-else-if="field.type === 'number'"
                       :model-value="Number(selectComponent!.props[field.key] ?? 0)"
-                      @update:model-value="(val: number | undefined) => { if (selectComponent) { selectComponent.props[field.key] = val; storeComponent.commitDebounced() } }"
+                      @update:model-value="
+                        (val: number | undefined) => {
+                          if (selectComponent) {
+                            selectComponent.props[field.key] = val
+                            storeComponent.commitDebounced()
+                          }
+                        }
+                      "
                       :min="field.min"
                       :max="field.max"
                       :step="field.step ?? 1"
                       :controls="false"
                       class="modern-input"
                     />
+                    <!-- eslint-disable-next-line vue/no-deprecated-filter -->
                     <el-select
                       v-else-if="field.type === 'select'"
-                      :model-value="(selectComponent!.props[field.key] as (string | number | boolean))"
-                      @update:model-value="(val: string | number | boolean) => { if (selectComponent) { selectComponent.props[field.key] = val; storeComponent.commitDebounced() } }"
+                      :model-value="selectComponent!.props[field.key] as string | number | boolean"
+                      @update:model-value="
+                        (val: string | number | boolean) => {
+                          if (selectComponent) {
+                            selectComponent.props[field.key] = val
+                            storeComponent.commitDebounced()
+                          }
+                        }
+                      "
                       class="modern-select"
                     >
                       <el-option
@@ -404,7 +487,14 @@
                     <el-switch
                       v-else-if="field.type === 'switch'"
                       :model-value="Boolean(selectComponent!.props[field.key])"
-                      @update:model-value="(val: boolean | string | number) => { if (selectComponent) { selectComponent.props[field.key] = val; storeComponent.commitDebounced() } }"
+                      @update:model-value="
+                        (val: boolean | string | number) => {
+                          if (selectComponent) {
+                            selectComponent.props[field.key] = val
+                            storeComponent.commitDebounced()
+                          }
+                        }
+                      "
                     />
                   </el-form-item>
                 </template>
@@ -416,7 +506,14 @@
             <div class="section-title">文本内容</div>
             <el-input
               :model-value="String(selectComponent!.props.text ?? '')"
-              @update:model-value="(val: string) => { if (selectComponent) { selectComponent.props.text = val; storeComponent.commitDebounced() } }"
+              @update:model-value="
+                (val: string) => {
+                  if (selectComponent) {
+                    selectComponent.props.text = val
+                    storeComponent.commitDebounced()
+                  }
+                }
+              "
               type="textarea"
               :rows="4"
               placeholder="请输入文本内容"

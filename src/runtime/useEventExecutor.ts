@@ -4,9 +4,7 @@ import { ElMessage } from 'element-plus'
 import type { Component, EventAction } from '@/types/components'
 import type { Page } from '@/stores/project'
 
-// ============================================================================
 // 类型定义
-// ============================================================================
 
 export interface EventExecutorContext {
   components: Ref<Component[]>
@@ -16,9 +14,7 @@ export interface EventExecutorContext {
   onNavigate?: (pageId: string) => void
 }
 
-// ============================================================================
 // 常量与配置
-// ============================================================================
 
 const HIGHLIGHT_CLASS = 'editor-highlight-active'
 const HIGHLIGHT_DURATION = 2000 // 高亮持续时间（毫秒）
@@ -67,9 +63,7 @@ const HIGHLIGHT_STYLES = `
   }
 `
 
-// ============================================================================
 // 辅助函数
-// ============================================================================
 
 /**
  * 自动注入高亮样式到 <head>
@@ -132,34 +126,93 @@ function executeSandboxedScript(
     allPages: Page[]
   },
 ): void {
+  // 安全的全局对象白名单
+  const SAFE_GLOBALS = [
+    'console',
+    'Math',
+    'Date',
+    'JSON',
+    'Array',
+    'Object',
+    'String',
+    'Number',
+    'Boolean',
+    'parseInt',
+    'parseFloat',
+    'isNaN',
+    'isFinite',
+    'setTimeout',
+    'clearTimeout',
+    'setInterval',
+    'clearInterval',
+    'Promise',
+    'Set',
+    'Map',
+    'WeakSet',
+    'WeakMap',
+  ] as const
+
+  // 创建 Proxy 代理，拦截所有变量访问
+  const proxy = new Proxy(context, {
+    // 拦截 in 操作符 (例如: 'window' in proxy)
+    has(target, key: string | symbol) {
+      // 只对 context 中的属性和安全全局变量返回 true
+      if (key in target) return true
+      if (typeof key === 'string' && (SAFE_GLOBALS as readonly string[]).includes(key)) return true
+      // 对其他变量返回 false，防止访问外层作用域（包括 window）
+      return false
+    },
+    // 拦截读取操作
+    get(target, key: string | symbol) {
+      // 1. 处理 Symbol.unscopables
+      if (key === Symbol.unscopables) return undefined
+
+      // 2. 优先返回 context 中的属性（component, components, navigateToPage, allPages）
+      if (key in target) {
+        return Reflect.get(target, key)
+      }
+
+      // 3. 允许访问安全的全局对象
+      if (typeof key === 'string' && (SAFE_GLOBALS as readonly string[]).includes(key)) {
+        return window[key as keyof Window]
+      }
+
+      // 4. 其他情况返回 undefined（阻止访问 window 等危险对象）
+      return undefined
+    },
+ 
+    // 拦截设置操作，防止修改 context 对象
+    set(target, key: string | symbol, value: unknown) {
+      // 只允许修改 context 中已存在的属性
+      if (key in target) {
+        return Reflect.set(target, key, value)
+      }
+      // 阻止添加新属性
+      console.warn(`[沙箱] 禁止添加新属性: ${String(key)}`)
+      return false
+    },
+  })
+
   try {
-    // 创建受限的执行环境
+    // 使用 with 语法配合 Proxy 实现真正的沙箱隔离
+    // 注意：with 在严格模式下不可用，所以这里不能加 "use strict"
     const fn = new Function(
-      'component',
-      'components',
-      'navigateToPage',
-      'allPages',
-      'console',
+      'sandbox',
       `
-      "use strict";
-      try {
+      with(sandbox) {
         ${code}
-      } catch (e) {
-        console.error('[CustomScript Error]', e);
       }
       `,
     )
 
-    fn(context.component, context.components, context.navigateToPage, context.allPages, console)
+    fn(proxy)
   } catch (error) {
     console.warn('[事件] 脚本执行失败:', error)
     ElMessage.error('脚本执行失败')
   }
 }
 
-// ============================================================================
 // 主 Hook
-// ============================================================================
 
 export function useEventExecutor(context: EventExecutorContext) {
   const { components, pages, isProjectMode, router, onNavigate } = context

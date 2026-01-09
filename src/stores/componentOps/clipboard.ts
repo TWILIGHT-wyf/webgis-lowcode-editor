@@ -2,25 +2,10 @@ import { ref } from 'vue'
 import { nanoid } from 'nanoid'
 import type { Ref } from 'vue'
 import type { ClipboardApi } from '@/types/store'
+import type { BaseComponent } from './types'
+import { cloneDeep } from 'lodash-es'
 
-function deepClone<T>(v: T): T {
-  return JSON.parse(JSON.stringify(v)) as T
-}
-
-export function createClipboard<
-  C extends {
-    id: string
-    type: string
-    position: { x: number; y: number }
-    size: { width: number; height: number }
-    rotation: number
-    zindex: number
-    style: Record<string, unknown>
-    props: Record<string, unknown>
-    groupId?: string
-    children?: string[]
-  },
->(
+export function createClipboard<C extends BaseComponent>(
   componentStore: Ref<C[]>,
   deps: {
     selectedId: (id: string) => void
@@ -31,10 +16,10 @@ export function createClipboard<
   const clipboard = ref<C[]>([]) as Ref<C[]>
 
   function snapshotWithoutGrouping(comp: C): C {
-    const snap = deepClone(comp) as C & { groupId?: string; children?: string[] }
+    const snap = cloneDeep(comp)
     delete snap.groupId
     delete snap.children
-    return snap as C
+    return snap
   }
 
   function resolveCopyTargets(ids: string[]): C[] {
