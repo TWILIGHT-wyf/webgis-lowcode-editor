@@ -1,0 +1,13 @@
+{
+  "name": "@lowcode/ui",
+  "version": "1.0.0",
+  "scripts": {
+    "build": "vite build"
+  },
+  "peerDependencies": {
+    "vue": "^3.0.0"
+  },
+  "dependencies": {
+    "echarts": "^5.0.0"
+  }
+}

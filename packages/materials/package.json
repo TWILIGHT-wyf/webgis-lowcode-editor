@@ -1,0 +1,9 @@
+{
+  "name": "@lowcode/materials",
+  "version": "1.0.0",
+  "main": "src/index.ts",
+  "dependencies": {
+    "@lowcode/ui": "workspace:*",
+    "@lowcode/core": "workspace:*"
+  }
+}
