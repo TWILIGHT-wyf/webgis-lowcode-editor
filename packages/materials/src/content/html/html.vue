@@ -1,12 +1,12 @@
-<template>
+﻿<template>
   <BaseHtml v-bind="htmlProps" />
 </template>
 
 <script setup lang="ts">
 import { computed } from 'vue'
 import { storeToRefs } from 'pinia'
-import { useComponent } from '@/stores/component'
-import { vHtml as BaseHtml, useDataSource, extractWithFallback } from '@twi1i9ht/visual-lib'
+import { useComponent } from '@lowcode/editor/stores/component'
+import { vHtml as BaseHtml, useDataSource, extractWithFallback } from '@lowcode/ui'
 
 const props = defineProps<{
   id: string

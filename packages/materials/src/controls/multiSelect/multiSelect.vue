@@ -1,16 +1,16 @@
-<template>
+﻿<template>
   <BaseMultiSelect v-bind="multiSelectProps" @change="handleChange" />
 </template>
 
 <script setup lang="ts">
 import { computed, ref, toRef, watch } from 'vue'
-import { useComponent } from '@/stores/component'
+import { useComponent } from '@lowcode/editor/stores/component'
 import { storeToRefs } from 'pinia'
 import {
   vMultiSelect as BaseMultiSelect,
   useDataSource,
   extractWithFallback,
-} from '@twi1i9ht/visual-lib'
+} from '@lowcode/ui'
 
 interface SelectOption {
   label: string

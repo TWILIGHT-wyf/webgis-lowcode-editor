@@ -1,7 +1,7 @@
-import { type Ref, onUnmounted } from 'vue'
+﻿import { type Ref, onUnmounted } from 'vue'
 import { type Router } from 'vue-router'
 import { ElMessage } from 'element-plus'
-import type { Component, EventAction } from '@/types/components'
+import type { Component, EventAction } from '@lowcode/core/types/components'
 import type { Page } from '@/stores/project'
 
 // 类型定义

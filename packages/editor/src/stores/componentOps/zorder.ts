@@ -1,5 +1,5 @@
-import type { Ref } from 'vue'
-import type { ZOrderApi } from '@/types/store'
+﻿import type { Ref } from 'vue'
+import type { ZOrderApi } from '@lowcode/core/types/store'
 
 export function createZOrder<
   C extends {

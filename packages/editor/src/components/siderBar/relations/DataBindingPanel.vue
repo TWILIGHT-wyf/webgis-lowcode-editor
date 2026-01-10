@@ -1,4 +1,4 @@
-<template>
+﻿<template>
   <div class="data-binding-panel">
     <!-- 空状态 -->
     <div v-if="!dataBindings.length" class="empty-state">
@@ -181,8 +181,8 @@ import {
 } from '@element-plus/icons-vue'
 import { get } from 'lodash-es'
 import { useComponentHierarchy, useDataBindings } from './relations'
-import type { DataBinding } from './relations'
-import type { Component } from '@/types/components'
+import type { DataBinding } from '@lowcode/core/types/components'
+import type { Component } from '@lowcode/core/types/components'
 import type { Component as VueComponent } from 'vue'
 
 // 使用现有的组合式函数

@@ -1,4 +1,4 @@
-<template>
+﻿<template>
   <BaseGroup v-bind="groupProps" :show-placeholder="!hasChildren">
     <!-- 渲染子组件 -->
     <div v-if="hasChildren" class="children-container">
@@ -22,10 +22,10 @@
 <script setup lang="ts">
 import { computed } from 'vue'
 import type { CSSProperties } from 'vue'
-import { useComponent } from '@/stores/component'
+import { useComponent } from '@lowcode/editor/stores/component'
 import { storeToRefs } from 'pinia'
-import { componentRegistry } from '@/customComponents/registry'
-import { vGroup as BaseGroup } from '@twi1i9ht/visual-lib'
+import { componentRegistry } from '@lowcode/materials/registry'
+import { vGroup as BaseGroup } from '@lowcode/ui'
 
 const props = defineProps<{ id: string }>()
 const { componentStore } = storeToRefs(useComponent())

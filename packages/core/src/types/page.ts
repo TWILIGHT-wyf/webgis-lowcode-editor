@@ -1,4 +1,4 @@
-import type { Component } from '@/types/components'
+﻿import type { Component } from './components'
 
 // 页面树节点类型（仅前端使用，用于导航）
 export interface PageTreeNode {

@@ -1,4 +1,4 @@
-<template>
+﻿<template>
   <div class="component-bar-root">
     <div class="panel-header">
       <span class="title">组件库</span>
@@ -107,7 +107,7 @@ import { ref } from 'vue'
 import type { Component } from 'vue'
 import { useComponent } from '@/stores/component'
 import { templates } from '@/templates'
-import type { PageTemplate } from '@/types/page'
+import type { PageTemplate } from '@lowcode/core/types/page'
 import { ElMessageBox, ElMessage } from 'element-plus'
 import { DocumentCopy, Connection } from '@element-plus/icons-vue'
 import * as echarts from 'echarts'

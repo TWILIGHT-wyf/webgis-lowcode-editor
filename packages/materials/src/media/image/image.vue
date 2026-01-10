@@ -1,12 +1,12 @@
-<template>
+﻿<template>
   <BaseImage v-bind="imageProps" />
 </template>
 
 <script setup lang="ts">
 import { computed } from 'vue'
 import { storeToRefs } from 'pinia'
-import { useComponent } from '@/stores/component'
-import { vImage as BaseImage, useDataSource, extractWithFallback } from '@twi1i9ht/visual-lib'
+import { useComponent } from '@lowcode/editor/stores/component'
+import { vImage as BaseImage, useDataSource, extractWithFallback } from '@lowcode/ui'
 
 const props = defineProps<{
   id: string

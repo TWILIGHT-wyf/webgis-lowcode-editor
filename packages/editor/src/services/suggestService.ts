@@ -1,4 +1,4 @@
-/**
+﻿/**
  * AI 建议服务
  * 负责调用 Agent、校验、白名单过滤、沙箱隔离
  */
@@ -8,8 +8,8 @@ import type {
   SuggestionResult,
   DiffItem,
   WhitelistConfig,
-} from '@/types/suggestion'
-import type { Component } from '@/types/components'
+} from '@lowcode/core/types/suggestion'
+import type { Component } from '@lowcode/core/types/components'
 import { nanoid } from 'nanoid'
 import http from '@/services/http'
 import { getAllSchemas, type ComponentSchema } from '@/components/siderBar/properties/schema/types'

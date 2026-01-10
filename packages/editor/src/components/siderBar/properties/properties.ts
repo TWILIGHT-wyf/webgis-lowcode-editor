@@ -1,8 +1,8 @@
-import { computed, ref, watch } from 'vue'
+﻿import { computed, ref, watch } from 'vue'
 import { useComponent } from '@/stores/component'
 import { useSizeStore } from '@/stores/size'
 import { storeToRefs } from 'pinia'
-import { useDataSource } from '@twi1i9ht/visual-lib'
+import { useDataSource } from '@lowcode/ui'
 import { getSchema } from './schema'
 
 export function customProperties() {

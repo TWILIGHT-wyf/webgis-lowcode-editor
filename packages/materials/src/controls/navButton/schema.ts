@@ -1,11 +1,11 @@
-/**
+﻿/**
  * 导航按钮组件属性配置
  */
 import {
   registerSchema,
   commonStyleFields,
   type Field,
-} from '@/components/siderBar/properties/schema/types'
+} from '@lowcode/editor/components/siderBar/properties/schema/types'
 
 const styleSchema: Field[] = [
   commonStyleFields.backgroundColor,

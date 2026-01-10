@@ -1,7 +1,7 @@
-import { ref, onMounted, onBeforeUnmount, type Ref } from 'vue'
+﻿import { ref, onMounted, onBeforeUnmount, type Ref } from 'vue'
 import { throttle } from 'lodash-es'
-import type { ComponentPayload } from '@/types/components'
-import { MIN_SCALE, MAX_SCALE, ZOOM_FACTOR } from '@/constants/editor'
+import type { ComponentPayload } from '@lowcode/core/types/components'
+import { MIN_SCALE, MAX_SCALE, ZOOM_FACTOR } from '@lowcode/core/constants/editor'
 
 export function useCanvasInteraction(
   wrapRef: Ref<HTMLDivElement | null>,

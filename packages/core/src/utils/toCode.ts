@@ -1,4 +1,4 @@
-import type { Component } from '@/types/components'
+﻿import type { Component } from './components'
 
 /**
  * 组件类型到库导出名的映射
@@ -452,7 +452,7 @@ ${eventHandlers}
 
 /**
  * 生成导入语句
- * 统一从 @twi1i9ht/visual-lib 导入所有组件
+ * 统一从 @lowcode/ui 导入所有组件
  */
 function generateImports(components: Component[]): string {
   const libImports = new Set<string>()
@@ -471,8 +471,8 @@ function generateImports(components: Component[]): string {
   // 生成组件库导入语句
   if (libImports.size > 0) {
     const sortedImports = Array.from(libImports).sort()
-    importStr += `import { ${sortedImports.join(', ')} } from '@twi1i9ht/visual-lib'\n`
-    importStr += `import '@twi1i9ht/visual-lib/dist/style.css'`
+    importStr += `import { ${sortedImports.join(', ')} } from '@lowcode/ui'\n`
+    importStr += `import '@lowcode/ui/dist/style.css'`
   }
 
   return importStr

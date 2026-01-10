@@ -2,8 +2,24 @@
   "name": "@lowcode/materials",
   "version": "1.0.0",
   "main": "src/index.ts",
+  "exports": {
+    ".": "./src/index.ts",
+    "./*": "./src/*"
+  },
+  "typesVersions": {
+    "*": {
+      "*": [
+        "./src/*"
+      ]
+    }
+  },
   "dependencies": {
+    "@lowcode/core": "workspace:*",
     "@lowcode/ui": "workspace:*",
-    "@lowcode/core": "workspace:*"
+    "@vueuse/core": "^14.1.0",
+    "echarts": "^5.0.0",
+    "nanoid": "^5.1.6",
+    "pinia": "^2.3.1",
+    "vue": "^3.4.0"
   }
 }

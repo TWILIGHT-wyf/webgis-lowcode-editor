@@ -1,4 +1,4 @@
-<template>
+﻿<template>
   <div class="diff-viewer">
     <div class="diff-header">
       <span class="diff-title">变更预览</span>
@@ -77,7 +77,7 @@
 <script setup lang="ts">
 import { ref } from 'vue'
 import { Files, Right, WarningFilled } from '@element-plus/icons-vue'
-import type { DiffItem, DiffActionType } from '@/types/suggestion'
+import type { DiffItem, DiffActionType } from '@lowcode/core/types/suggestion'
 
 interface Props {
   diff: DiffItem

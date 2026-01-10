@@ -1,11 +1,11 @@
-<template>
+﻿<template>
   <BarChartBase v-bind="chartProps" />
 </template>
 
 <script setup lang="ts">
 import { computed } from 'vue'
 import { storeToRefs } from 'pinia'
-import { useComponent } from '@/stores/component'
+import { useComponent } from '@lowcode/editor/stores/component'
 
 // 从视觉组件库导入基础组件和工具函数
 import {
@@ -16,7 +16,7 @@ import {
   extractString,
   parseNumberInput,
   parseStringInput,
-} from '@twi1i9ht/visual-lib'
+} from '@lowcode/ui'
 
 const props = defineProps<{ id: string }>()
 

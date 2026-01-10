@@ -1,11 +1,11 @@
-import { defineStore } from 'pinia'
+﻿import { defineStore } from 'pinia'
 import { ref, computed, watch } from 'vue'
 import { nanoid } from 'nanoid'
 import { debounce } from 'lodash-es'
 import { useComponent } from '@/stores/component'
 import { ElMessage } from 'element-plus'
-import type { Component } from '@/types/components'
-import type { ServerProject } from '@/types/api'
+import type { Component } from '@lowcode/core/types/components'
+import type { ServerProject } from '@lowcode/core/types/api'
 import * as projectService from '@/services/projects'
 
 // —— 类型定义 ——

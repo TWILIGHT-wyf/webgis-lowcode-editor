@@ -1,12 +1,12 @@
-<template>
+﻿<template>
   <BaseSwitch v-bind="switchProps" @change="handleChange" />
 </template>
 
 <script setup lang="ts">
 import { computed, ref, watch } from 'vue'
-import { useComponent } from '@/stores/component'
+import { useComponent } from '@lowcode/editor/stores/component'
 import { storeToRefs } from 'pinia'
-import { vSwitch as BaseSwitch } from '@twi1i9ht/visual-lib'
+import { vSwitch as BaseSwitch } from '@lowcode/ui'
 
 const props = defineProps<{
   id: string

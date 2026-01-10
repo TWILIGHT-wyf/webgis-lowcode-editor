@@ -7,6 +7,11 @@ export default defineConfig({
   resolve: {
     alias: {
       '@': fileURLToPath(new URL('./src', import.meta.url)),
+      '@lowcode/editor': fileURLToPath(new URL('./src', import.meta.url)),
+      '@lowcode/core': fileURLToPath(new URL('../core/src', import.meta.url)),
+      '@lowcode/ui': fileURLToPath(new URL('../ui', import.meta.url)),
+      '@lowcode/materials': fileURLToPath(new URL('../materials/src', import.meta.url)),
+      '@lowcode/generator': fileURLToPath(new URL('../generator/src', import.meta.url)),
     },
   },
 })

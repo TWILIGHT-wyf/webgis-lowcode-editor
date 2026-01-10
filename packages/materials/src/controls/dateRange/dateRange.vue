@@ -1,12 +1,12 @@
-<template>
+﻿<template>
   <BaseDateRange v-bind="dateRangeProps" @change="handleChange" />
 </template>
 
 <script setup lang="ts">
 import { computed, ref, watch } from 'vue'
-import { useComponent } from '@/stores/component'
+import { useComponent } from '@lowcode/editor/stores/component'
 import { storeToRefs } from 'pinia'
-import { vDateRange as BaseDateRange } from '@twi1i9ht/visual-lib'
+import { vDateRange as BaseDateRange } from '@lowcode/ui'
 
 const props = defineProps<{ id: string }>()
 const { componentStore } = storeToRefs(useComponent())

@@ -1,4 +1,4 @@
-<template>
+﻿<template>
   <div class="runtime-view" :class="{ 'theme-dark': isDarkMode }">
     <ExportConfigDialog v-model="exportDialogVisible" :project="projectSnapshot" />
 
@@ -301,8 +301,8 @@ import {
   generateProjectSourceFiles,
   type ExportOptions,
   type GeneratedSourceFile,
-} from '@/utils/projectGenerator'
-import type { Component } from '@/types/components'
+} from '@lowcode/core/utils/projectGenerator'
+import type { Component } from '@lowcode/core/types/components'
 import type { Page, Project } from '@/stores/project'
 import {
   Document,

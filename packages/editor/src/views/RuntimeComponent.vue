@@ -1,4 +1,4 @@
-<template>
+﻿<template>
   <component
     :is="componentType"
     :ref="(el: unknown) => (componentRef = el as HTMLElement | { $el: HTMLElement } | null)"
@@ -32,8 +32,8 @@
 
 <script setup lang="ts">
 import { ref, computed, onMounted, nextTick, watch } from 'vue'
-import { componentRegistry } from '@/customComponents/registry'
-import type { Component, EventAction } from '@/types/components'
+import { componentRegistry } from '@lowcode/materials/registry'
+import type { Component, EventAction } from '@lowcode/core/types/components'
 
 const props = defineProps<{
   component: Component

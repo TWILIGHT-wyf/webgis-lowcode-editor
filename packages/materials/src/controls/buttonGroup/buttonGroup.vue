@@ -1,16 +1,16 @@
-<template>
+﻿<template>
   <BaseButtonGroup v-bind="buttonGroupProps" @click="handleClick" />
 </template>
 
 <script setup lang="ts">
 import { computed, toRef } from 'vue'
-import { useComponent } from '@/stores/component'
+import { useComponent } from '@lowcode/editor/stores/component'
 import { storeToRefs } from 'pinia'
 import {
   vButtonGroup as BaseButtonGroup,
   useDataSource,
   extractWithFallback,
-} from '@twi1i9ht/visual-lib'
+} from '@lowcode/ui'
 
 // 按钮接口
 interface ButtonItem {

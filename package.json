@@ -8,10 +8,10 @@
     "type-check": "vue-tsc --noEmit"
   },
   "devDependencies": {
+    "@types/node": "^20.0.0",
     "eslint": "^9.0.0",
-    "typescript": "^5.0.0",
-    "vue-tsc": "^2.0.0",
     "prettier": "^3.0.0",
-    "@types/node": "^20.0.0"
+    "typescript": "^5.9.3",
+    "vue-tsc": "^2.2.12"
   }
 }

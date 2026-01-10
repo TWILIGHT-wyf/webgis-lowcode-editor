@@ -1,12 +1,12 @@
-<template>
+﻿<template>
   <BaseSelect v-bind="selectProps" @change="handleChange" />
 </template>
 
 <script setup lang="ts">
 import { computed, ref, toRef, watch } from 'vue'
-import { useComponent } from '@/stores/component'
+import { useComponent } from '@lowcode/editor/stores/component'
 import { storeToRefs } from 'pinia'
-import { vSelect as BaseSelect, useDataSource, extractWithFallback } from '@twi1i9ht/visual-lib'
+import { vSelect as BaseSelect, useDataSource, extractWithFallback } from '@lowcode/ui'
 
 interface SelectOption {
   label: string

@@ -1,6 +1,6 @@
-import { provide, inject, type InjectionKey, computed } from 'vue'
+﻿import { provide, inject, type InjectionKey, computed } from 'vue'
 import { useComponent } from '@/stores/component'
-import type { EventAction, Component } from '@/types/components'
+import type { EventAction, Component } from '@lowcode/core/types/components'
 import { storeToRefs } from 'pinia'
 import { nanoid } from 'nanoid'
 

@@ -1,7 +1,7 @@
-import { ref } from 'vue'
+﻿import { ref } from 'vue'
 import { nanoid } from 'nanoid'
 import type { Ref } from 'vue'
-import type { ClipboardApi } from '@/types/store'
+import type { ClipboardApi } from '@lowcode/core/types/store'
 import type { BaseComponent } from './types'
 import { cloneDeep } from 'lodash-es'
 
@@ -13,7 +13,7 @@ export function createClipboard<C extends BaseComponent>(
     commit: (force?: boolean) => void
   },
 ): ClipboardApi<C> {
-  const clipboard = ref<C[]>([]) as Ref<C[]>
+  const clipboard = ref<C[]>([])
 
   function snapshotWithoutGrouping(comp: C): C {
     const snap = cloneDeep(comp)
@@ -137,5 +137,6 @@ export function createClipboard<C extends BaseComponent>(
     }
   }
 
-  return { clipboard, copy, cut, copyMultiple, cutMultiple, paste }
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  return { clipboard: clipboard as any, copy, cut, copyMultiple, cutMultiple, paste }
 }

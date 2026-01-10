@@ -1,4 +1,4 @@
-/**
+﻿/**
  * 建议面板 Pinia Store
  * 管理建议状态、历史记录、审计日志
  */
@@ -10,8 +10,8 @@ import type {
   SuggestionResult,
   SuggestionItem,
   AuditRecord,
-} from '@/types/suggestion'
-import type { Component } from '@/types/components'
+} from '@lowcode/core/types/suggestion'
+import type { Component } from '@lowcode/core/types/components'
 import { generateSuggestion, applyDiffs } from '@/services/suggestService'
 import { useComponent } from '@/stores/component'
 import { useSizeStore } from '@/stores/size'

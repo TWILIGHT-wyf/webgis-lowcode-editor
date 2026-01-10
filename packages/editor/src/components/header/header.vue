@@ -1,4 +1,4 @@
-<template>
+﻿<template>
   <div class="header-container">
     <!-- 左侧区域 -->
     <div class="left-section">
@@ -232,7 +232,7 @@ import { useProjectStore } from '@/stores/project'
 import { useSuggestion } from '@/stores/suggestion'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import * as projectService from '@/services/projects'
-import type { PageTreeNode } from '@/types/page'
+import type { PageTreeNode } from '@lowcode/core/types/page'
 import TreeNode from './treeNode.vue'
 import SaveStatusIndicator from './SaveStatusIndicator.vue'
 import ExportConfigDialog from '@/components/dialogs/ExportConfigDialog.vue'

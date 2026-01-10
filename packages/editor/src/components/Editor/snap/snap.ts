@@ -1,7 +1,7 @@
-import { useComponent } from '@/stores/component'
+﻿import { useComponent } from '@/stores/component'
 import { computed } from 'vue'
 import { storeToRefs } from 'pinia'
-import type { Box, SnapComp } from '@/types/snap'
+import type { Box, SnapComp } from '@lowcode/core/types/snap'
 
 type SnapResult = {
   position: { x: number; y: number }

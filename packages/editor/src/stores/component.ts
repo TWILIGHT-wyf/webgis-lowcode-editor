@@ -1,8 +1,8 @@
-import { defineStore } from 'pinia'
+﻿import { defineStore } from 'pinia'
 import { ref, shallowRef } from 'vue'
 import { nanoid } from 'nanoid'
 import { createHistory, createClipboard, createGrouping, createZOrder } from '@/stores/componentOps'
-import type { Component, DataSource, PropValue } from '@/types/components'
+import type { Component, DataSource, PropValue } from '@lowcode/core/types/components'
 
 export const useComponent = defineStore('component', () => {
   const componentStore = ref<Component[]>([])

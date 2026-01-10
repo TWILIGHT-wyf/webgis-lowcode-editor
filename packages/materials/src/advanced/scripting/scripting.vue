@@ -1,12 +1,12 @@
-<script setup lang="ts">
+﻿<script setup lang="ts">
 import { computed, watch, ref } from 'vue'
 import { storeToRefs } from 'pinia'
-import { useComponent } from '@/stores/component'
+import { useComponent } from '@lowcode/editor/stores/component'
 import {
   vScripting as BaseScripting,
   useDataSource,
   extractWithFallback,
-} from '@twi1i9ht/visual-lib'
+} from '@lowcode/ui'
 
 const props = defineProps<{
   id: string

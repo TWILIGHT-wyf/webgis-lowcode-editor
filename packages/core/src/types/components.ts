@@ -1,6 +1,39 @@
-// 组件相关类型定义
+﻿// 组件相关类型定义
 
-import type { DataBinding } from '@/components/siderBar/relations/relations'
+// 事件动作接口
+export interface Action {
+  type: string
+  targetId?: string
+}
+
+// 数据绑定接口
+export interface DataBinding {
+  sourceId: string
+  sourcePath: string
+  targetPath: string
+  transformer?: string
+  transformerType?: 'expression' | 'template'
+}
+
+// 动画选项接口
+export interface AnimationOption {
+  name: string
+  label: string
+  class: string
+  duration?: number
+  desc?: string
+}
+
+// 事件处理器类型
+export type EventHandler = (params?: unknown) => void | Promise<void>
+
+// 事件上下文接口
+export interface ComponentEventsContext {
+  emitComponentEvent: (componentId: string, eventName: string, params?: unknown) => void
+  executeAction: (action: EventAction, sourceComponent?: Component) => Promise<void>
+  registerListener: (componentId: string, eventName: string, handler: EventHandler) => void
+  unregisterListener: (componentId: string, eventName: string) => void
+}
 
 export interface DataSource {
   enabled: boolean
@@ -117,8 +150,5 @@ export interface TreeNodeProps {
   depth?: number
 }
 
-// 组件相关的其它轻量类型通过 re-export
-export type { Action, DataBinding } from '@/components/siderBar/relations/relations'
-export type { AnimationOption } from '@/components/siderBar/animation/animation'
-export type { ComponentEventsContext, EventHandler } from '@/components/siderBar/events/events'
-export type { SnapComp, Box } from '@/types/snap'
+// Re-export snap types
+export type { SnapComp, Box } from './snap'

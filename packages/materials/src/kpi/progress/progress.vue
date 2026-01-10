@@ -1,17 +1,17 @@
-<template>
+﻿<template>
   <VProgress v-bind="progressProps" />
 </template>
 
 <script setup lang="ts">
 import { computed, toRef } from 'vue'
-import { useComponent } from '@/stores/component'
+import { useComponent } from '@lowcode/editor/stores/component'
 import { storeToRefs } from 'pinia'
 import {
   vProgress as VProgress,
   useDataSource,
   extractNumber,
   extractWithFallback,
-} from '@twi1i9ht/visual-lib'
+} from '@lowcode/ui'
 
 const props = defineProps<{ id: string }>()
 const { componentStore } = storeToRefs(useComponent())

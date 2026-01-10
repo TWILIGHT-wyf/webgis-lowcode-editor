@@ -1,12 +1,12 @@
-<template>
+﻿<template>
   <BreadcrumbBase v-bind="breadcrumbProps" @item-click="handleItemClick" />
 </template>
 
 <script setup lang="ts">
 import { computed } from 'vue'
-import { useComponent } from '@/stores/component'
+import { useComponent } from '@lowcode/editor/stores/component'
 import { storeToRefs } from 'pinia'
-import { vBreadcrumb as BreadcrumbBase } from '@twi1i9ht/visual-lib'
+import { vBreadcrumb as BreadcrumbBase } from '@lowcode/ui'
 
 interface BreadcrumbItem {
   label: string

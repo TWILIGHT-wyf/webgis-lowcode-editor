@@ -1,12 +1,12 @@
-<template>
+﻿<template>
   <BaseSlider v-bind="sliderProps" @change="handleChange" @input="handleInput" />
 </template>
 
 <script setup lang="ts">
 import { computed, ref, watch } from 'vue'
-import { useComponent } from '@/stores/component'
+import { useComponent } from '@lowcode/editor/stores/component'
 import { storeToRefs } from 'pinia'
-import { vSlider as BaseSlider } from '@twi1i9ht/visual-lib'
+import { vSlider as BaseSlider } from '@lowcode/ui'
 
 const props = defineProps<{
   id: string

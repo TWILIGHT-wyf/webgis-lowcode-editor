@@ -1,8 +1,8 @@
-import { computed } from 'vue'
+﻿import { computed } from 'vue'
 import type { CSSProperties, ComputedRef } from 'vue'
-import { useComponent } from '@/stores/component'
+import { useComponent } from '@lowcode/editor/stores/component'
 import { storeToRefs } from 'pinia'
-import { componentRegistry } from '@/customComponents/registry'
+import { componentRegistry } from '@lowcode/materials/registry'
 
 type LayoutComp = {
   children?: string[]

@@ -1,5 +1,5 @@
-import http from './http'
-import type { ServerProject, ProjectInput } from '@/types/api'
+﻿import http from './http'
+import type { ServerProject, ProjectInput } from '@lowcode/core/types/api'
 
 // API 响应类型
 export type { ServerProject, ProjectInput }

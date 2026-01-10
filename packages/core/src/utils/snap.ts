@@ -1,6 +1,6 @@
-// 简单的吸附（snap）工具函数
+﻿// 简单的吸附（snap）工具函数
 // 提供一个纯函数接口，便于单元测试与独立计算吸附位置，不依赖于 Pinia 或 Vue 的响应式系统
-import type { Rect, SnapOptions } from '@/types/snap'
+import type { Rect, SnapOptions } from './snap'
 
 /**
  * 计算吸附后的位置（纯函数）

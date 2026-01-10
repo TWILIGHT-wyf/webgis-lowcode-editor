@@ -1,4 +1,4 @@
-<template>
+﻿<template>
   <div class="tree-node-wrapper">
     <div
       class="tree-node-content"
@@ -119,7 +119,7 @@ import {
   Check,
   Close,
 } from '@element-plus/icons-vue'
-import type { TreeNodeProps } from '@/types/components'
+import type { TreeNodeProps } from '@lowcode/core/types/components'
 
 const props = withDefaults(defineProps<TreeNodeProps>(), {
   activeId: '',

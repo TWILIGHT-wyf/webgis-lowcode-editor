@@ -3,18 +3,34 @@
   "version": "1.0.0",
   "scripts": {
     "dev": "vite",
-    "build": "vue-tsc && vite build"
+    "build": "vue-tsc --noEmit && vite build",
+    "type-check": "vue-tsc --noEmit"
   },
   "dependencies": {
-    "vue": "^3.4.0",
-    "pinia": "^2.1.0",
-    "vue-router": "^4.0.0",
     "@lowcode/core": "workspace:*",
+    "@lowcode/generator": "workspace:^",
+    "@lowcode/materials": "workspace:*",
     "@lowcode/ui": "workspace:*",
-    "@lowcode/materials": "workspace:*"
+    "@vueuse/core": "^14.1.0",
+    "axios": "^1.13.2",
+    "dompurify": "^3.3.1",
+    "echarts": "^6.0.0",
+    "element-plus": "^2.13.1",
+    "file-saver": "^2.0.5",
+    "highlight.js": "^11.11.1",
+    "jszip": "^3.10.1",
+    "lodash-es": "^4.17.21",
+    "nanoid": "^5.1.6",
+    "pinia": "^2.3.1",
+    "sucrase": "^3.35.1",
+    "vue": "^3.4.0",
+    "vue-echarts": "^8.0.1",
+    "vue-router": "^4.6.3"
   },
   "devDependencies": {
+    "@tsconfig/node22": "^22.0.5",
     "@vitejs/plugin-vue": "^5.0.0",
+    "@vue/tsconfig": "^0.8.1",
     "vite": "^5.0.0"
   }
 }

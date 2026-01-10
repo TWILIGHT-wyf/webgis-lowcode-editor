@@ -1,4 +1,4 @@
-<template>
+﻿<template>
   <BaseBadge v-bind="badgeProps">
     <!-- 子组件渲染 -->
     <div v-if="hasChildren" class="badge-children-wrapper" :style="childrenContainerStyle">
@@ -34,11 +34,11 @@
 <script setup lang="ts">
 import { computed, toRef } from 'vue'
 import type { CSSProperties } from 'vue'
-import { useComponent } from '@/stores/component'
+import { useComponent } from '@lowcode/editor/stores/component'
 import { storeToRefs } from 'pinia'
-import { vBadge as BaseBadge, useDataSource, extractWithFallback } from '@twi1i9ht/visual-lib'
-import { componentRegistry } from '@/customComponents/registry'
-import Shape from '@/components/Editor/shape/shape.vue'
+import { vBadge as BaseBadge, useDataSource, extractWithFallback } from '@lowcode/ui'
+import { componentRegistry } from '@lowcode/materials/registry'
+import Shape from '@lowcode/editor/components/Editor/shape/shape.vue'
 
 const props = defineProps<{ id: string }>()
 const { componentStore } = storeToRefs(useComponent())

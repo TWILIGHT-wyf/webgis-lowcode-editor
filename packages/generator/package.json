@@ -1,0 +1,19 @@
+{
+  "name": "@lowcode/generator",
+  "version": "1.0.0",
+  "main": "src/index.ts",
+  "scripts": {
+    "build": "tsc"
+  },
+  "dependencies": {
+    "@babel/generator": "^7.28.5",
+    "@babel/types": "^7.28.5",
+    "@lowcode/core": "workspace:*",
+    "prettier": "^3.0.0"
+  },
+  "devDependencies": {
+    "@types/babel__generator": "^7.27.0",
+    "@types/node": "^20.0.0",
+    "typescript": "^5.9.3"
+  }
+}

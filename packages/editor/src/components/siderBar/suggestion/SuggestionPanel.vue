@@ -1,4 +1,4 @@
-<template>
+﻿<template>
   <div class="suggestion-panel">
     <div class="panel-header">
       <h3 class="panel-title">AI 建议助手</h3>
@@ -131,7 +131,7 @@ import { ref, computed } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { MagicStick, View, Check, Close, Refresh } from '@element-plus/icons-vue'
 import { useSuggestion } from '@/stores/suggestion'
-import type { SuggestionStatus } from '@/types/suggestion'
+import type { SuggestionStatus } from '@lowcode/core/types/suggestion'
 import DiffViewer from './DiffViewer.vue'
 
 const suggestionStore = useSuggestion()

@@ -1,6 +1,19 @@
 {
   "name": "@lowcode/ui",
   "version": "1.0.0",
+  "main": "index.ts",
+  "exports": {
+    ".": "./index.ts",
+    "./*": "./src/*"
+  },
+  "typesVersions": {
+    "*": {
+      "*": [
+        "./src/*",
+        "./index.ts"
+      ]
+    }
+  },
   "scripts": {
     "build": "vite build"
   },
@@ -8,6 +21,11 @@
     "vue": "^3.0.0"
   },
   "dependencies": {
-    "echarts": "^5.0.0"
+    "dompurify": "^3.3.1",
+    "echarts": "^6.0.0",
+    "highlight.js": "^11.11.1",
+    "marked": "^17.0.1",
+    "vue": "^3.5.22",
+    "vue-echarts": "^8.0.1"
   }
 }

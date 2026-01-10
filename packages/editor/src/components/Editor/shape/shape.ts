@@ -1,6 +1,6 @@
-import { computed, type CSSProperties, ref, inject, type Ref } from 'vue'
+﻿import { computed, type CSSProperties, ref, inject, type Ref } from 'vue'
 import { useComponent } from '@/stores/component'
-import type { Component } from '@/types/components'
+import type { Component } from '@lowcode/core/types/components'
 import { useSizeStore } from '@/stores/size'
 import { storeToRefs } from 'pinia'
 import { useCanvasInteraction } from '@/components/Editor/canvasBoard/canvasBoard'
@@ -12,7 +12,7 @@ import {
   GRID_SIZE,
   MIN_COMPONENT_WIDTH,
   MIN_COMPONENT_HEIGHT,
-} from '@/constants/editor'
+} from '@lowcode/core/constants/editor'
 
 // 全局缓存组件查找结果，避免重复遍历
 const componentCache = new WeakMap<object, Map<string, Component | undefined>>()

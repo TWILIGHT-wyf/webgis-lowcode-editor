@@ -1,7 +1,7 @@
-/**
+﻿/**
  * ButtonGroup 按钮组组件属性配置
  */
-import { registerSchema, type Field } from '@/components/siderBar/properties/schema/types'
+import { registerSchema, type Field } from '@lowcode/editor/components/siderBar/properties/schema/types'
 
 const styleSchema: Field[] = [
   {

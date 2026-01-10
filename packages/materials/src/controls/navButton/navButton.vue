@@ -1,12 +1,12 @@
-<template>
+﻿<template>
   <NavButtonBase v-bind="buttonProps" @click="handleClick" />
 </template>
 
 <script setup lang="ts">
 import { computed } from 'vue'
-import { useComponent } from '@/stores/component'
+import { useComponent } from '@lowcode/editor/stores/component'
 import { storeToRefs } from 'pinia'
-import { vNavButton as NavButtonBase } from '@twi1i9ht/visual-lib'
+import { vNavButton as NavButtonBase } from '@lowcode/ui'
 
 const props = defineProps<{
   id: string

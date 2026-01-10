@@ -1,5 +1,5 @@
-import type { App, Component } from 'vue'
-// packages/visual-lib/index.ts
+﻿import type { App, Component } from 'vue'
+// @lowcode/ui/index.ts
 
 /**
  * 使用 Vite 的 import.meta.glob 动态导入所有组件

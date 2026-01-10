@@ -1,9 +1,9 @@
-import JSZip from 'jszip'
+﻿import JSZip from 'jszip'
 import { saveAs } from 'file-saver'
 import { transform } from 'sucrase'
 import { generateVueCode } from './toCode'
-import type { Project, Page } from '@/stores/project'
-import type { Component } from '@/types/components'
+import type { Project, Page } from '@lowcode/editor/stores/project'
+import type { Component } from './components'
 import useEventExecutorSource from '@/runtime/useEventExecutor.ts?raw'
 import useDataBindingEngineSource from '@/runtime/useDataBindingEngine.ts?raw'
 
@@ -283,7 +283,7 @@ function createPackageJson(
     'lodash-es': '^4.17.21',
     dompurify: '^3.3.0',
     marked: '^17.0.1',
-    '@twi1i9ht/visual-lib': '^1.0.4',
+    '@lowcode/ui': '^1.0.4',
   }
 
   const devDependencies: Record<string, string> = {
@@ -365,7 +365,6 @@ function createMainEntry(): string {
 import { createPinia } from 'pinia'
 import ElementPlus from 'element-plus'
 import 'element-plus/dist/index.css'
-import 'leaflet/dist/leaflet.css'
 import App from './App.vue'
 import router from './router'
 import './styles/global.css'

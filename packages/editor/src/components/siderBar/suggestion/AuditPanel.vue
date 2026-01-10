@@ -1,4 +1,4 @@
-<template>
+﻿<template>
   <div class="audit-panel">
     <div class="panel-header">
       <h3 class="panel-title">审计日志</h3>
@@ -82,7 +82,7 @@ import { computed } from 'vue'
 import { Download, RefreshLeft } from '@element-plus/icons-vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { useSuggestion } from '@/stores/suggestion'
-import type { AuditRecord } from '@/types/suggestion'
+import type { AuditRecord } from '@lowcode/core/types/suggestion'
 
 const suggestionStore = useSuggestion()
 

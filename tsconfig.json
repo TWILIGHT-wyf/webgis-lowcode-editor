@@ -1,0 +1,36 @@
+{
+  "compilerOptions": {
+    "target": "ES2020",
+    "module": "ESNext",
+    "moduleResolution": "bundler",
+    "lib": ["ES2020", "DOM", "DOM.Iterable"],
+    "jsx": "preserve",
+    "strict": true,
+    "skipLibCheck": true,
+    "esModuleInterop": true,
+    "resolveJsonModule": true,
+    "isolatedModules": true,
+    "forceConsistentCasingInFileNames": true,
+    "baseUrl": ".",
+    "paths": {
+      "@lowcode/core": ["packages/core/src"],
+      "@lowcode/core/*": ["packages/core/src/*"],
+      "@lowcode/ui": ["packages/ui"],
+      "@lowcode/ui/*": ["packages/ui/*"],
+      "@lowcode/materials": ["packages/materials/src"],
+      "@lowcode/materials/*": ["packages/materials/src/*"],
+      "@lowcode/editor": ["packages/editor/src"],
+      "@lowcode/editor/*": ["packages/editor/src/*"],
+      "@lowcode/generator": ["packages/generator/src"],
+      "@lowcode/generator/*": ["packages/generator/src/*"]
+    }
+  },
+  "references": [
+    { "path": "./packages/core" },
+    { "path": "./packages/ui" },
+    { "path": "./packages/materials" },
+    { "path": "./packages/editor" },
+    { "path": "./packages/generator" }
+  ],
+  "exclude": ["node_modules", "dist", "**/node_modules", "**/dist"]
+}

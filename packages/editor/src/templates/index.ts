@@ -1,4 +1,4 @@
-import type { PageTemplate } from '@/types/page'
+﻿import type { PageTemplate } from '@lowcode/core/types/page'
 import { nanoid } from 'nanoid'
 
 // 默认样式基础对象

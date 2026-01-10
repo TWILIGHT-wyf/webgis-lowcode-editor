@@ -1,4 +1,4 @@
-<template>
+﻿<template>
   <div class="relations-panel">
     <el-scrollbar class="panel-scrollbar">
       <div class="panel-content">

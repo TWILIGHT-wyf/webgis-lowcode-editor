@@ -1,4 +1,4 @@
-<template>
+﻿<template>
   <div class="events-panel" data-testid="events-panel">
     <el-scrollbar class="events-scrollbar">
       <div v-if="!selectComponent" class="empty-state">

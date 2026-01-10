@@ -1,9 +1,9 @@
-<script setup lang="ts">
+﻿<script setup lang="ts">
 import { computed, ref, onMounted, onBeforeUnmount } from 'vue'
 import { storeToRefs } from 'pinia'
-import { useComponent } from '@/stores/component'
-import { vTrigger as BaseTrigger, useDataSource } from '@twi1i9ht/visual-lib'
-import type { TriggerLog } from '@twi1i9ht/visual-lib'
+import { useComponent } from '@lowcode/editor/stores/component'
+import { vTrigger as BaseTrigger, useDataSource } from '@lowcode/ui'
+import type { TriggerLog } from '@lowcode/ui'
 
 const props = defineProps<{
   id: string
