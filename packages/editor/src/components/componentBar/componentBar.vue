@@ -103,15 +103,17 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue'
+import { ref, computed } from 'vue'
 import type { Component } from 'vue'
 import { useComponent } from '@/stores/component'
 import { templates } from '@/templates'
 import type { PageTemplate } from '@lowcode/core/types/page'
+import type { MaterialMeta, NodeSchema } from '@lowcode/core/types'
 import { ElMessageBox, ElMessage } from 'element-plus'
 import { DocumentCopy, Connection } from '@element-plus/icons-vue'
 import * as echarts from 'echarts'
 import { storeToRefs } from 'pinia'
+import { materialList, getMaterialsByCategory, extractDefaultProps } from '@lowcode/materials'
 
 // --- 类型定义 ---
 type Category = {
@@ -121,9 +123,9 @@ type Category = {
 }
 
 type Item = {
-  type: string
+  componentName: string
   label: string
-  tags?: string[]
+  meta: MaterialMeta
   width?: number
   height?: number
   icon?: Component
@@ -146,15 +148,80 @@ interface GraphLink {
 
 // --- 状态管理 ---
 const activeTab = ref('components')
-const activeNames = ref(['图表', '地图图层'])
 const pageTemplates = ref<PageTemplate[]>(templates)
 const componentStore = useComponent()
 const { componentStore: components } = storeToRefs(componentStore)
 
+// --- 从物料包生成组件分类 ---
+const categories = computed<Category[]>(() => {
+  const grouped = getMaterialsByCategory()
+  const result: Category[] = []
+
+  // 定义分类顺序和默认尺寸
+  const categoryConfig: Record<
+    string,
+    { order: number; defaultWidth: number; defaultHeight: number }
+  > = {
+    图表: { order: 1, defaultWidth: 320, defaultHeight: 200 },
+    KPI: { order: 2, defaultWidth: 160, defaultHeight: 100 },
+    数据展示: { order: 3, defaultWidth: 360, defaultHeight: 240 },
+    基础控件: { order: 4, defaultWidth: 180, defaultHeight: 50 },
+    布局容器: { order: 5, defaultWidth: 400, defaultHeight: 240 },
+    内容: { order: 6, defaultWidth: 300, defaultHeight: 200 },
+    媒体: { order: 7, defaultWidth: 300, defaultHeight: 200 },
+    高级: { order: 8, defaultWidth: 300, defaultHeight: 150 },
+  }
+
+  Object.entries(grouped).forEach(([categoryName, materials]) => {
+    const config = categoryConfig[categoryName] || {
+      order: 99,
+      defaultWidth: 300,
+      defaultHeight: 200,
+    }
+
+    const items: Item[] = materials.map((meta) => ({
+      componentName: meta.componentName,
+      label: meta.title,
+      meta: meta,
+      width: config.defaultWidth,
+      height: config.defaultHeight,
+    }))
+
+    result.push({
+      key: categoryName.toLowerCase().replace(/\s+/g, '-'),
+      title: categoryName,
+      items,
+    })
+  })
+
+  // 按配置的顺序排序
+  result.sort((a, b) => {
+    const orderA = categoryConfig[a.title]?.order ?? 99
+    const orderB = categoryConfig[b.title]?.order ?? 99
+    return orderA - orderB
+  })
+
+  return result
+})
+
+// 默认展开的分类
+const activeNames = computed(() => categories.value.slice(0, 3).map((cat) => cat.title))
+
 // --- 拖拽与模板 ---
 function onDrag(e: DragEvent, item: Item) {
-  e.dataTransfer?.setData('application/x-component', JSON.stringify(item))
-  e.dataTransfer?.setData('text/plain', item.type)
+  // 构建符合 NodeSchema 结构的数据
+  const nodeData: Partial<NodeSchema> = {
+    componentName: item.componentName,
+    props: extractDefaultProps(item.meta.props),
+    style: {
+      width: item.width || 300,
+      height: item.height || 200,
+    },
+    children: [],
+  }
+
+  e.dataTransfer?.setData('application/x-component', JSON.stringify(nodeData))
+  e.dataTransfer?.setData('text/plain', item.componentName)
   if (e.dataTransfer) e.dataTransfer.effectAllowed = 'copy'
 }
 
@@ -332,483 +399,6 @@ function updateGraph() {
   }
   chartInstance.setOption(option, true)
 }
-
-// 组件类型
-const categories = ref<Category[]>([
-  {
-    key: 'chart',
-    title: '图表',
-    items: [
-      {
-        type: 'lineChart',
-        label: '折线图',
-        tags: ['echarts', 'line'],
-        width: 320,
-        height: 200,
-      },
-      {
-        type: 'barChart',
-        label: '柱状图',
-        tags: ['echarts', 'bar'],
-        width: 320,
-        height: 200,
-      },
-      {
-        type: 'stackedBarChart',
-        label: '堆叠柱状',
-        tags: ['echarts', 'bar', 'stack'],
-        width: 360,
-        height: 220,
-      },
-      {
-        type: 'pieChart',
-        label: '饼图',
-        tags: ['echarts', 'pie'],
-        width: 280,
-        height: 280,
-      },
-      {
-        type: 'doughnutChart',
-        label: '环形图',
-        tags: ['echarts', 'pie', 'donut'],
-        width: 280,
-        height: 280,
-      },
-      {
-        type: 'scatterChart',
-        label: '散点图',
-        tags: ['echarts', 'scatter'],
-        width: 320,
-        height: 240,
-      },
-      {
-        type: 'radarChart',
-        label: '雷达图',
-        tags: ['echarts', 'radar'],
-        width: 300,
-        height: 300,
-      },
-      {
-        type: 'gaugeChart',
-        label: '仪表盘',
-        tags: ['echarts', 'gauge'],
-        width: 260,
-        height: 260,
-      },
-      {
-        type: 'funnelChart',
-        label: '漏斗图',
-        tags: ['echarts', 'funnel'],
-        width: 300,
-        height: 240,
-      },
-      {
-        type: 'sankeyChart',
-        label: '桑基图',
-        tags: ['echarts', 'sankey'],
-        width: 360,
-        height: 240,
-      },
-    ],
-  },
-  {
-    key: 'map',
-    title: '地图图层',
-    items: [
-      {
-        type: 'base',
-        label: '底图',
-        tags: ['tile', 'basemap'],
-        width: 300,
-        height: 200,
-      },
-      {
-        type: 'tile',
-        label: '瓦片图层',
-        tags: ['leaflet', 'tile'],
-        width: 300,
-        height: 200,
-      },
-      {
-        type: 'vector',
-        label: '矢量图层',
-        tags: ['point', 'line', 'polygon'],
-        width: 300,
-        height: 200,
-      },
-      {
-        type: 'geojson',
-        label: 'GeoJSON',
-        tags: ['geojson'],
-        width: 300,
-        height: 200,
-      },
-      {
-        type: 'marker',
-        label: '标记点',
-        tags: ['marker'],
-        width: 120,
-        height: 120,
-      },
-      {
-        type: 'cluster',
-        label: '聚合',
-        tags: ['cluster'],
-        width: 300,
-        height: 200,
-      },
-      {
-        type: 'heat',
-        label: '热力图',
-        tags: ['heat'],
-        width: 300,
-        height: 200,
-      },
-      {
-        type: 'legend',
-        label: '图例',
-        tags: ['legend'],
-        width: 160,
-        height: 120,
-      },
-      {
-        type: 'scale',
-        label: '比例尺',
-        tags: ['scale'],
-        width: 120,
-        height: 50,
-      },
-      {
-        type: 'layers',
-        label: '图层控制',
-        tags: ['layers'],
-        width: 160,
-        height: 160,
-      },
-    ],
-  },
-  {
-    key: 'kpi',
-    title: 'KPI 与信息',
-    items: [
-      {
-        type: 'stat',
-        label: '指标卡',
-        tags: ['kpi'],
-        width: 160,
-        height: 100,
-      },
-      {
-        type: 'Text',
-        label: '文本',
-        tags: ['title', 'desc'],
-        width: 120,
-        height: 50,
-      },
-      {
-        type: 'countUp',
-        label: '数字跳动',
-        tags: ['kpi', 'number'],
-        width: 160,
-        height: 80,
-      },
-      {
-        type: 'progress',
-        label: '进度条',
-        tags: ['kpi', 'progress'],
-        width: 200,
-        height: 40,
-      },
-      {
-        type: 'badge',
-        label: '徽章',
-        tags: ['kpi', 'badge'],
-        width: 100,
-        height: 40,
-      },
-      {
-        type: 'box',
-        label: '占位盒',
-        tags: ['layout'],
-        width: 120,
-        height: 80,
-      },
-    ],
-  },
-  {
-    key: 'data',
-    title: '数据与列表',
-    items: [
-      {
-        type: 'table',
-        label: '表格',
-        tags: ['data', 'table'],
-        width: 400,
-        height: 240,
-      },
-      {
-        type: 'list',
-        label: '列表',
-        tags: ['data', 'list'],
-        width: 240,
-        height: 300,
-      },
-      {
-        type: 'timeline',
-        label: '时间轴',
-        tags: ['data', 'timeline'],
-        width: 320,
-        height: 200,
-      },
-      {
-        type: 'cardGrid',
-        label: '卡片网格',
-        tags: ['data', 'card'],
-        width: 360,
-        height: 240,
-      },
-      {
-        type: 'pivot',
-        label: '透视分析',
-        tags: ['data', 'pivot'],
-        width: 420,
-        height: 260,
-      },
-    ],
-  },
-  {
-    key: 'controls',
-    title: '交互控件',
-    items: [
-      {
-        type: 'select',
-        label: '下拉选择',
-        tags: ['filter', 'select'],
-        width: 160,
-        height: 40,
-      },
-      {
-        type: 'multiSelect',
-        label: '多选选择',
-        tags: ['filter', 'select', 'multi'],
-        width: 180,
-        height: 50,
-      },
-      {
-        type: 'dateRange',
-        label: '日期范围',
-        tags: ['filter', 'date'],
-        width: 220,
-        height: 50,
-      },
-      {
-        type: 'searchBox',
-        label: '搜索框',
-        tags: ['filter', 'search'],
-        width: 200,
-        height: 40,
-      },
-      {
-        type: 'slider',
-        label: '滑块',
-        tags: ['filter', 'slider'],
-        width: 200,
-        height: 50,
-      },
-      {
-        type: 'switch',
-        label: '开关',
-        tags: ['filter', 'switch'],
-        width: 100,
-        height: 40,
-      },
-      {
-        type: 'checkboxGroup',
-        label: '复选组',
-        tags: ['filter', 'checkbox'],
-        width: 200,
-        height: 80,
-      },
-      {
-        type: 'buttonGroup',
-        label: '按钮组',
-        tags: ['filter', 'button'],
-        width: 220,
-        height: 60,
-      },
-    ],
-  },
-  {
-    key: 'layout',
-    title: '布局容器',
-    items: [
-      {
-        type: 'Row',
-        label: '行',
-        tags: ['layout'],
-        width: 400,
-        height: 120,
-      },
-      {
-        type: 'col',
-        label: '列',
-        tags: ['layout'],
-        width: 160,
-        height: 400,
-      },
-      {
-        type: 'tabs',
-        label: '选项卡',
-        tags: ['layout', 'tabs'],
-        width: 400,
-        height: 300,
-      },
-      {
-        type: 'grid',
-        label: '网格',
-        tags: ['layout', 'grid'],
-        width: 400,
-        height: 300,
-      },
-      {
-        type: 'panel',
-        label: '面板',
-        tags: ['layout', 'panel'],
-        width: 300,
-        height: 220,
-      },
-      {
-        type: 'modal',
-        label: '弹窗',
-        tags: ['layout', 'modal'],
-        width: 360,
-        height: 240,
-      },
-      {
-        type: 'flex',
-        label: 'Flex容器',
-        tags: ['layout', 'flex'],
-        width: 400,
-        height: 240,
-      },
-    ],
-  },
-  {
-    key: 'media',
-    title: '媒体',
-    items: [
-      {
-        type: 'image',
-        label: '图片',
-        tags: ['media', 'image'],
-        width: 240,
-        height: 180,
-      },
-      {
-        type: 'video',
-        label: '视频',
-        tags: ['media', 'video'],
-        width: 320,
-        height: 200,
-      },
-    ],
-  },
-  {
-    key: 'content',
-    title: '内容扩展',
-    items: [
-      {
-        type: 'markdown',
-        label: 'Markdown',
-        tags: ['content', 'markdown'],
-        width: 360,
-        height: 260,
-      },
-      {
-        type: 'html',
-        label: '自定义HTML',
-        tags: ['content', 'html'],
-        width: 360,
-        height: 260,
-      },
-      {
-        type: 'iframe',
-        label: '外部Iframe',
-        tags: ['content', 'iframe'],
-        width: 400,
-        height: 300,
-      },
-    ],
-  },
-  {
-    key: 'advanced',
-    title: '高级功能',
-    items: [
-      {
-        type: 'scripting',
-        label: '脚本组件',
-        tags: ['advanced', 'script'],
-        width: 320,
-        height: 180,
-      },
-      {
-        type: 'trigger',
-        label: '触发器',
-        tags: ['advanced', 'event'],
-        width: 160,
-        height: 80,
-      },
-      {
-        type: 'state',
-        label: '状态变量',
-        tags: ['advanced', 'state'],
-        width: 160,
-        height: 80,
-      },
-    ],
-  },
-  {
-    key: 'navigation',
-    title: '导航交互',
-    items: [
-      {
-        type: 'navButton',
-        label: '导航按钮',
-        tags: ['navigation', 'button', 'link'],
-        width: 140,
-        height: 48,
-      },
-      {
-        type: 'breadcrumb',
-        label: '面包屑',
-        tags: ['navigation', 'breadcrumb'],
-        width: 300,
-        height: 40,
-      },
-      {
-        type: 'menu',
-        label: '菜单',
-        tags: ['navigation', 'menu'],
-        width: 200,
-        height: 300,
-      },
-      {
-        type: 'pagination',
-        label: '分页器',
-        tags: ['navigation', 'pagination'],
-        width: 320,
-        height: 50,
-      },
-      {
-        type: 'anchor',
-        label: '锚点导航',
-        tags: ['navigation', 'anchor'],
-        width: 160,
-        height: 200,
-      },
-    ],
-  },
-])
 </script>
 
 <style scoped>

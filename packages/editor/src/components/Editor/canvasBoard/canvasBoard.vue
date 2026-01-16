@@ -198,17 +198,26 @@ const { panX, panY, isPanning } = useCanvasInteraction(wrap, scale, {
   enableZoom: true,
   enableDrop: true,
   onDrop: (item: ComponentPayload, position) => {
-    // runtime safety: validate required fields
-    if (!item || typeof item.type !== 'string') {
+    // 1. 兼容性处理：获取组件类型（优先使用 componentName）
+    const componentType = item.componentName || item.type
+
+    // 2. 校验
+    if (!componentType || typeof componentType !== 'string') {
       console.warn('Invalid drop payload', item)
       return
     }
+
+    // 3. 默认尺寸处理
     const width = typeof item.width === 'number' ? item.width : 100
     const height = typeof item.height === 'number' ? item.height : 100
+
+    // 4. 添加组件（关键：透传 props 和 style）
     addComponent({
-      type: item.type,
+      type: componentType, // 使用兼容后的类型
       position,
       size: { width, height },
+      props: item.props || {}, // 必须透传 props
+      style: item.style || {}, // 透传样式配置
       rotation: 0,
     })
   },

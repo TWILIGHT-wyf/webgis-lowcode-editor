@@ -127,11 +127,22 @@ export interface Component {
   dataBindings?: DataBinding[]
 }
 
+/**
+ * 组件拖拽载荷
+ * 支持新旧两种格式：
+ * - 新格式：componentName (从 @lowcode/materials)
+ * - 旧格式：type (向后兼容)
+ */
 export interface ComponentPayload {
-  type: string
+  /** 组件类型标识（旧协议，向后兼容） */
+  type?: string
+  /** 组件名称（新协议，从 materialList） */
+  componentName?: string
   width?: number
   height?: number
   props?: Record<string, PropValue>
+  style?: Record<string, unknown>
+  children?: unknown[]
   [key: string]: unknown
 }
 

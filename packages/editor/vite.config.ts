@@ -14,4 +14,14 @@ export default defineConfig({
       '@lowcode/generator': fileURLToPath(new URL('../generator/src', import.meta.url)),
     },
   },
+  server: {
+    port: 5173,
+    proxy: {
+      '/api': {
+        target: 'http://localhost:5001',
+        changeOrigin: true,
+        rewrite: (path) => path,
+      },
+    },
+  },
 })

@@ -27,7 +27,8 @@ server/.env
 server/.env.*
 docker-compose.yml
 data/
-
+!packages/materials/src/data/
+!packages/ui/src/components/data/
 /cypress/videos/
 /cypress/screenshots/
 

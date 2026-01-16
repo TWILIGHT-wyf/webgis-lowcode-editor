@@ -1,9 +1,11 @@
 ﻿<template>
-  <BarChartBase v-bind="chartProps" />
+  <div v-if="isReady" style="width: 100%; height: 100%; overflow: hidden">
+    <BarChartBase v-bind="chartProps" />
+  </div>
 </template>
 
 <script setup lang="ts">
-import { computed } from 'vue'
+import { computed, ref, onMounted, nextTick } from 'vue'
 import { storeToRefs } from 'pinia'
 import { useComponent } from '@lowcode/editor/stores/component'
 
@@ -19,6 +21,17 @@ import {
 } from '@lowcode/ui'
 
 const props = defineProps<{ id: string }>()
+const isReady = ref(false) // 控制渲染时机
+
+// 等待挂载后，再下一帧渲染 ECharts
+onMounted(() => {
+  nextTick(() => {
+    // 简单的延时以确保容器已有尺寸（处理 SplitPane 或 Tabs 的情况）
+    setTimeout(() => {
+      isReady.value = true
+    }, 50)
+  })
+})
 
 // 获取组件配置
 const { componentStore } = storeToRefs(useComponent())

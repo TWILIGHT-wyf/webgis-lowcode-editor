@@ -165,8 +165,17 @@ export function useCanvasInteraction(
   }
 
   // 处理容器上的 Drop
+  /**
+   * 校验拖拽载荷格式
+   * 兼容新旧两种格式：
+   * - 新格式：componentName (从 @lowcode/materials)
+   * - 旧格式：type (向后兼容)
+   */
   const isComponentPayload = (v: unknown): v is ComponentPayload => {
-    return !!v && typeof v === 'object' && 'type' in (v as Record<string, unknown>)
+    if (!v || typeof v !== 'object') return false
+    const obj = v as Record<string, unknown>
+    // 核心修复：兼容 componentName (新) 和 type (旧)，且必须为字符串
+    return typeof obj.componentName === 'string' || typeof obj.type === 'string'
   }
 
   const handleDrop = (e: DragEvent) => {
