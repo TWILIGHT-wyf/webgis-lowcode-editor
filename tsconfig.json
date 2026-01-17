@@ -1,15 +1,17 @@
 {
   "compilerOptions": {
-    "target": "ES2020",
+    "target": "ESNext",
+    "useDefineForClassFields": true,
     "module": "ESNext",
     "moduleResolution": "bundler",
-    "lib": ["ES2020", "DOM", "DOM.Iterable"],
-    "jsx": "preserve",
     "strict": true,
-    "skipLibCheck": true,
-    "esModuleInterop": true,
+    "jsx": "preserve",
+    "sourceMap": true,
     "resolveJsonModule": true,
     "isolatedModules": true,
+    "esModuleInterop": true,
+    "lib": ["ESNext", "DOM", "DOM.Iterable"],
+    "skipLibCheck": true,
     "forceConsistentCasingInFileNames": true,
     "baseUrl": ".",
     "paths": {
@@ -19,18 +21,21 @@
       "@lowcode/ui/*": ["packages/ui/*"],
       "@lowcode/materials": ["packages/materials/src"],
       "@lowcode/materials/*": ["packages/materials/src/*"],
-      "@lowcode/editor": ["packages/editor/src"],
-      "@lowcode/editor/*": ["packages/editor/src/*"],
+      "@lowcode/renderer": ["packages/renderer/src"],
+      "@lowcode/renderer/*": ["packages/renderer/src/*"],
       "@lowcode/generator": ["packages/generator/src"],
-      "@lowcode/generator/*": ["packages/generator/src/*"]
+      "@lowcode/generator/*": ["packages/generator/src/*"],
+      "@lowcode/editor": ["packages/editor/src"],
+      "@lowcode/editor/*": ["packages/editor/src/*"]
     }
   },
   "references": [
     { "path": "./packages/core" },
     { "path": "./packages/ui" },
     { "path": "./packages/materials" },
-    { "path": "./packages/editor" },
-    { "path": "./packages/generator" }
+    { "path": "./packages/renderer" },
+    { "path": "./packages/generator" },
+    { "path": "./packages/editor" }
   ],
   "exclude": ["node_modules", "dist", "**/node_modules", "**/dist"]
 }

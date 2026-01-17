@@ -1,15 +1,18 @@
 {
   "extends": "../../tsconfig.json",
   "compilerOptions": {
+    "baseUrl": ".",
+    "paths": {
+      "@/*": ["src/*"]
+    },
     "composite": true,
     "declaration": true,
     "emitDeclarationOnly": false,
     "declarationMap": true,
     "sourceMap": true,
     "outDir": "dist",
-    "types": ["vite/client"],
-    "forceConsistentCasingInFileNames": true
+    "types": ["vite/client"]
   },
-  "include": ["src/**/*", "index.ts"],
+  "include": ["src/**/*.ts", "src/**/*.d.ts", "src/**/*.tsx", "src/**/*.vue", "index.ts"],
   "exclude": ["node_modules", "dist"]
 }

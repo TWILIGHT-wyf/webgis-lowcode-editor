@@ -25,19 +25,6 @@ importers:
         version: 2.2.12(typescript@5.9.3)
 
   packages/core:
-    dependencies:
-      echarts:
-        specifier: ^6.0.0
-        version: 6.0.0
-      file-saver:
-        specifier: ^2.0.5
-        version: 2.0.5
-      jszip:
-        specifier: ^3.10.1
-        version: 3.10.1
-      sucrase:
-        specifier: ^3.35.1
-        version: 3.35.1
     devDependencies:
       '@types/lodash-es':
         specifier: ^4.17.12
@@ -57,6 +44,9 @@ importers:
       '@lowcode/materials':
         specifier: workspace:*
         version: link:../materials
+      '@lowcode/renderer':
+        specifier: workspace:*
+        version: link:../renderer
       '@lowcode/ui':
         specifier: workspace:*
         version: link:../ui
@@ -168,8 +158,26 @@ importers:
         specifier: ^3.4.0
         version: 3.5.25(typescript@5.9.3)
 
+  packages/renderer:
+    dependencies:
+      '@lowcode/core':
+        specifier: workspace:*
+        version: link:../core
+      '@lowcode/materials':
+        specifier: workspace:*
+        version: link:../materials
+      '@lowcode/ui':
+        specifier: workspace:*
+        version: link:../ui
+      vue:
+        specifier: ^3.4.0
+        version: 3.5.25(typescript@5.9.3)
+
   packages/ui:
     dependencies:
+      '@lowcode/core':
+        specifier: workspace:*
+        version: link:../core
       dompurify:
         specifier: ^3.3.1
         version: 3.3.1

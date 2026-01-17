@@ -10,6 +10,7 @@
     "@lowcode/core": "workspace:*",
     "@lowcode/generator": "workspace:^",
     "@lowcode/materials": "workspace:*",
+    "@lowcode/renderer": "workspace:*",
     "@lowcode/ui": "workspace:*",
     "@vueuse/core": "^14.1.0",
     "axios": "^1.13.2",

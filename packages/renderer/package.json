@@ -1,0 +1,12 @@
+{
+  "name": "@lowcode/renderer",
+  "version": "1.0.0",
+  "main": "src/index.ts",
+  "module": "src/index.ts",
+  "dependencies": {
+    "vue": "^3.4.0",
+    "@lowcode/core": "workspace:*",
+    "@lowcode/ui": "workspace:*",
+    "@lowcode/materials": "workspace:*"
+  }
+}

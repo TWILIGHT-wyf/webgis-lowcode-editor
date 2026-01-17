@@ -301,7 +301,7 @@ import {
   generateProjectSourceFiles,
   type ExportOptions,
   type GeneratedSourceFile,
-} from '@lowcode/core/utils/projectGenerator'
+} from '@lowcode/generator/projectGenerator'
 import type { Component } from '@lowcode/core/types/components'
 import type { Page, Project } from '@/stores/project'
 import {

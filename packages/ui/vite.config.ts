@@ -9,6 +9,11 @@ export default defineConfig({
     // 自动生成 .d.ts 类型文件，这样主项目引用时才有代码提示
     dts(),
   ],
+  resolve: {
+    alias: {
+      '@': resolve(__dirname, 'src'),
+    },
+  },
   build: {
     lib: {
       // 入口文件
