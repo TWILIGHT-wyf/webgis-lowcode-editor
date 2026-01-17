@@ -1,4 +1,4 @@
-<template>
+﻿<template>
   <div class="pagination-container" :style="containerStyle">
     <el-pagination
       v-model:current-page="internalPage"

@@ -1,4 +1,4 @@
-<template>
+﻿<template>
   <div class="nav-button" :style="containerStyle" @click="handleClick">
     <el-icon v-if="icon" class="nav-icon" :size="iconSize">
       <component :is="iconComponent" />

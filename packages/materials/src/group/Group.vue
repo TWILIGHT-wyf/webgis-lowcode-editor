@@ -22,10 +22,10 @@
 <script setup lang="ts">
 import { computed } from 'vue'
 import type { CSSProperties } from 'vue'
-import { useComponent } from '@lowcode/editor/stores/component'
+import { useComponent } from '@vela/editor/stores/component'
 import { storeToRefs } from 'pinia'
-import { componentRegistry } from '@lowcode/materials/registry'
-import { vGroup as BaseGroup } from '@lowcode/ui'
+import { componentRegistry } from '@vela/materials/registry'
+import { vGroup as BaseGroup } from '@vela/ui'
 
 const props = defineProps<{ id: string }>()
 const { componentStore } = storeToRefs(useComponent())

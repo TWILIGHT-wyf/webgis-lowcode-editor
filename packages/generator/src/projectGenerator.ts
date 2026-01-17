@@ -2,7 +2,7 @@
 import { saveAs } from 'file-saver'
 import { transform } from 'sucrase'
 import { generateVueCode } from './toCode'
-import type { Project, Page } from '@lowcode/editor/stores/project'
+import type { Project, Page } from '@vela/editor/stores/project'
 import type { Component } from './components'
 import useEventExecutorSource from '@/runtime/useEventExecutor.ts?raw'
 import useDataBindingEngineSource from '@/runtime/useDataBindingEngine.ts?raw'
@@ -283,7 +283,7 @@ function createPackageJson(
     'lodash-es': '^4.17.21',
     dompurify: '^3.3.0',
     marked: '^17.0.1',
-    '@lowcode/ui': '^1.0.4',
+    '@vela/ui': '^1.0.4',
   }
 
   const devDependencies: Record<string, string> = {

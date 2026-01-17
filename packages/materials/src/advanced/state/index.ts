@@ -1,4 +1,4 @@
-import meta from './meta'
+﻿import meta from './meta'
 
 export default {
   ...meta,

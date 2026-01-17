@@ -1,4 +1,4 @@
-<template>
+﻿<template>
   <div :style="containerStyle">
     <el-checkbox-group
       v-model="internalValue"

@@ -1,4 +1,4 @@
-<template>
+﻿<template>
   <div :style="containerStyle" class="iframe-container">
     <iframe
       v-if="url"

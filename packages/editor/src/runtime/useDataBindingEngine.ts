@@ -1,6 +1,6 @@
 ﻿import { watch, type Ref, type WatchStopHandle } from 'vue'
 import { get, isEqual } from 'lodash-es'
-import type { Component, DataBinding } from '@lowcode/core/types/components'
+import type { Component, DataBinding } from '@vela/core/types/components'
 
 export interface DataBindingEngine {
   start: () => void

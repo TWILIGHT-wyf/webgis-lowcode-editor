@@ -119,7 +119,7 @@ import {
   Check,
   Close,
 } from '@element-plus/icons-vue'
-import type { TreeNodeProps } from '@lowcode/core/types/components'
+import type { TreeNodeProps } from '@vela/core/types/components'
 
 const props = withDefaults(defineProps<TreeNodeProps>(), {
   activeId: '',

@@ -1,4 +1,4 @@
-<template>
+﻿<template>
   <div class="preview-page">
     <header class="preview-header">
       <el-button type="text" size="small" @click="handleBack" class="back-btn">
@@ -33,7 +33,7 @@
 
 <script setup lang="ts">
 import { useRouter } from 'vue-router'
-import { RecursiveRenderer } from '@lowcode/renderer'
+import { RecursiveRenderer } from '@vela/renderer'
 import { useComponentStoreV2 } from '@/stores/componentV2'
 import { storeToRefs } from 'pinia'
 import { ElButton } from 'element-plus'

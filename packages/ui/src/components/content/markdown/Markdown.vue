@@ -1,4 +1,4 @@
-<template>
+﻿<template>
   <div :style="containerStyle" class="markdown-body" v-html="renderedHtml"></div>
 </template>
 

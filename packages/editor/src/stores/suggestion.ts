@@ -10,8 +10,8 @@ import type {
   SuggestionResult,
   SuggestionItem,
   AuditRecord,
-} from '@lowcode/core/types/suggestion'
-import type { Component } from '@lowcode/core/types/components'
+} from '@vela/core/types/suggestion'
+import type { Component } from '@vela/core/types/components'
 import { generateSuggestion, applyDiffs } from '@/services/suggestService'
 import { useComponent } from '@/stores/component'
 import { useSizeStore } from '@/stores/size'

@@ -1,9 +1,9 @@
-/**
+﻿/**
  * 物料描述协议：描述组件在"编辑器"中的表现
  * 编辑器根据这个协议自动生成属性面板 (Property Panel)
  */
 export interface MaterialMeta {
-  componentName: string // 对应 @lowcode/ui 的导出名
+  componentName: string // 对应 @vela/ui 的导出名
   title: string // 显示名称 (e.g. '文本')
   category: string // 分类 (e.g. '基础', '图表')
   screenshot?: string // 缩略图 URL

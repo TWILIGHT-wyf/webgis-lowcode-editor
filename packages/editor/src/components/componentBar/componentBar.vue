@@ -107,13 +107,13 @@ import { ref, computed } from 'vue'
 import type { Component } from 'vue'
 import { useComponent } from '@/stores/component'
 import { templates } from '@/templates'
-import type { PageTemplate } from '@lowcode/core/types/page'
-import type { MaterialMeta, NodeSchema } from '@lowcode/core/types'
+import type { PageTemplate } from '@vela/core/types/page'
+import type { MaterialMeta, NodeSchema } from '@vela/core/types'
 import { ElMessageBox, ElMessage } from 'element-plus'
 import { DocumentCopy, Connection } from '@element-plus/icons-vue'
 import * as echarts from 'echarts'
 import { storeToRefs } from 'pinia'
-import { materialList, getMaterialsByCategory, extractDefaultProps } from '@lowcode/materials'
+import { materialList, getMaterialsByCategory, extractDefaultProps } from '@vela/materials'
 
 // --- 类型定义 ---
 type Category = {

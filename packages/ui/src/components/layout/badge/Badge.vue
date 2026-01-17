@@ -1,4 +1,4 @@
-<template>
+﻿<template>
   <div class="v-badge-container" :style="containerStyle">
     <el-badge
       :value="value"

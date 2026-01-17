@@ -1,4 +1,4 @@
-import { createApp } from 'vue'
+﻿import { createApp } from 'vue'
 import { createPinia } from 'pinia'
 // 导入 Element Plus
 import ElementPlus from 'element-plus'
@@ -14,7 +14,7 @@ import './styles/animations.css'
 import './styles/theme.css'
 
 // 导入物料包
-import { componentMap } from '@lowcode/materials'
+import { componentMap } from '@vela/materials'
 
 const app = createApp(App)
 

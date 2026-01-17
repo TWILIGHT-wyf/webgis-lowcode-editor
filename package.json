@@ -2,8 +2,8 @@
   "name": "lowcode-monorepo",
   "private": true,
   "scripts": {
-    "dev": "pnpm -F @lowcode/editor dev",
-    "build": "pnpm -F @lowcode/editor build",
+    "dev": "pnpm -F @vela/editor dev",
+    "build": "pnpm -F @vela/editor build",
     "lint": "eslint .",
     "type-check": "vue-tsc --noEmit"
   },

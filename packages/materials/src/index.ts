@@ -1,2 +1,2 @@
-// @lowcode/materials entry point
+// @vela/materials entry point
 export * from './registry'

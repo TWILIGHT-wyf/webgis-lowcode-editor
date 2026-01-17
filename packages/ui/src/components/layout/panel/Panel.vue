@@ -1,4 +1,4 @@
-<template>
+﻿<template>
   <div class="v-panel" :style="containerStyle">
     <!-- 头部 -->
     <div v-if="showHeader" class="v-panel-header" :style="headerStyle" @click="handleHeaderClick">

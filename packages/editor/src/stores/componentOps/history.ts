@@ -1,13 +1,13 @@
 ﻿import { ref } from 'vue'
 import type { Ref } from 'vue'
 import { debounce, throttle } from 'lodash-es'
-import type { HistoryApi } from '@lowcode/core/types/store'
+import type { HistoryApi } from '@vela/core/types/store'
 import { cloneDeep } from 'lodash-es'
 import {
   MAX_HISTORY_SIZE,
   HISTORY_DEBOUNCE_DELAY,
   HISTORY_THROTTLE_INTERVAL,
-} from '@lowcode/core/constants/editor'
+} from '@vela/core/constants/editor'
 
 export interface HistoryOptions {
   /** 历史记录最大栈深度，默认 50 */

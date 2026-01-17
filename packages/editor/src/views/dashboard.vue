@@ -259,7 +259,7 @@ const categoryOptions = [
 ]
 
 // 项目列表
-import type { Project as BaseProject, ServerProject } from '@lowcode/core/types/api'
+import type { Project as BaseProject, ServerProject } from '@vela/core/types/api'
 import type { Project as StoreProject } from '@/stores/project'
 
 // Dashboard 显示用的扩展项目类型

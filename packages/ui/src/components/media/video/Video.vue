@@ -1,4 +1,4 @@
-<template>
+﻿<template>
   <div :style="containerStyle">
     <video
       v-if="url"

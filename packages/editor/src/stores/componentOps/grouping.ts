@@ -1,6 +1,6 @@
 ﻿import type { Ref } from 'vue'
 import { nanoid } from 'nanoid'
-import type { GroupingApi } from '@lowcode/core/types/store'
+import type { GroupingApi } from '@vela/core/types/store'
 import type { BaseComponent } from './types'
 
 export function createGrouping<C extends BaseComponent>(

@@ -1,4 +1,4 @@
-<template>
+﻿<template>
   <div :style="containerStyle">
     <el-slider
       v-model="internalValue"

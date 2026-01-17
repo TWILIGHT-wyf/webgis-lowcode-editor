@@ -8,9 +8,9 @@
 
 <script setup lang="ts">
 import { computed, ref, watch } from 'vue'
-import { useComponent } from '@lowcode/editor/stores/component'
+import { useComponent } from '@vela/editor/stores/component'
 import { storeToRefs } from 'pinia'
-import { vPagination as PaginationBase } from '@lowcode/ui'
+import { vPagination as PaginationBase } from '@vela/ui'
 
 const props = defineProps<{
   id: string

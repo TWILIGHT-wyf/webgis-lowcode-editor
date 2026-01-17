@@ -1,5 +1,5 @@
 {
-  "name": "@lowcode/materials",
+  "name": "@vela/materials",
   "version": "1.0.0",
   "main": "src/index.ts",
   "module": "src/index.ts",
@@ -16,8 +16,8 @@
     }
   },
   "dependencies": {
-    "@lowcode/core": "workspace:*",
-    "@lowcode/ui": "workspace:*",
+    "@vela/core": "workspace:*",
+    "@vela/ui": "workspace:*",
     "@vueuse/core": "^14.1.0",
     "echarts": "^5.0.0",
     "nanoid": "^5.1.6",

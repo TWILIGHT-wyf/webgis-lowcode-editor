@@ -1,11 +1,11 @@
-/**
+﻿/**
  * V1.5 树形架构 - 组件状态管理
  * 基于递归树结构的新 Store
  */
 import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
-import type { ProjectSchema, PageSchema, NodeSchema } from '@lowcode/core'
-import { findNodeById, traverse } from '@lowcode/core'
+import type { ProjectSchema, PageSchema, NodeSchema } from '@vela/core'
+import { findNodeById, traverse } from '@vela/core'
 
 export const useComponentStore = defineStore('componentTree', () => {
   // ==================== 1. 核心状态 ====================

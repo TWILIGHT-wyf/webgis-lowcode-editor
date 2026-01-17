@@ -1,5 +1,5 @@
-import { defineAsyncComponent, type Component } from 'vue'
-import type { MaterialMeta } from '@lowcode/core/types'
+﻿import { defineAsyncComponent, type Component } from 'vue'
+import type { MaterialMeta } from '@vela/core/types'
 
 /**
  * 使用 Vite 的 import.meta.glob 自动导入所有组件实现 (.vue)

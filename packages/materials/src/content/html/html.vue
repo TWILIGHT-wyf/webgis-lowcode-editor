@@ -5,8 +5,8 @@
 <script setup lang="ts">
 import { computed } from 'vue'
 import { storeToRefs } from 'pinia'
-import { useComponent } from '@lowcode/editor/stores/component'
-import { vHtml as BaseHtml, useDataSource, extractWithFallback } from '@lowcode/ui'
+import { useComponent } from '@vela/editor/stores/component'
+import { vHtml as BaseHtml, useDataSource, extractWithFallback } from '@vela/ui'
 
 const props = defineProps<{
   id: string

@@ -1,4 +1,4 @@
-<template>
+﻿<template>
   <div :style="containerStyle" class="html-container" v-html="sanitizedHtml"></div>
 </template>
 

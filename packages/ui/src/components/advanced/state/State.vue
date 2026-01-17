@@ -1,4 +1,4 @@
-<template>
+﻿<template>
   <div :style="containerStyle">
     <div class="state-container">
       <div class="header">

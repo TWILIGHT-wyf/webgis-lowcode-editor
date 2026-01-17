@@ -1,4 +1,4 @@
-<template>
+﻿<template>
   <div
     class="canvas-wrap"
     ref="wrap"
@@ -32,7 +32,7 @@
 
 <script setup lang="ts">
 import { ref, computed, provide, onMounted, onBeforeUnmount } from 'vue'
-import { RecursiveRenderer } from '@lowcode/renderer'
+import { RecursiveRenderer } from '@vela/renderer'
 import { useSizeStore } from '@/stores/size'
 import { storeToRefs } from 'pinia'
 import { useComponentStore } from '@/stores/componentTree'

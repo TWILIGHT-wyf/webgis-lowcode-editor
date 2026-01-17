@@ -5,7 +5,7 @@
 <script setup lang="ts">
 import { computed } from 'vue'
 import { storeToRefs } from 'pinia'
-import { useComponent } from '@lowcode/editor/stores/component'
+import { useComponent } from '@vela/editor/stores/component'
 
 // 从视觉组件库导入基础组件和工具函数
 import {
@@ -15,7 +15,7 @@ import {
   parseNumberInput,
   parseStringInput,
   getValueByPath,
-} from '@lowcode/ui'
+} from '@vela/ui'
 
 const props = defineProps<{ id: string }>()
 

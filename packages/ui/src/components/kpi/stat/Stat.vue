@@ -1,4 +1,4 @@
-<template>
+﻿<template>
   <div class="v-stat-card" :style="cardStyle">
     <div class="v-stat-header">
       <div class="v-stat-title" :style="titleStyleComputed">{{ title }}</div>

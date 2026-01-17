@@ -1,4 +1,4 @@
-<template>
+﻿<template>
   <div class="v-grid-container" :style="containerStyle">
     <slot>
       <template v-if="placeholderItems.length">

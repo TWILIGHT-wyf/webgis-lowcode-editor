@@ -301,8 +301,8 @@ import {
   generateProjectSourceFiles,
   type ExportOptions,
   type GeneratedSourceFile,
-} from '@lowcode/generator/projectGenerator'
-import type { Component } from '@lowcode/core/types/components'
+} from '@vela/generator/projectGenerator'
+import type { Component } from '@vela/core/types/components'
 import type { Page, Project } from '@/stores/project'
 import {
   Document,

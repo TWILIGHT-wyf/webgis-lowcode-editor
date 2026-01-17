@@ -2,7 +2,7 @@
 import { ref, shallowRef } from 'vue'
 import { nanoid } from 'nanoid'
 import { createHistory, createClipboard, createGrouping, createZOrder } from '@/stores/componentOps'
-import type { Component, DataSource, PropValue } from '@lowcode/core/types/components'
+import type { Component, DataSource, PropValue } from '@vela/core/types/components'
 
 export const useComponent = defineStore('component', () => {
   const componentStore = ref<Component[]>([])

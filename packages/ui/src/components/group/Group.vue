@@ -1,4 +1,4 @@
-<template>
+﻿<template>
   <div class="group-container" :style="containerStyle">
     <slot>
       <div v-if="showPlaceholder" class="group-placeholder">

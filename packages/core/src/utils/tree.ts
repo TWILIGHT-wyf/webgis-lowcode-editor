@@ -1,4 +1,4 @@
-import { NodeSchema } from '../types/schema'
+﻿import { NodeSchema } from '../types/schema'
 
 /**
  * 深度优先查找节点

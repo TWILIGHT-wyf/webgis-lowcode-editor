@@ -1,4 +1,4 @@
-<template>
+﻿<template>
   <div class="v-progress-container" :style="containerStyle">
     <el-progress
       :percentage="percentage"

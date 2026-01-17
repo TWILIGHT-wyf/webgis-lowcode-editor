@@ -1,4 +1,4 @@
-<template>
+﻿<template>
   <div class="v-tabs-container" :style="containerStyle">
     <el-tabs
       v-model="activeTabValue"

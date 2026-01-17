@@ -1,10 +1,10 @@
 ﻿<script setup lang="ts">
 import { computed, ref, watch } from 'vue'
 import { storeToRefs } from 'pinia'
-import { useComponent } from '@lowcode/editor/stores/component'
-import { vModal as BaseModal } from '@lowcode/ui'
-import Shape from '@lowcode/editor/components/Editor/shape/shape.vue'
-import { getComponent } from '@lowcode/materials/registry'
+import { useComponent } from '@vela/editor/stores/component'
+import { vModal as BaseModal } from '@vela/ui'
+import Shape from '@vela/editor/components/Editor/shape/shape.vue'
+import { getComponent } from '@vela/materials/registry'
 
 const props = defineProps<{
   id: string

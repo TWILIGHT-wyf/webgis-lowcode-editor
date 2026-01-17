@@ -1,4 +1,4 @@
-// @lowcode/core entry point
+﻿// @vela/core entry point
 export * from './types'
 export * from './utils'
 export * from './constants'

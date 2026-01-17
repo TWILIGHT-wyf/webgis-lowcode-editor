@@ -4,9 +4,9 @@
  * 旧的 schema.ts 自动加载逻辑已废弃。
  *
  * 原因：
- * - 在 Monorepo 重构中，所有组件从 @/customComponents 迁移到 @lowcode/materials
+ * - 在 Monorepo 重构中，所有组件从 @/customComponents 迁移到 @vela/materials
  * - 配置文件从 schema.ts 重构为 meta.ts（包含 PropConfig 结构）
- * - 旧的导入路径 '@lowcode/materials/xxx/schema.ts' 已不存在
+ * - 旧的导入路径 '@vela/materials/xxx/schema.ts' 已不存在
  *
  * 新架构：
  * - 属性面板应直接读取 materialList 中的 MaterialMeta.props
@@ -14,7 +14,7 @@
  * - PropConfig 定义了属性的类型、默认值、编辑器配置
  *
  * 迁移指南：
- * 1. 导入：import { materialList } from '@lowcode/materials'
+ * 1. 导入：import { materialList } from '@vela/materials'
  * 2. 查找：const meta = materialList.find(m => m.componentName === 'YourComponent')
  * 3. 读取：meta.props 包含所有属性配置
  * ============================================================
@@ -23,7 +23,7 @@
 // 保留类型导出，防止其他文件引用报错
 export * from './types'
 
-import { materialList } from '@lowcode/materials'
+import { materialList } from '@vela/materials'
 import { registerSchema } from './types'
 import type { Field } from './types'
 
@@ -84,7 +84,7 @@ function convertPropsToFields(props: Record<string, any>): Field[] {
 
 /**
  * 自动注册所有 material 组件的 schema
- * 从 @lowcode/materials 的 materialList 生成兼容的 schema
+ * 从 @vela/materials 的 materialList 生成兼容的 schema
  */
 function autoRegisterSchemas() {
   console.log('[Schema Registry] 开始自动注册组件配置...')

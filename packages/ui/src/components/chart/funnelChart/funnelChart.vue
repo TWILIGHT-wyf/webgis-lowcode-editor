@@ -1,4 +1,4 @@
-<template>
+﻿<template>
   <div class="v-funnel-chart" :style="{ width: '100%', height: '100%' }">
     <v-chart :option="finalOption" autoresize class="echart" />
   </div>

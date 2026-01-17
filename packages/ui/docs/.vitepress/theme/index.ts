@@ -1,4 +1,4 @@
-import DefaultTheme from 'vitepress/theme'
+﻿import DefaultTheme from 'vitepress/theme'
 import type { Theme } from 'vitepress'
 import './custom.css'
 

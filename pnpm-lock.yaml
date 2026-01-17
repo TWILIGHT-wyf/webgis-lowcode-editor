@@ -35,19 +35,19 @@ importers:
 
   packages/editor:
     dependencies:
-      '@lowcode/core':
+      '@vela/core':
         specifier: workspace:*
         version: link:../core
-      '@lowcode/generator':
+      '@vela/generator':
         specifier: workspace:^
         version: link:../generator
-      '@lowcode/materials':
+      '@vela/materials':
         specifier: workspace:*
         version: link:../materials
-      '@lowcode/renderer':
+      '@vela/renderer':
         specifier: workspace:*
         version: link:../renderer
-      '@lowcode/ui':
+      '@vela/ui':
         specifier: workspace:*
         version: link:../ui
       '@vueuse/core':
@@ -117,7 +117,7 @@ importers:
       '@babel/types':
         specifier: ^7.28.5
         version: 7.28.5
-      '@lowcode/core':
+      '@vela/core':
         specifier: workspace:*
         version: link:../core
       prettier:
@@ -136,10 +136,10 @@ importers:
 
   packages/materials:
     dependencies:
-      '@lowcode/core':
+      '@vela/core':
         specifier: workspace:*
         version: link:../core
-      '@lowcode/ui':
+      '@vela/ui':
         specifier: workspace:*
         version: link:../ui
       '@vueuse/core':
@@ -160,13 +160,13 @@ importers:
 
   packages/renderer:
     dependencies:
-      '@lowcode/core':
+      '@vela/core':
         specifier: workspace:*
         version: link:../core
-      '@lowcode/materials':
+      '@vela/materials':
         specifier: workspace:*
         version: link:../materials
-      '@lowcode/ui':
+      '@vela/ui':
         specifier: workspace:*
         version: link:../ui
       vue:
@@ -175,7 +175,7 @@ importers:
 
   packages/ui:
     dependencies:
-      '@lowcode/core':
+      '@vela/core':
         specifier: workspace:*
         version: link:../core
       dompurify:

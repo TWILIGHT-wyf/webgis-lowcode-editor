@@ -1,7 +1,7 @@
 ﻿import { ref } from 'vue'
 import { nanoid } from 'nanoid'
 import type { Ref } from 'vue'
-import type { ClipboardApi } from '@lowcode/core/types/store'
+import type { ClipboardApi } from '@vela/core/types/store'
 import type { BaseComponent } from './types'
 import { cloneDeep } from 'lodash-es'
 

@@ -1,12 +1,12 @@
-/**
+﻿/**
  * V1.5 树形架构 - 简化版组件状态管理
  * 适配 Core 的树形协议
  */
 import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
-import type { ProjectSchema, PageSchema } from '@lowcode/core'
-import type { NodeSchema } from '@lowcode/core'
-import { findNodeById, generateId } from '@lowcode/core'
+import type { ProjectSchema, PageSchema } from '@vela/core'
+import type { NodeSchema } from '@vela/core'
+import { findNodeById, generateId } from '@vela/core'
 
 export const useComponentStoreV2 = defineStore('componentV2', () => {
   // ==================== 1. 项目数据源 (Single Source of Truth) ====================

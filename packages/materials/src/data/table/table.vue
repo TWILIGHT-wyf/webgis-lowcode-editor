@@ -4,9 +4,9 @@
 
 <script setup lang="ts">
 import { computed, toRef } from 'vue'
-import { useComponent } from '@lowcode/editor/stores/component'
+import { useComponent } from '@vela/editor/stores/component'
 import { storeToRefs } from 'pinia'
-import { vTable as BaseTable, useDataSource, extractWithFallback } from '@lowcode/ui'
+import { vTable as BaseTable, useDataSource, extractWithFallback } from '@vela/ui'
 
 const props = defineProps<{ id: string }>()
 const { componentStore } = storeToRefs(useComponent())

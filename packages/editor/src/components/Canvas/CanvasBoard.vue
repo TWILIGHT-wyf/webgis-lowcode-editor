@@ -1,4 +1,4 @@
-<template>
+﻿<template>
   <div
     class="canvas-board"
     @click="handleBoardClick"
@@ -20,7 +20,7 @@
 
 <script setup lang="ts">
 import { storeToRefs } from 'pinia'
-import { RecursiveRenderer } from '@lowcode/renderer'
+import { RecursiveRenderer } from '@vela/renderer'
 import { useComponentStoreV2 } from '@/stores/componentV2'
 
 const compStore = useComponentStoreV2()
@@ -56,7 +56,7 @@ const handleDrop = (e: DragEvent) => {
   e.stopPropagation()
 
   try {
-    const raw = e.dataTransfer?.getData('application/x-lowcode')
+    const raw = e.dataTransfer?.getData('application/x-vela')
     if (!raw) {
       console.warn('[CanvasBoard] No drag data found')
       return

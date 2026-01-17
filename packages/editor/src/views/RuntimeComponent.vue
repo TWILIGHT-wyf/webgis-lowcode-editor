@@ -32,8 +32,8 @@
 
 <script setup lang="ts">
 import { ref, computed, onMounted, nextTick, watch } from 'vue'
-import { componentRegistry } from '@lowcode/materials/registry'
-import type { Component, EventAction } from '@lowcode/core/types/components'
+import { componentRegistry } from '@vela/materials/registry'
+import type { Component, EventAction } from '@vela/core/types/components'
 
 const props = defineProps<{
   component: Component

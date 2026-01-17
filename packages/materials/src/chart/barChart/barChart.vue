@@ -7,7 +7,7 @@
 <script setup lang="ts">
 import { computed, ref, onMounted, nextTick } from 'vue'
 import { storeToRefs } from 'pinia'
-import { useComponent } from '@lowcode/editor/stores/component'
+import { useComponent } from '@vela/editor/stores/component'
 
 // 从视觉组件库导入基础组件和工具函数
 import {
@@ -18,7 +18,7 @@ import {
   extractString,
   parseNumberInput,
   parseStringInput,
-} from '@lowcode/ui'
+} from '@vela/ui'
 
 const props = defineProps<{ id: string }>()
 const isReady = ref(false) // 控制渲染时机

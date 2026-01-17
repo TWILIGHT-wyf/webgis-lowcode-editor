@@ -1,4 +1,4 @@
-<template>
+﻿<template>
   <div class="date-range-container" :style="containerStyle">
     <el-date-picker
       v-model="internalValue"

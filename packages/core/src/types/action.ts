@@ -1,4 +1,4 @@
-import { JSExpression } from './expression'
+﻿import { JSExpression } from './expression'
 
 export interface BaseAction {
   type: string

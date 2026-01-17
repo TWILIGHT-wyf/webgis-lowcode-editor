@@ -1,4 +1,4 @@
-<template>
+﻿<template>
   <div :style="containerStyle">
     <el-image
       v-if="url"

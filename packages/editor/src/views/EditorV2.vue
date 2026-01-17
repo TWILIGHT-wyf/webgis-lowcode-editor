@@ -3,7 +3,7 @@
     <header class="header">
       <div class="logo">
         <span class="logo-icon">🚀</span>
-        <span class="logo-text">LowCode Engine V1.5</span>
+        <span class="logo-text">Vela Engine V1.5</span>
       </div>
       <div class="actions">
         <el-button type="primary" size="small" @click="handlePreview">

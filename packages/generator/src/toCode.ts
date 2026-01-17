@@ -452,7 +452,7 @@ ${eventHandlers}
 
 /**
  * 生成导入语句
- * 统一从 @lowcode/ui 导入所有组件
+ * 统一从 @vela/ui 导入所有组件
  */
 function generateImports(components: Component[]): string {
   const libImports = new Set<string>()
@@ -471,8 +471,8 @@ function generateImports(components: Component[]): string {
   // 生成组件库导入语句
   if (libImports.size > 0) {
     const sortedImports = Array.from(libImports).sort()
-    importStr += `import { ${sortedImports.join(', ')} } from '@lowcode/ui'\n`
-    importStr += `import '@lowcode/ui/dist/style.css'`
+    importStr += `import { ${sortedImports.join(', ')} } from '@vela/ui'\n`
+    importStr += `import '@vela/ui/dist/style.css'`
   }
 
   return importStr

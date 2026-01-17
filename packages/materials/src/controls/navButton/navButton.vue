@@ -4,9 +4,9 @@
 
 <script setup lang="ts">
 import { computed } from 'vue'
-import { useComponent } from '@lowcode/editor/stores/component'
+import { useComponent } from '@vela/editor/stores/component'
 import { storeToRefs } from 'pinia'
-import { vNavButton as NavButtonBase } from '@lowcode/ui'
+import { vNavButton as NavButtonBase } from '@vela/ui'
 
 const props = defineProps<{
   id: string

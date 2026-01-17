@@ -1,5 +1,5 @@
 {
-  "name": "@lowcode/editor",
+  "name": "@vela/editor",
   "version": "1.0.0",
   "scripts": {
     "dev": "vite",
@@ -7,11 +7,11 @@
     "type-check": "vue-tsc --noEmit"
   },
   "dependencies": {
-    "@lowcode/core": "workspace:*",
-    "@lowcode/generator": "workspace:^",
-    "@lowcode/materials": "workspace:*",
-    "@lowcode/renderer": "workspace:*",
-    "@lowcode/ui": "workspace:*",
+    "@vela/core": "workspace:*",
+    "@vela/generator": "workspace:^",
+    "@vela/materials": "workspace:*",
+    "@vela/renderer": "workspace:*",
+    "@vela/ui": "workspace:*",
     "@vueuse/core": "^14.1.0",
     "axios": "^1.13.2",
     "dompurify": "^3.3.1",

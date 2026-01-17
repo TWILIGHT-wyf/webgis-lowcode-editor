@@ -44,15 +44,15 @@
 
 <script setup lang="ts">
 import { ref, computed, provide } from 'vue'
-import type { ComponentPayload } from '@lowcode/core/types/components'
+import type { ComponentPayload } from '@vela/core/types/components'
 import { useSizeStore } from '@/stores/size'
 import { storeToRefs } from 'pinia'
 import { useComponent } from '@/stores/component'
-import { getComponent } from '@lowcode/materials/registry'
+import { getComponent } from '@vela/materials/registry'
 import { useCanvasInteraction } from '@/components/Editor/canvasBoard/canvasBoard'
 import { useContextMenu } from '@/components/Editor/contextMenu/contextMenu'
 import { useDataBindingEngine } from '@/runtime/useDataBindingEngine'
-import { VIEWPORT_PADDING, VIEWPORT_CULLING_THRESHOLD } from '@lowcode/core/constants/editor'
+import { VIEWPORT_PADDING, VIEWPORT_CULLING_THRESHOLD } from '@vela/core/constants/editor'
 import Shape from '../shape/shape.vue'
 import Snap from '../snap/snap.vue'
 import ContextMenu from '../contextMenu/contextMenu.vue'

@@ -8,8 +8,8 @@ import type {
   SuggestionResult,
   DiffItem,
   WhitelistConfig,
-} from '@lowcode/core/types/suggestion'
-import type { Component } from '@lowcode/core/types/components'
+} from '@vela/core/types/suggestion'
+import type { Component } from '@vela/core/types/components'
 import { nanoid } from 'nanoid'
 import http from '@/services/http'
 import { getAllSchemas, type ComponentSchema } from '@/components/siderBar/properties/schema/types'

@@ -1,4 +1,4 @@
-<template>
+﻿<template>
   <div class="v-text" :style="textStyle">
     {{ content }}
   </div>

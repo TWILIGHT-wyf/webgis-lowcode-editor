@@ -1,4 +1,4 @@
-<template>
+﻿<template>
   <div class="v-countup-container" :style="containerStyle">
     <el-statistic
       :value="animatedValue"

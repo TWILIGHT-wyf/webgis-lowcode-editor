@@ -1,4 +1,4 @@
-<template>
+﻿<template>
   <div class="v-box-container" :style="containerStyle">
     <div class="v-box-content" :style="contentStyle">
       {{ content }}

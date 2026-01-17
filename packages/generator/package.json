@@ -1,5 +1,5 @@
 {
-  "name": "@lowcode/generator",
+  "name": "@vela/generator",
   "version": "1.0.0",
   "main": "src/index.ts",
   "module": "src/index.ts",
@@ -10,7 +10,7 @@
   "dependencies": {
     "@babel/generator": "^7.28.5",
     "@babel/types": "^7.28.5",
-    "@lowcode/core": "workspace:*",
+    "@vela/core": "workspace:*",
     "prettier": "^3.0.0"
   },
   "devDependencies": {

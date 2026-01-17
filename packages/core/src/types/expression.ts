@@ -1,4 +1,4 @@
-/**
+﻿/**
  * JS 表达式容器
  * 用于区分静态值和动态绑定值
  * e.g. { type: 'JSExpression', value: 'state.userInfo.name' }

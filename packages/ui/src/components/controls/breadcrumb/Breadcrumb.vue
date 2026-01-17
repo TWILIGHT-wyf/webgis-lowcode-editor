@@ -1,4 +1,4 @@
-<template>
+﻿<template>
   <el-breadcrumb :separator="separator" class="custom-breadcrumb" :style="containerStyle">
     <el-breadcrumb-item v-for="(item, index) in displayItems" :key="index">
       <span v-if="index === displayItems.length - 1" class="current">{{ item.label }}</span>

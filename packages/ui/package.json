@@ -1,5 +1,5 @@
 {
-  "name": "@lowcode/ui",
+  "name": "@vela/ui",
   "version": "1.0.0",
   "main": "index.ts",
   "module": "index.ts",
@@ -23,7 +23,7 @@
     "vue": "^3.0.0"
   },
   "dependencies": {
-    "@lowcode/core": "workspace:*",
+    "@vela/core": "workspace:*",
     "dompurify": "^3.3.1",
     "echarts": "^6.0.0",
     "highlight.js": "^11.11.1",

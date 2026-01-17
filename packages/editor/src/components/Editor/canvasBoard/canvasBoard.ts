@@ -1,7 +1,7 @@
 ﻿import { ref, onMounted, onBeforeUnmount, type Ref } from 'vue'
 import { throttle } from 'lodash-es'
-import type { ComponentPayload } from '@lowcode/core/types/components'
-import { MIN_SCALE, MAX_SCALE, ZOOM_FACTOR } from '@lowcode/core/constants/editor'
+import type { ComponentPayload } from '@vela/core/types/components'
+import { MIN_SCALE, MAX_SCALE, ZOOM_FACTOR } from '@vela/core/constants/editor'
 
 export function useCanvasInteraction(
   wrapRef: Ref<HTMLDivElement | null>,
@@ -168,7 +168,7 @@ export function useCanvasInteraction(
   /**
    * 校验拖拽载荷格式
    * 兼容新旧两种格式：
-   * - 新格式：componentName (从 @lowcode/materials)
+   * - 新格式：componentName (从 @vela/materials)
    * - 旧格式：type (向后兼容)
    */
   const isComponentPayload = (v: unknown): v is ComponentPayload => {

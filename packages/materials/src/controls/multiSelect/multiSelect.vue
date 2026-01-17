@@ -4,13 +4,13 @@
 
 <script setup lang="ts">
 import { computed, ref, toRef, watch } from 'vue'
-import { useComponent } from '@lowcode/editor/stores/component'
+import { useComponent } from '@vela/editor/stores/component'
 import { storeToRefs } from 'pinia'
 import {
   vMultiSelect as BaseMultiSelect,
   useDataSource,
   extractWithFallback,
-} from '@lowcode/ui'
+} from '@vela/ui'
 
 interface SelectOption {
   label: string

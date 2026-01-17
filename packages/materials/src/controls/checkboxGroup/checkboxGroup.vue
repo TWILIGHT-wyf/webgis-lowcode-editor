@@ -4,13 +4,13 @@
 
 <script setup lang="ts">
 import { computed, ref, toRef, watch } from 'vue'
-import { useComponent } from '@lowcode/editor/stores/component'
+import { useComponent } from '@vela/editor/stores/component'
 import { storeToRefs } from 'pinia'
 import {
   vCheckboxGroup as BaseCheckboxGroup,
   useDataSource,
   extractWithFallback,
-} from '@lowcode/ui'
+} from '@vela/ui'
 
 // 选项接口
 interface CheckboxOption {

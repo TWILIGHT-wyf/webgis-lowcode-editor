@@ -1,4 +1,4 @@
-<template>
+﻿<template>
   <div class="select-container" :style="containerStyle">
     <el-select
       v-model="internalValue"

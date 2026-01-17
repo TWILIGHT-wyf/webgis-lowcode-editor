@@ -1,4 +1,4 @@
-<template>
+﻿<template>
   <component
     :is="componentRef"
     v-bind="node.props"
@@ -14,8 +14,8 @@
 
 <script setup lang="ts">
 import { computed } from 'vue'
-import type { NodeSchema } from '@lowcode/core'
-import { getComponent } from '@lowcode/materials'
+import type { NodeSchema } from '@vela/core'
+import { getComponent } from '@vela/materials'
 
 const props = defineProps<{
   node: NodeSchema

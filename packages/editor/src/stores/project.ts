@@ -4,8 +4,8 @@ import { nanoid } from 'nanoid'
 import { debounce } from 'lodash-es'
 import { useComponent } from '@/stores/component'
 import { ElMessage } from 'element-plus'
-import type { Component } from '@lowcode/core/types/components'
-import type { ServerProject } from '@lowcode/core/types/api'
+import type { Component } from '@vela/core/types/components'
+import type { ServerProject } from '@vela/core/types/api'
 import * as projectService from '@/services/projects'
 
 // —— 类型定义 ——

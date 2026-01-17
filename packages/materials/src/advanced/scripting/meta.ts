@@ -1,4 +1,4 @@
-import type { MaterialMeta } from '@lowcode/core/types'
+﻿import type { MaterialMeta } from '@vela/core/types'
 
 const meta: MaterialMeta = {
   componentName: 'Scripting',

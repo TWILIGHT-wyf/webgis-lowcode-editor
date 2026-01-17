@@ -4,8 +4,8 @@
 
 <script setup lang="ts">
 import { computed } from 'vue'
-import { useComponent } from '@lowcode/editor/stores/component'
-import type { Component } from '@lowcode/core/types/components'
+import { useComponent } from '@vela/editor/stores/component'
+import type { Component } from '@vela/core/types/components'
 
 // 从视觉组件库导入基础组件和工具函数
 import {
@@ -14,7 +14,7 @@ import {
   extractSankeyNodes,
   extractSankeyLinks,
   parseJSONInput,
-} from '@lowcode/ui'
+} from '@vela/ui'
 
 const props = defineProps<{ id: string }>()
 

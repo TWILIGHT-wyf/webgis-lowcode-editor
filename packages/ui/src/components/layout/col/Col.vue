@@ -1,4 +1,4 @@
-<template>
+﻿<template>
   <el-col
     :span="span"
     :offset="offset"

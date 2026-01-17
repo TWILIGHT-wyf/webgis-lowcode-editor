@@ -1,4 +1,4 @@
-<template>
+﻿<template>
   <div class="v-flex-container" :style="containerStyle">
     <slot>
       <div class="v-flex-placeholder" :style="placeholderStyle">

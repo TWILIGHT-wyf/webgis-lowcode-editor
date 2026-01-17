@@ -6,4 +6,4 @@ export {
   getValueByPath,
   setValueByPath,
   extractWithFallback,
-} from '@lowcode/ui'
+} from '@vela/ui'

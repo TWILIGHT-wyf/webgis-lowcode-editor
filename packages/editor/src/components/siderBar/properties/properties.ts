@@ -2,7 +2,7 @@
 import { useComponent } from '@/stores/component'
 import { useSizeStore } from '@/stores/size'
 import { storeToRefs } from 'pinia'
-import { useDataSource } from '@lowcode/ui'
+import { useDataSource } from '@vela/ui'
 import { getSchema } from './schema'
 
 export function customProperties() {

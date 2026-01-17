@@ -24,7 +24,7 @@ import { useRouter } from 'vue-router'
 import RuntimeComponent from '@/views/RuntimeComponent.vue'
 import { useDataBindingEngine } from '@/runtime/useDataBindingEngine'
 import { useEventExecutor } from '@/runtime/useEventExecutor'
-import type { Component } from '@lowcode/core/types/components'
+import type { Component } from '@vela/core/types/components'
 import type { Page } from '@/stores/project'
 
 /**
