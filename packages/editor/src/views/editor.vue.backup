@@ -43,11 +43,9 @@ const isSimulationMode = ref(false)
 // 加载项目数据
 onMounted(async () => {
   const projectId = route.params.id as string
-
-  // 如果没有项目ID（如 /editor-v2 路由），跳过加载直接进入编辑器
   if (!projectId) {
-    console.log('开发模式：无项目ID，直接进入编辑器')
-    isLoading.value = false
+    ElMessage.error('项目ID无效')
+    router.push('/')
     return
   }
 
@@ -74,11 +72,13 @@ onMounted(async () => {
         }
         projectStore.projectList.push(localProject)
       } else {
-        // 本地有，比较更新时间
+        // 本地有，比较更新时间，避免用旧服务器数据覆盖本地最新更改
         const serverUpdatedAt = new Date(serverProject.updatedAt).getTime()
         if (localProject.updatedAt >= serverUpdatedAt) {
+          // 本地数据更新，保留本地数据
           console.log('本地数据更新，保留本地更改')
         } else {
+          // 服务器数据更新，同步到本地
           localProject.pages = serverProject.pages || localProject.pages
           localProject.updatedAt = serverUpdatedAt
         }
@@ -105,12 +105,12 @@ onMounted(async () => {
 function handleOpenAIAssist() {
   aiVisible.value = true
 }
-</script>
 
-<template>
-  <router-view v-if="$route.path === '/runtime'" v-slot="{ Component }">
-    <component :is="Component" v-if="Component" />
-  </router-view>
+// 左侧拖拽逻辑
+function startResizeLeft(e: MouseEvent) {
+  isResizingLeft.value = true
+  const startX = e.clientX
+  const startWidth = leftSidebarWidth.value
 
   <!-- 加载状态 -->
   <div v-else-if="isLoading" class="loading-container">
@@ -118,17 +118,19 @@ function handleOpenAIAssist() {
     <p class="loading-text">正在加载项目...</p>
   </div>
 
-  <EditorLayout v-else>
-    <template #header>
-      <Header @open-ai-assist="handleOpenAIAssist" />
-    </template>
+  <div v-else class="app-layout">
+    <header class="header-card">
+      <headerNav @open-ai-assist="handleOpenAIAssist" />
+    </header>
 
-    <template #left>
-      <MaterialPanel />
-    </template>
+    <div class="main-content">
+      <aside class="floating-card sidebar-card" :style="{ width: leftSidebarWidth + 'px' }">
+        <componentBar />
+      </aside>
 
-    <template #center>
-      <div class="canvas-wrapper">
+      <div class="resize-handle" @mousedown="startResizeLeft"></div>
+
+      <main class="floating-card canvas-card">
         <!-- 模拟运行开关 -->
         <div class="simulation-toolbar">
           <el-switch
@@ -147,7 +149,6 @@ function handleOpenAIAssist() {
           </el-tooltip>
         </div>
 
-        <!-- 画布区域 -->
         <CanvasBoard v-if="!isSimulationMode" />
 
         <!-- 模拟运行模式 -->
@@ -159,85 +160,102 @@ function handleOpenAIAssist() {
           mode="simulation"
         />
 
-        <!-- 缩放指示器 -->
         <div class="zoom-indicator">
           <span class="zoom-label">缩放:</span>
           <span class="zoom-value">{{ zoomPercentage }}%</span>
         </div>
-      </div>
-    </template>
+      </main>
 
-    <template #right>
-      <SetterPanel />
-    </template>
-  </EditorLayout>
+      <div class="resize-handle" @mousedown="startResizeRight"></div>
 
-  <AIAssistDialog v-model:visible="aiVisible" />
+      <aside class="floating-card sidebar-card" :style="{ width: rightSidebarWidth + 'px' }">
+        <SiderBar />
+      </aside>
+    </div>
+
+    <AIAssistDialog v-model:visible="aiVisible" />
+  </div>
 </template>
 
 <style scoped>
-/* 加载状态样式 */
-.loading-container {
+.app-layout {
   display: flex;
   flex-direction: column;
-  align-items: center;
-  justify-content: center;
   height: 100vh;
-  background-color: var(--el-fill-color-lighter);
-  gap: 16px;
+  background-color: var(--bg-app); /* 使用主题定义的应用底色 */
+  padding: 12px; /* 给整个页面四周留出空隙 */
+  box-sizing: border-box;
+  gap: 12px; /* 顶部栏和主体之间的间距 */
+  overflow: hidden;
 }
 
-.loading-icon {
-  color: var(--el-color-primary);
-  animation: rotating 1.5s linear infinite;
+/* 顶部导航卡片 */
+.header-card {
+  height: 56px;
+  flex-shrink: 0;
+  background-color: var(--bg-card);
+  border-radius: var(--radius-card);
+  box-shadow: var(--shadow-card);
+  z-index: 10;
 }
 
-@keyframes rotating {
-  from {
-    transform: rotate(0deg);
-  }
-  to {
-    transform: rotate(360deg);
-  }
-}
-
-.loading-text {
-  color: var(--el-text-color-secondary);
-  font-size: 14px;
-  margin: 0;
-}
-
-/* 画布包装器 */
-.canvas-wrapper {
-  width: 100%;
-  height: 100%;
-  position: relative;
-}
-
-/* 模拟运行工具栏 */
-.simulation-toolbar {
-  position: absolute;
-  top: 12px;
-  left: 50%;
-  transform: translateX(-50%);
+/* 主体内容区 (横向 Flex) */
+.main-content {
+  flex: 1;
   display: flex;
+  overflow: hidden; /* 防止内容溢出 */
+  min-height: 0; /* 关键：允许 Flex 子项在高度上收缩 */
+}
+
+/* 通用悬浮卡片样式 */
+.floating-card {
+  background-color: var(--bg-card);
+  border-radius: var(--radius-card);
+  box-shadow: var(--shadow-card);
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+.sidebar-card {
+  flex-shrink: 0;
+  transition: width 0.05s linear; /* 拖拽时更跟手 */
+}
+
+.canvas-card {
+  flex: 1;
+  margin: 0; /* 无需 margin，由 main-content 的 gap 或 resize-handle 占位 */
+  position: relative;
+  /* 画布背景在 CanvasBoard 内部设置，这里只需作为容器 */
+}
+
+/* 拖拽条样式 */
+.resize-handle {
+  width: 12px; /* 实际上占据 12px 的空间作为视觉间距 */
+  cursor: col-resize;
+  flex-shrink: 0;
+  display: flex;
+  justify-content: center;
   align-items: center;
-  gap: 8px;
-  padding: 8px 16px;
-  background-color: var(--el-bg-color);
-  border: 1px solid var(--el-border-color);
-  border-radius: 8px;
-  box-shadow: var(--el-box-shadow);
-  z-index: 200;
+  /* 透明背景，模拟 gap */
 }
 
-.simulation-toolbar .info-icon {
-  color: var(--el-color-info);
-  cursor: help;
-  font-size: 16px;
+/* 拖拽条中间的小竖线 (Hover 时显示，增强交互感) */
+.resize-handle::after {
+  content: '';
+  width: 4px;
+  height: 32px;
+  background-color: rgba(0, 0, 0, 0.1);
+  border-radius: 2px;
+  opacity: 0;
+  transition: opacity 0.2s;
 }
 
-/* 缩放指示器 */
+.resize-handle:hover::after {
+  opacity: 1;
+}
+
+/* 缩放比率显示 */
 .zoom-indicator {
   position: absolute;
   bottom: 12px;
@@ -267,5 +285,59 @@ function handleOpenAIAssist() {
   font-variant-numeric: tabular-nums;
   min-width: 40px;
   text-align: right;
+}
+
+/* 加载状态样式 */
+.loading-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 100vh;
+  background-color: var(--bg-app, #f5f7fa);
+  gap: 16px;
+}
+
+.loading-icon {
+  color: var(--el-color-primary);
+  animation: rotating 1.5s linear infinite;
+}
+
+@keyframes rotating {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.loading-text {
+  color: var(--el-text-color-secondary);
+  font-size: 14px;
+  margin: 0;
+}
+
+/* 模拟运行工具栏 */
+.simulation-toolbar {
+  position: absolute;
+  top: 12px;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 16px;
+  background-color: var(--el-bg-color);
+  border: 1px solid var(--el-border-color);
+  border-radius: 8px;
+  box-shadow: var(--el-box-shadow);
+  z-index: 200;
+}
+
+.simulation-toolbar .info-icon {
+  color: var(--el-color-info);
+  cursor: help;
+  font-size: 16px;
 }
 </style>

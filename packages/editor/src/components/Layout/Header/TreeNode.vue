@@ -119,7 +119,23 @@ import {
   Check,
   Close,
 } from '@element-plus/icons-vue'
-import type { TreeNodeProps } from '@vela/core/types/components'
+
+// 本地类型定义
+interface TreeNode {
+  id: string
+  name: string
+  type: 'folder' | 'page'
+  path?: string
+  expanded?: boolean
+  isHome?: boolean
+  children?: TreeNode[]
+}
+
+interface TreeNodeProps {
+  node: TreeNode
+  activeId?: string
+  depth?: number
+}
 
 const props = withDefaults(defineProps<TreeNodeProps>(), {
   activeId: '',

@@ -117,7 +117,7 @@
 import { computed, ref, onMounted, onUnmounted } from 'vue'
 import { useProjectStore } from '@/stores/project'
 import { ElMessage, ElMessageBox } from 'element-plus'
-import TreeNode from '@/components/header/treeNode.vue'
+import TreeNode from './TreeNode.vue'
 import { Files, ArrowDown, DocumentAdd, Link } from '@element-plus/icons-vue'
 
 // 定义页面树节点类型

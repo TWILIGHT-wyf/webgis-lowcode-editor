@@ -67,7 +67,12 @@
       <el-divider direction="vertical" class="header-divider" />
 
       <!-- 预览下拉菜单 -->
-      <el-dropdown split-button type="default" @click="openPreview('page')" @command="handlePreviewCommand">
+      <el-dropdown
+        split-button
+        type="default"
+        @click="openPreview('page')"
+        @command="handlePreviewCommand"
+      >
         <el-icon class="icon-left"><View /></el-icon>
         预览
         <template #dropdown>
@@ -114,7 +119,7 @@ import { useSuggestion } from '@/stores/suggestion'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import * as projectService from '@/services/projects'
 import PageNavigator from './PageNavigator.vue'
-import SaveStatusIndicator from '@/components/header/SaveStatusIndicator.vue'
+import SaveStatusIndicator from './SaveStatusIndicator.vue'
 import ExportConfigDialog from '@/components/dialogs/ExportConfigDialog.vue'
 import {
   Back,

@@ -3,7 +3,6 @@ import { createRouter, createWebHistory } from 'vue-router'
 // 路由懒加载，优化首屏性能
 const Dashboard = () => import('@/views/dashboard.vue')
 const Editor = () => import('@/views/editor.vue')
-const EditorV2 = () => import('@/views/EditorV2.vue')
 const RuntimeView = () => import('@/views/runtimeView.vue')
 const Preview = () => import('@/views/Preview.vue')
 
@@ -24,11 +23,11 @@ const router = createRouter({
       meta: { title: '编辑器' },
     },
     {
-      // V1.5 新版编辑器
+      // V1.5 新版编辑器（重构后的布局）
       path: '/editor-v2',
       name: 'EditorV2',
-      component: EditorV2,
-      meta: { title: '编辑器 V1.5' },
+      component: Editor,
+      meta: { title: 'Vela Engine' },
     },
     {
       // 旧版预览页 - 支持 query 参数

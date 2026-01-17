@@ -1,6 +1,7 @@
-﻿import JSZip from 'jszip'
-import { saveAs } from 'file-saver'
-import { transform } from 'sucrase'
+﻿// TODO: 代码生成器功能开发中 - 暂时注释以让编辑器正常运行
+// import JSZip from 'jszip'
+// import { saveAs } from 'file-saver'
+// import { transform } from 'sucrase'
 import { generateVueCode } from './toCode'
 import type { Project, Page } from '@vela/editor/stores/project'
 import type { Component } from './components'
@@ -42,6 +43,11 @@ interface PageArtifact {
  * @param options 导出选项
  */
 export async function exportProjectToZip(project: Project, options: ExportOptions): Promise<void> {
+  // TODO: 重新启用 ZIP 导出功能
+  console.warn('ZIP 导出功能暂未启用')
+  throw new Error('代码导出功能开发中，敬请期待...')
+
+  /*
   if (!project) {
     throw new Error('需要有效的项目实例才能导出代码。')
   }
@@ -62,6 +68,7 @@ export async function exportProjectToZip(project: Project, options: ExportOption
 
   const blob = await zip.generateAsync({ type: 'blob' })
   saveAs(blob, `${normalizedName}.zip`)
+  */
 }
 
 export function generateProjectSourceFiles(
@@ -707,6 +714,11 @@ ${transformed.trim()}\n</script>`
  * @returns JavaScript 代码片段
  */
 function transformTsSnippet(snippet: string): string {
+  // TODO: 重新启用 sucrase 转换
+  console.warn('TS to JS 转换功能暂未启用，直接返回原代码')
+  return snippet
+
+  /*
   const trimmed = snippet.trim()
   if (!trimmed) {
     return snippet
@@ -719,4 +731,5 @@ function transformTsSnippet(snippet: string): string {
     console.warn('[projectGenerator] 通过 sucrase 转换代码片段失败', error)
     return snippet
   }
+  */
 }
