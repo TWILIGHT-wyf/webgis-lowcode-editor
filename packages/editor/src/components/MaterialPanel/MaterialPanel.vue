@@ -1,56 +1,69 @@
 ﻿<template>
-  <div class="component-bar-root">
-    <div class="panel-header">
-      <span class="title">组件库</span>
-      <el-tooltip content="组件关系图适配中" placement="bottom">
-        <el-button link class="icon-btn" disabled>
-          <el-icon :size="18"><Connection /></el-icon>
-        </el-button>
-      </el-tooltip>
+  <div class="material-panel-content">
+    <!-- 搜索框 -->
+    <div class="search-wrapper">
+      <el-input
+        v-model="searchQuery"
+        placeholder="搜索组件..."
+        :prefix-icon="Search"
+        clearable
+        size="default"
+      />
     </div>
 
-    <el-scrollbar class="panel-body">
-      <el-tabs v-model="activeTab" class="modern-tabs" stretch>
-        <el-tab-pane label="基础组件" name="components">
-          <div class="component-list">
-            <el-collapse v-model="activeNames" class="clean-collapse">
-              <el-collapse-item
-                v-for="cat in categories"
-                :key="cat.key"
-                :title="cat.title"
-                :name="cat.title"
-              >
-                <div class="grid-layout">
-                  <div
-                    class="grid-item"
-                    v-for="item in cat.items"
-                    :key="item.componentName"
-                    draggable="true"
-                    @dragstart="onDrag($event, item)"
-                  >
-                    <div class="item-icon">
-                      <component v-if="item.icon" :is="item.icon" />
-                      <span v-else class="text-icon">{{ item.label[0] }}</span>
-                    </div>
-                    <span class="item-label">{{ item.label }}</span>
+    <!-- 标签页 -->
+    <el-tabs v-model="activeTab" class="modern-tabs" stretch>
+      <el-tab-pane label="基础组件" name="components">
+        <div class="component-list">
+          <el-collapse v-model="activeNames" class="clean-collapse">
+            <el-collapse-item
+              v-for="cat in filteredCategories"
+              :key="cat.key"
+              :title="cat.title"
+              :name="cat.title"
+            >
+              <div class="grid-layout">
+                <div
+                  class="grid-item"
+                  v-for="item in cat.items"
+                  :key="item.componentName"
+                  draggable="true"
+                  @dragstart="onDrag($event, item)"
+                >
+                  <div class="item-icon">
+                    <el-icon :size="20">
+                      <component :is="resolveIcon(item.componentName)" />
+                    </el-icon>
                   </div>
+                  <span class="item-label">{{ item.label }}</span>
                 </div>
-              </el-collapse-item>
-            </el-collapse>
-          </div>
-        </el-tab-pane>
+              </div>
+            </el-collapse-item>
+          </el-collapse>
+        </div>
+      </el-tab-pane>
 
-        <el-tab-pane label="页面模板" name="templates">
-          <div class="templates-placeholder">
-            <el-empty description="模板功能升级中，敬请期待...">
-              <template #image>
-                <el-icon :size="64"><DocumentCopy /></el-icon>
-              </template>
-            </el-empty>
-          </div>
-        </el-tab-pane>
-      </el-tabs>
-    </el-scrollbar>
+      <el-tab-pane label="页面模板" name="templates">
+        <div class="templates-placeholder">
+          <el-empty description="模板功能升级中，敬请期待...">
+            <template #image>
+              <el-icon :size="64"><DocumentCopy /></el-icon>
+            </template>
+          </el-empty>
+        </div>
+      </el-tab-pane>
+
+      <el-tab-pane label="自定义" name="custom">
+        <div class="custom-placeholder">
+          <el-button class="upload-btn" :icon="Upload" dashed> 导入组件 </el-button>
+          <el-empty description="支持导入 Vue/React 组件或 NPM 包" :image-size="80">
+            <template #image>
+              <el-icon :size="64"><Box /></el-icon>
+            </template>
+          </el-empty>
+        </div>
+      </el-tab-pane>
+    </el-tabs>
   </div>
 </template>
 
@@ -58,7 +71,22 @@
 import { ref, computed } from 'vue'
 import type { Component } from 'vue'
 import type { MaterialMeta, NodeSchema } from '@vela/core'
-import { DocumentCopy, Connection } from '@element-plus/icons-vue'
+import {
+  DocumentCopy,
+  Search,
+  Upload,
+  Box,
+  Pointer,
+  EditPen,
+  Grid,
+  Picture,
+  Files,
+  PieChart,
+  Monitor,
+  Tools,
+  DataLine,
+  Histogram,
+} from '@element-plus/icons-vue'
 import { getMaterialsByCategory, extractDefaultProps } from '@vela/materials'
 import { generateId } from '@vela/core'
 import type { PropValue } from '@vela/core/types/expression'
@@ -82,6 +110,25 @@ type Item = {
 // --- 状态管理 ---
 const activeTab = ref('components')
 const activeNames = ref<string[]>([])
+const searchQuery = ref('')
+
+// --- 智能图标映射 ---
+const resolveIcon = (componentName: string): Component => {
+  const name = componentName.toLowerCase()
+
+  if (name.includes('button')) return Pointer
+  if (name.includes('input') || name.includes('form')) return EditPen
+  if (name.includes('table') || name.includes('list')) return Grid
+  if (name.includes('image') || name.includes('video') || name.includes('media')) return Picture
+  if (name.includes('chart')) return PieChart
+  if (name.includes('histogram') || name.includes('bar')) return Histogram
+  if (name.includes('line') || name.includes('trend')) return DataLine
+  if (name.includes('container') || name.includes('row') || name.includes('col')) return Files
+  if (name.includes('layout') || name.includes('grid')) return Monitor
+  if (name.includes('tool') || name.includes('menu')) return Tools
+
+  return Box // 默认图标
+}
 
 // --- 从物料包生成组件分类 ---
 const categories = computed<Category[]>(() => {
@@ -140,6 +187,38 @@ const categories = computed<Category[]>(() => {
   return result
 })
 
+// --- 搜索过滤 ---
+const filteredCategories = computed<Category[]>(() => {
+  if (!searchQuery.value.trim()) {
+    return categories.value
+  }
+
+  const query = searchQuery.value.toLowerCase()
+  const filtered: Category[] = []
+
+  for (const category of categories.value) {
+    const matchedItems = category.items.filter(
+      (item) =>
+        item.label.toLowerCase().includes(query) ||
+        item.componentName.toLowerCase().includes(query),
+    )
+
+    if (matchedItems.length > 0) {
+      filtered.push({
+        ...category,
+        items: matchedItems,
+      })
+    }
+  }
+
+  // 搜索时自动展开所有分类
+  if (filtered.length > 0) {
+    activeNames.value = filtered.map((cat) => cat.title)
+  }
+
+  return filtered
+})
+
 // --- 拖拽处理 (适配 V1.5 架构) ---
 const onDrag = (event: DragEvent, item: Item) => {
   const { componentName, meta, width, height } = item
@@ -165,80 +244,84 @@ const onDrag = (event: DragEvent, item: Item) => {
 </script>
 
 <style scoped>
-/* 根容器：透明背景 */
-.component-bar-root {
+/* 根容器：充满父级 SidePanel */
+.material-panel-content {
   height: 100%;
   display: flex;
   flex-direction: column;
-  background-color: transparent;
   overflow: hidden;
 }
 
-/* 顶部标题栏 */
-.panel-header {
-  padding: 16px 20px;
-  border-bottom: 1px solid var(--border-light);
+/* 搜索框区域 */
+.search-wrapper {
+  padding: 12px 16px;
+  border-bottom: 1px solid var(--el-border-color-lighter);
   flex-shrink: 0;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-}
-
-.title {
-  font-weight: 600;
-  font-size: 16px;
-  color: var(--text-primary);
-}
-
-.icon-btn {
-  color: var(--text-secondary);
-  transition: color 0.2s;
-}
-.icon-btn:hover {
-  color: #4285f4;
-}
-
-/* 滚动区域 */
-.panel-body {
-  flex: 1;
-  width: 100%;
 }
 
 /* 现代化 Tabs */
+.modern-tabs {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
 .modern-tabs :deep(.el-tabs__header) {
   margin: 0;
   padding: 0 10px;
+  flex-shrink: 0;
 }
+
 .modern-tabs :deep(.el-tabs__nav-wrap::after) {
   height: 1px;
-  background-color: var(--border-light);
+  background-color: var(--el-border-color-lighter);
 }
+
 .modern-tabs :deep(.el-tabs__item) {
-  height: 48px;
+  height: 44px;
   font-weight: 500;
-  color: var(--text-secondary);
+  color: var(--el-text-color-secondary);
 }
+
 .modern-tabs :deep(.el-tabs__item.is-active) {
-  color: #1967d2;
+  color: var(--el-color-primary);
   font-weight: 600;
 }
 
+.modern-tabs :deep(.el-tabs__content) {
+  flex: 1;
+  overflow: hidden;
+}
+
+.modern-tabs :deep(.el-tab-pane) {
+  height: 100%;
+  overflow-y: auto;
+}
+
 /* 现代化 Collapse */
+.component-list {
+  padding: 8px 0;
+}
+
 .clean-collapse {
   border: none;
 }
+
 .clean-collapse :deep(.el-collapse-item__header) {
   border-bottom: none;
   padding-left: 20px;
   background: transparent;
   font-weight: 500;
-  color: var(--text-primary);
+  color: var(--el-text-color-primary);
   height: 44px;
 }
+
 .clean-collapse :deep(.el-collapse-item__wrap) {
   border-bottom: none;
   background: transparent;
 }
+
 .clean-collapse :deep(.el-collapse-item__content) {
   padding: 0 16px 16px;
   background: transparent;
@@ -256,39 +339,50 @@ const onDrag = (event: DragEvent, item: Item) => {
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  background-color: var(--bg-hover);
+  background-color: var(--el-fill-color-light);
   border-radius: 12px;
   padding: 12px;
   cursor: grab;
   border: 1px solid transparent;
   transition: all 0.2s;
+  min-height: 72px;
 }
 
 .grid-item:hover {
-  background-color: #e8f0fe;
-  border-color: #d2e3fc;
-  color: #1967d2;
+  background-color: var(--el-color-primary-light-9);
+  border-color: var(--el-color-primary-light-7);
+  color: var(--el-color-primary);
   transform: translateY(-2px);
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.05);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.08);
+}
+
+.grid-item:active {
+  cursor: grabbing;
 }
 
 .item-icon {
-  width: 32px;
-  height: 32px;
-  background: rgba(255, 255, 255, 0.8);
+  width: 36px;
+  height: 36px;
+  background: var(--el-bg-color);
   border-radius: 8px;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-weight: bold;
   margin-bottom: 6px;
-  color: var(--text-secondary);
+  color: var(--el-color-primary);
+  transition: all 0.2s;
+}
+
+.grid-item:hover .item-icon {
+  background: var(--el-color-primary);
+  color: white;
 }
 
 .item-label {
   font-size: 12px;
-  color: var(--text-secondary);
+  color: var(--el-text-color-regular);
   text-align: center;
+  line-height: 1.4;
 }
 
 /* 模板占位符 */
@@ -297,17 +391,27 @@ const onDrag = (event: DragEvent, item: Item) => {
   text-align: center;
 }
 
-/* 深度选择样式覆盖 */
-:deep(.el-dialog) {
-  border-radius: 16px;
-  overflow: hidden;
+/* 自定义组件占位符 */
+.custom-placeholder {
+  padding: 40px 20px;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 20px;
 }
-:deep(.el-dialog__header) {
-  margin-right: 0;
-  border-bottom: 1px solid var(--border-light);
-  padding: 20px;
+
+.upload-btn {
+  width: 100%;
+  height: 80px;
+  border-style: dashed;
+  border-width: 2px;
+  font-size: 14px;
+  font-weight: 500;
 }
-:deep(.el-dialog__body) {
-  padding: 20px;
+
+.upload-btn:hover {
+  border-color: var(--el-color-primary);
+  color: var(--el-color-primary);
 }
 </style>

@@ -22,6 +22,7 @@ export interface Page {
     width: number
     height: number
     backgroundColor: string
+    layout?: 'free' | 'flow' // 画布布局模式：free (自由定位) 或 flow (文档流)
   }
 }
 

@@ -7,6 +7,8 @@ import { useProjectStore } from '@/stores/project'
 import { useComponent } from '@/stores/component'
 import EditorLayout from '@/components/Layout/EditorLayout.vue'
 import Header from '@/components/Layout/Header/Header.vue'
+import SidePanel from '@/components/Layout/Panel/SidePanel.vue'
+import StatusBar from '@/components/Layout/StatusBar/StatusBar.vue'
 import MaterialPanel from '@/components/MaterialPanel/MaterialPanel.vue'
 import CanvasBoard from '@/components/Canvas/CanvasBoard.vue'
 import SetterPanel from '@/components/SetterPanel/SetterPanel.vue'
@@ -124,7 +126,9 @@ function handleOpenAIAssist() {
     </template>
 
     <template #left>
-      <MaterialPanel />
+      <SidePanel title="组件库">
+        <MaterialPanel />
+      </SidePanel>
     </template>
 
     <template #center>
@@ -168,7 +172,13 @@ function handleOpenAIAssist() {
     </template>
 
     <template #right>
-      <SetterPanel />
+      <SidePanel title="属性设置">
+        <SetterPanel />
+      </SidePanel>
+    </template>
+
+    <template #footer>
+      <StatusBar />
     </template>
   </EditorLayout>
 

@@ -29,6 +29,10 @@
         </div>
       </aside>
     </div>
+
+    <footer class="vela-layout__footer">
+      <slot name="footer" />
+    </footer>
   </div>
 </template>
 
@@ -203,6 +207,14 @@ defineExpose({
   background-color: var(--el-bg-color);
   border-radius: 8px;
   box-shadow: 0 1px 4px rgba(0, 0, 0, 0.05);
+}
+
+.vela-layout__footer {
+  flex-shrink: 0;
+  height: 24px;
+  background-color: var(--el-bg-color);
+  border-top: 1px solid var(--el-border-color-lighter);
+  z-index: 50;
 }
 
 /* 滚动条样式 */

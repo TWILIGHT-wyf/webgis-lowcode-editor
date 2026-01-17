@@ -1,4 +1,4 @@
-﻿import { useComponent } from '@/stores/component'
+import { useComponent } from '@/stores/component'
 import { computed } from 'vue'
 import { storeToRefs } from 'pinia'
 import type { Box, SnapComp } from '@vela/core/types/snap'
@@ -8,6 +8,10 @@ type SnapResult = {
   lines: { x?: number; y?: number }[]
 }
 
+/**
+ * 吸附计算 Composable
+ * 提供网格吸附和邻居组件吸附的纯计算逻辑
+ */
 export function useSnap() {
   const store = useComponent()
   const { componentStore, selectComponent } = storeToRefs(store)
@@ -16,6 +20,7 @@ export function useSnap() {
     return (deg * Math.PI) / 180
   }
 
+  // ========== 响应式数据 ==========
   const comps = computed(
     () =>
       componentStore.value.map((com) => ({
@@ -41,7 +46,11 @@ export function useSnap() {
     return cache
   })
 
-  // 将组件转为Box（绕中心旋转）
+  // ========== 核心计算函数 ==========
+
+  /**
+   * 将组件转换为包围盒（支持旋转）
+   */
   function toBox(com: SnapComp): Box {
     const { x, y } = com.position
     const { width, height } = com.size
@@ -55,7 +64,6 @@ export function useSnap() {
     const cos = Math.cos(rotation)
     const sin = Math.sin(rotation)
 
-    // 以中心为原点的局部四角点
     const localCorners = [
       { x: -halfW, y: -halfH },
       { x: halfW, y: -halfH },
@@ -63,11 +71,11 @@ export function useSnap() {
       { x: -halfW, y: halfH },
     ]
 
-    // 旋转并平移回世界坐标
     const transformedCorners = localCorners.map((p) => ({
       x: p.x * cos - p.y * sin + cx0,
       y: p.x * sin + p.y * cos + cy0,
     }))
+
     const xs = transformedCorners.map((p) => p.x)
     const ys = transformedCorners.map((p) => p.y)
     const minx = Math.min(...xs)
@@ -80,6 +88,9 @@ export function useSnap() {
     return { minx, miny, maxx, maxy, cx, cy, corners: transformedCorners }
   }
 
+  /**
+   * 获取组件的辅助线位置
+   */
   function getGuideLines(box: Box): { xLines: number[]; yLines: number[] } {
     const xSet = new Set<number>([box.minx, box.cx, box.maxx])
     const ySet = new Set<number>([box.miny, box.cy, box.maxy])
@@ -90,17 +101,18 @@ export function useSnap() {
     return { xLines: Array.from(xSet), yLines: Array.from(ySet) }
   }
 
-  // 找邻居
+  /**
+   * 找到可能产生吸附的邻居组件
+   */
   function findSnapNeighbors(targetBox: Box, threshold: number = 10): { box: Box; id: string }[] {
     const neighbors: { box: Box; id: string }[] = []
     const myId = meComp.value.id
+
     boxCache.value.forEach((box, id) => {
       if (!id || id === myId) return
 
-      // 稍微放宽一点阈值 (10px)，防止粗筛太严格把边缘的给漏了
       const searchDist = threshold + 10
-      
-      // 算法公式：两个区间 [min1, max1] 和 [min2, max2] 是否重叠/接近
+
       const isCloseX =
         Math.abs(box.cx - targetBox.cx) <
         (box.maxx - box.minx + targetBox.maxx - targetBox.minx) / 2 + searchDist
@@ -115,16 +127,17 @@ export function useSnap() {
     return neighbors
   }
 
-  // 网格对齐功能
+  /**
+   * 网格对齐
+   */
   function snapToGrid(
     previewPos: { x: number; y: number },
     gridSize: number = 20,
   ): { position: { x: number; y: number }; lines: { x?: number; y?: number }[] } {
-    //
     const snappedX = Math.round(previewPos.x / gridSize) * gridSize
     const snappedY = Math.round(previewPos.y / gridSize) * gridSize
     const lines: { x?: number; y?: number }[] = []
-    // 只在对齐时显示辅助线
+
     if (Math.abs(snappedX - previewPos.x) < 2) {
       lines.push({ x: snappedX })
     }
@@ -134,12 +147,13 @@ export function useSnap() {
     return { position: { x: snappedX, y: snappedY }, lines }
   }
 
-  // 计算最佳吸附
+  /**
+   * 计算与邻居组件的最佳吸附
+   */
   function snapToNeighbors(
     threshold: number = 10,
     previewPos?: { x: number; y: number },
   ): SnapResult | null {
-    // 使用预览位置（拖拽中的临时位置）计算 me 的包围盒
     const meCompEffective: SnapComp = previewPos
       ? { ...meComp.value, position: previewPos }
       : meComp.value
@@ -147,6 +161,7 @@ export function useSnap() {
     const mePos = meCompEffective.position
     const myXAnchors = [me.minx, me.cx, me.maxx, ...me.corners.map((p) => p.x)]
     const myYAnchors = [me.miny, me.cy, me.maxy, ...me.corners.map((p) => p.y)]
+
     let bestDx: number | null = null
     let bestDy: number | null = null
     let bestDxDist = threshold + 1
@@ -155,17 +170,14 @@ export function useSnap() {
     let yLine: number | undefined
 
     const candidateBoxes = findSnapNeighbors(me, threshold)
-    // 获取当前组件的子组件ID列表(如果是容器)
     const currentComp = componentStore.value.find((c) => c.id === meComp.value.id)
     const childrenIds = currentComp?.children || []
 
     candidateBoxes.forEach(({ box, id }) => {
-      // 排除自己和自己的子组件
       if (!id || id === meComp.value.id || childrenIds.includes(id)) return
 
       const { xLines: guideXs, yLines: guideYs } = getGuideLines(box)
 
-      // 水平方向：我的各个锚点(min/cx/max/四角x) 对齐到 对方的边/中心/四角x
       for (const myX of myXAnchors) {
         for (const gx of guideXs) {
           const dx = gx - myX
@@ -178,7 +190,6 @@ export function useSnap() {
         }
       }
 
-      // 垂直方向：我的各个锚点(min/cy/max/四角y) 对齐到 对方的边/中心/四角y
       for (const myY of myYAnchors) {
         for (const gy of guideYs) {
           const dy = gy - myY
