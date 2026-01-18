@@ -1,4 +1,4 @@
-﻿import { PropValue, JSExpression } from './expression'
+import { PropValue, JSExpression } from './expression'
 import { ActionSchema } from './action'
 
 /**
@@ -28,4 +28,15 @@ export interface NodeSchema {
 
   // 事件交互
   events?: Record<string, ActionSchema[]>
+
+  // 动画配置
+  animation?: {
+    name: string
+    class: string
+    duration: number
+    delay: number
+    iterationCount: number | string
+    timingFunction: string
+    trigger: 'load' | 'hover' | 'click'
+  }
 }

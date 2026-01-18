@@ -23,34 +23,12 @@
         <EventPane :node="selectedComponent" />
       </el-tab-pane>
 
-      <el-tab-pane label="高级" name="advanced">
-        <div class="advanced-content">
-          <el-collapse v-model="advancedActiveNames">
-            <el-collapse-item title="动画效果" name="animation">
-              <el-empty description="动画配置功能开发中..." :image-size="60">
-                <template #image>
-                  <el-icon :size="48"><VideoPlay /></el-icon>
-                </template>
-              </el-empty>
-            </el-collapse-item>
+      <el-tab-pane label="动画" name="animation">
+        <AnimationPane />
+      </el-tab-pane>
 
-            <el-collapse-item title="数据联动" name="data">
-              <el-empty description="数据绑定功能开发中..." :image-size="60">
-                <template #image>
-                  <el-icon :size="48"><Connection /></el-icon>
-                </template>
-              </el-empty>
-            </el-collapse-item>
-
-            <el-collapse-item title="条件渲染" name="condition">
-              <el-empty description="条件渲染配置开发中..." :image-size="60">
-                <template #image>
-                  <el-icon :size="48"><Filter /></el-icon>
-                </template>
-              </el-empty>
-            </el-collapse-item>
-          </el-collapse>
-        </div>
+      <el-tab-pane label="联动" name="relations">
+        <RelationsPane />
       </el-tab-pane>
     </el-tabs>
   </div>
@@ -59,21 +37,17 @@
 <script setup lang="ts">
 import { ref, computed } from 'vue'
 import { useComponent } from '@/stores/component'
-import { Mouse, VideoPlay, Connection, Filter } from '@element-plus/icons-vue'
+import { Mouse } from '@element-plus/icons-vue'
 import PropsPane from './panes/PropsPane.vue'
 import StylePane from './panes/StylePane.vue'
 import EventPane from './panes/EventPane.vue'
+import AnimationPane from './panes/AnimationPane.vue'
+import RelationsPane from './panes/RelationsPane.vue'
 
 const componentStore = useComponent()
 
-// 当前选中的组件
-const selectedComponent = computed(() => componentStore.selectedComponent)
-
-// 当前激活的标签页
+const selectedComponent = computed(() => componentStore.selectedNode)
 const activeTab = ref('props')
-
-// 高级功能展开项
-const advancedActiveNames = ref<string[]>([])
 </script>
 
 <style scoped>
@@ -107,7 +81,8 @@ const advancedActiveNames = ref<string[]>([])
   height: 44px;
   font-weight: 500;
   color: var(--el-text-color-secondary);
-  font-size: 13px;
+  font-size: 12px;
+  padding: 0 10px;
 }
 
 .setter-tabs :deep(.el-tabs__item.is-active) {

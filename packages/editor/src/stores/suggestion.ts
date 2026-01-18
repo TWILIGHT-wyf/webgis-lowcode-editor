@@ -14,7 +14,7 @@ import type {
 import type { Component } from '@vela/core/types/components'
 import { generateSuggestion, applyDiffs } from '@/services/suggestService'
 import { useComponent } from '@/stores/component'
-import { useSizeStore } from '@/stores/size'
+import { useUIStore } from '@/stores/ui'
 import { nanoid } from 'nanoid'
 
 export const useSuggestion = defineStore('suggestion', () => {
@@ -38,7 +38,7 @@ export const useSuggestion = defineStore('suggestion', () => {
    */
   async function generate(prompt: string) {
     const componentStore = useComponent()
-    const sizeStore = useSizeStore()
+    const uiStore = useUIStore()
 
     isGenerating.value = true
     try {
@@ -47,8 +47,8 @@ export const useSuggestion = defineStore('suggestion', () => {
         context: {
           components: componentStore.componentStore as Component[],
           canvasSize: {
-            width: sizeStore.width,
-            height: sizeStore.height,
+            width: uiStore.canvasWidth,
+            height: uiStore.canvasHeight,
           },
         },
         timestamp: Date.now(),

@@ -95,12 +95,7 @@ const formattedTime = computed(() => {
 
 // 立即保存
 function handleSaveNow() {
-  // 先 flush 防抖队列，确保立即执行
-  projectStore.saveToBackendDebounced.flush()
-  // 如果 flush 后仍有未保存状态，直接调用保存
-  if (saveStatus.value === 'unsaved') {
-    projectStore.saveToBackend()
-  }
+  projectStore.saveProject()
 }
 </script>
 

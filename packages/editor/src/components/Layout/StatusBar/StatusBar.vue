@@ -26,13 +26,13 @@
 <script setup lang="ts">
 import { computed } from 'vue'
 import { useComponent } from '@/stores/component'
-import { useSizeStore } from '@/stores/size'
+import { useUIStore } from '@/stores/ui'
 import { storeToRefs } from 'pinia'
 import { CircleCheck, View, Position } from '@element-plus/icons-vue'
 
 const compStore = useComponent()
-const sizeStore = useSizeStore()
-const { scale } = storeToRefs(sizeStore)
+const uiStore = useUIStore()
+const { canvasScale: scale } = storeToRefs(uiStore)
 
 // 面包屑导航
 const breadcrumb = computed(() => {

@@ -18,13 +18,11 @@ export const animations: AnimationOption[] = [
   { name: 'rotate', label: '旋转', class: 'anim-rotate', desc: '旋转出现' },
 ]
 
-// Animation Preview Composable
 export function useAnimationPreview() {
   const currentClass = ref<string | null>(null)
   const replayKey = ref(0)
 
   function triggerPreview(cls: string) {
-    // 通过清空再设置的方式强制浏览器重新计算动画
     currentClass.value = null
     nextTick(() => {
       currentClass.value = cls
@@ -32,9 +30,7 @@ export function useAnimationPreview() {
     })
   }
 
-  function cancelPreview() {
-    // 悬停移出后保留最后一次效果或清空，这里选择保留
-  }
+  function cancelPreview() {}
 
   const previewClass = computed(() => {
     return ['preview-target', currentClass.value].filter(Boolean)
@@ -49,34 +45,32 @@ export function useAnimationPreview() {
   }
 }
 
-// Animation Selection Composable
 export function useAnimationSelection() {
   const store = useComponent()
 
-  // 当前选中组件的动画配置
   const currentAnimation = computed(() => {
-    return store.selectComponent?.animation
+    return store.selectedNode?.animation
   })
 
-  // 写入当前选中组件的 animation 配置
   function selectAnimation(a: { name: string; class: string }) {
-    const target = store.selectComponent
-    if (target) {
-      // 如果已有配置，保留部分参数，仅切换类型
-      const baseConfig = target.animation || {
-        duration: 0.8,
-        delay: 0,
-        iterationCount: 1,
-        timingFunction: 'ease',
-        trigger: 'load',
-      }
+    const node = store.selectedNode
+    if (!node) return
 
-      target.animation = {
-        ...baseConfig,
-        name: a.name,
-        class: a.class,
-      }
+    const baseConfig = node.animation || {
+      duration: 0.8,
+      delay: 0,
+      iterationCount: 1,
+      timingFunction: 'ease',
+      trigger: 'load',
     }
+
+    node.animation = {
+      ...baseConfig,
+      name: a.name,
+      class: a.class,
+    }
+
+    store.syncToProjectStore()
   }
 
   return {

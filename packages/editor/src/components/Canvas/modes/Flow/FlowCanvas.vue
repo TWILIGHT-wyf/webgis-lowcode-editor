@@ -1,12 +1,12 @@
 <template>
   <div ref="flowCanvasRef" class="flow-canvas" @click="handleCanvasClick">
     <!-- 使用递归渲染器渲染组件树 -->
-    <div v-if="currentTree" class="flow-content">
-      <RecursiveRenderer :node="currentTree" />
+    <div v-if="rootNode" class="flow-content">
+      <RecursiveRenderer :node="rootNode" />
     </div>
 
     <!-- 空状态提示 -->
-    <div v-if="!currentTree?.children || currentTree.children.length === 0" class="empty-state">
+    <div v-if="!rootNode?.children || rootNode.children.length === 0" class="empty-state">
       <div class="empty-icon">📄</div>
       <p>从左侧拖拽组件到此处开始搭建流式布局</p>
     </div>
@@ -16,12 +16,12 @@
 <script setup lang="ts">
 import { ref } from 'vue'
 import { storeToRefs } from 'pinia'
-import { useComponentStoreV2 } from '@/stores/componentV2'
+import { useComponent } from '@/stores/component'
 import { RecursiveRenderer } from '@vela/renderer'
 
-const componentStore = useComponentStoreV2()
-const { currentTree, selectedId } = storeToRefs(componentStore)
-const { setSelected } = componentStore
+const componentStore = useComponent()
+const { rootNode, selectedId } = storeToRefs(componentStore)
+const { selectComponent } = componentStore
 
 const flowCanvasRef = ref<HTMLElement | null>(null)
 
@@ -36,14 +36,14 @@ const handleCanvasClick = (e: MouseEvent) => {
   if (nodeEl) {
     const id = nodeEl.getAttribute('data-id')
     if (id) {
-      setSelected(id)
+      selectComponent(id)
       e.stopPropagation()
       return
     }
   }
 
   // 点击空白处，取消选中
-  setSelected(null)
+  selectComponent(null)
 }
 </script>
 

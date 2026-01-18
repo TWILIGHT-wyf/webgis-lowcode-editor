@@ -1,4 +1,4 @@
-﻿<template>
+<template>
   <div v-if="isReady" style="width: 100%; height: 100%; overflow: hidden">
     <BarChartBase v-bind="chartProps" />
   </div>
@@ -34,8 +34,12 @@ onMounted(() => {
 })
 
 // 获取组件配置
-const { componentStore } = storeToRefs(useComponent())
-const comp = computed(() => componentStore.value.find((c) => c.id === props.id))
+const componentStore = useComponent()
+const { rootNode } = storeToRefs(componentStore)
+const comp = computed(() => {
+  if (!rootNode.value) return null
+  return componentStore.findNodeById(rootNode.value, props.id)
+})
 
 // 获取数据源
 const { data: remoteData } = useDataSource(computed(() => comp.value?.dataSource))

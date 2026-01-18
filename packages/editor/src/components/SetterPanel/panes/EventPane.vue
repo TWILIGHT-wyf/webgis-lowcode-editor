@@ -7,68 +7,135 @@
     </el-empty>
 
     <div v-else class="event-content">
-      <div class="event-header">
-        <el-button type="primary" size="small" :icon="Plus" @click="addEvent"> 添加事件 </el-button>
-      </div>
+      <el-scrollbar class="event-scrollbar">
+        <div class="event-list">
+          <div class="event-section">
+            <div class="section-header">
+              <span>点击事件</span>
+              <el-button type="primary" size="small" :icon="Plus" @click="addClickAction" circle />
+            </div>
 
-      <el-empty v-if="events.length === 0" description="暂无事件配置" :image-size="60" />
+            <el-empty v-if="clickActions.length === 0" description="暂无事件" :image-size="40" />
 
-      <div v-else class="event-list">
-        <el-card v-for="(event, index) in events" :key="index" class="event-item" shadow="hover">
-          <div class="event-item-header">
-            <el-select v-model="event.trigger" placeholder="选择触发器" size="small">
-              <el-option label="点击 (onClick)" value="onClick" />
-              <el-option label="双击 (onDblClick)" value="onDblClick" />
-              <el-option label="鼠标移入 (onMouseEnter)" value="onMouseEnter" />
-              <el-option label="鼠标移出 (onMouseLeave)" value="onMouseLeave" />
-              <el-option label="输入改变 (onChange)" value="onChange" />
-            </el-select>
+            <div v-else class="action-list">
+              <div
+                v-for="(action, index) in clickActions"
+                :key="action.id || index"
+                class="action-item"
+              >
+                <div class="action-header">
+                  <el-select
+                    v-model="action.type"
+                    placeholder="选择动作类型"
+                    size="small"
+                    @change="onActionTypeChange(action)"
+                  >
+                    <el-option label="弹窗提示" value="alert" />
+                    <el-option label="打开链接" value="openUrl" />
+                    <el-option label="页面跳转" value="navigate" />
+                    <el-option label="更新状态" value="updateState" />
+                    <el-option label="自定义脚本" value="customScript" />
+                  </el-select>
+                  <el-button
+                    type="danger"
+                    size="small"
+                    :icon="Delete"
+                    circle
+                    @click="removeClickAction(index)"
+                  />
+                </div>
 
-            <el-button
-              type="danger"
-              size="small"
-              :icon="Delete"
-              circle
-              @click="removeEvent(index)"
-            />
+                <el-form-item v-if="action.type === 'alert'" label="提示内容" size="small">
+                  <el-input v-model="action.message" placeholder="请输入提示内容" />
+                </el-form-item>
+
+                <el-form-item v-if="action.type === 'openUrl'" label="URL" size="small">
+                  <el-input v-model="action.url" placeholder="https://..." />
+                </el-form-item>
+
+                <el-form-item v-if="action.type === 'navigate'" label="路径" size="small">
+                  <el-input v-model="action.path" placeholder="/path" />
+                </el-form-item>
+
+                <el-form-item v-if="action.type === 'customScript'" label="脚本代码" size="small">
+                  <el-input
+                    v-model="action.content"
+                    type="textarea"
+                    :rows="4"
+                    placeholder="输入 JavaScript 代码"
+                  />
+                </el-form-item>
+              </div>
+            </div>
           </div>
 
-          <el-divider />
+          <div class="event-section">
+            <div class="section-header">
+              <span>悬停事件</span>
+              <el-button type="primary" size="small" :icon="Plus" @click="addHoverAction" circle />
+            </div>
 
-          <el-form-item label="动作类型" size="small">
-            <el-select v-model="event.action" placeholder="选择动作">
-              <el-option label="弹窗提示" value="alert" />
-              <el-option label="打开链接" value="navigate" />
-              <el-option label="调用接口" value="api" />
-              <el-option label="更新数据" value="setState" />
-              <el-option label="自定义代码" value="custom" />
-            </el-select>
-          </el-form-item>
+            <el-empty v-if="hoverActions.length === 0" description="暂无事件" :image-size="40" />
 
-          <el-form-item v-if="event.action === 'alert'" label="提示内容" size="small">
-            <el-input v-model="event.params.message" placeholder="请输入提示内容" />
-          </el-form-item>
+            <div v-else class="action-list">
+              <div
+                v-for="(action, index) in hoverActions"
+                :key="action.id || index"
+                class="action-item"
+              >
+                <div class="action-header">
+                  <el-select
+                    v-model="action.type"
+                    placeholder="选择动作类型"
+                    size="small"
+                    @change="onActionTypeChange(action)"
+                  >
+                    <el-option label="弹窗提示" value="alert" />
+                    <el-option label="打开链接" value="openUrl" />
+                    <el-option label="页面跳转" value="navigate" />
+                    <el-option label="更新状态" value="updateState" />
+                    <el-option label="自定义脚本" value="customScript" />
+                  </el-select>
+                  <el-button
+                    type="danger"
+                    size="small"
+                    :icon="Delete"
+                    circle
+                    @click="removeHoverAction(index)"
+                  />
+                </div>
 
-          <el-form-item v-if="event.action === 'navigate'" label="跳转链接" size="small">
-            <el-input v-model="event.params.url" placeholder="https://..." />
-          </el-form-item>
+                <el-form-item v-if="action.type === 'alert'" label="提示内容" size="small">
+                  <el-input v-model="action.message" placeholder="请输入提示内容" />
+                </el-form-item>
 
-          <el-form-item v-if="event.action === 'custom'" label="代码" size="small">
-            <el-input
-              v-model="event.params.code"
-              type="textarea"
-              :rows="4"
-              placeholder="输入 JavaScript 代码"
-            />
-          </el-form-item>
-        </el-card>
-      </div>
+                <el-form-item v-if="action.type === 'openUrl'" label="URL" size="small">
+                  <el-input v-model="action.url" placeholder="https://..." />
+                </el-form-item>
+
+                <el-form-item v-if="action.type === 'navigate'" label="路径" size="small">
+                  <el-input v-model="action.path" placeholder="/path" />
+                </el-form-item>
+
+                <el-form-item v-if="action.type === 'customScript'" label="脚本代码" size="small">
+                  <el-input
+                    v-model="action.content"
+                    type="textarea"
+                    :rows="4"
+                    placeholder="输入 JavaScript 代码"
+                  />
+                </el-form-item>
+              </div>
+            </div>
+          </div>
+        </div>
+      </el-scrollbar>
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref, computed, watch } from 'vue'
+import { useEventConfiguration } from '../composables/useEvents'
 import type { NodeSchema } from '@vela/core'
 import { Plus, Delete, Select } from '@element-plus/icons-vue'
 
@@ -76,88 +143,97 @@ interface Props {
   node?: NodeSchema | null
 }
 
-interface EventConfig {
-  trigger: string
-  action: string
-  params: Record<string, any>
-}
+defineProps<Props>()
 
-const props = defineProps<Props>()
+const {
+  clickActions,
+  hoverActions,
+  addClickAction,
+  removeClickAction,
+  addHoverAction,
+  removeHoverAction,
+} = useEventConfiguration()
 
-const events = ref<EventConfig[]>([])
-
-// 从节点加载事件配置
-watch(
-  () => props.node,
-  (newNode) => {
-    if (newNode && newNode.events) {
-      events.value = Array.isArray(newNode.events) ? newNode.events : []
-    } else {
-      events.value = []
-    }
-  },
-  { immediate: true },
-)
-
-// 同步事件到节点
-watch(
-  events,
-  (newEvents) => {
-    if (props.node) {
-      ;(props.node as any).events = newEvents
-    }
-  },
-  { deep: true },
-)
-
-const addEvent = () => {
-  events.value.push({
-    trigger: 'onClick',
-    action: 'alert',
-    params: { message: 'Hello!' },
-  })
-}
-
-const removeEvent = (index: number) => {
-  events.value.splice(index, 1)
+function onActionTypeChange(action: any) {
+  if (action.type !== 'customScript') {
+    delete action.content
+  }
 }
 </script>
 
 <style scoped>
 .event-pane {
-  padding: 16px;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
 }
 
-.event-header {
-  margin-bottom: 16px;
+.event-content {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+.event-scrollbar {
+  flex: 1;
+  height: 100%;
 }
 
 .event-list {
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.event-section {
+  border: 1px solid var(--el-border-color-light);
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.section-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 16px;
+  background: var(--el-fill-color-light);
+  border-bottom: 1px solid var(--el-border-color-light);
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--el-text-color-primary);
+}
+
+.action-list {
+  padding: 16px;
   display: flex;
   flex-direction: column;
   gap: 12px;
 }
 
-.event-item {
-  border-radius: 8px;
+.action-item {
+  background: white;
+  border: 1px solid var(--el-border-color-light);
+  border-radius: 6px;
+  padding: 12px;
 }
 
-.event-item-header {
+.action-header {
   display: flex;
   align-items: center;
   gap: 8px;
   margin-bottom: 12px;
 }
 
-.event-item-header .el-select {
+.action-header .el-select {
   flex: 1;
 }
 
-.event-item :deep(.el-form-item) {
+.action-item :deep(.el-form-item) {
   margin-bottom: 12px;
 }
 
-.event-item :deep(.el-form-item__label) {
+.action-item :deep(.el-form-item__label) {
   font-size: 12px;
   font-weight: 500;
 }

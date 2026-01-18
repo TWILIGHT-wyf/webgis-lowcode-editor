@@ -1,5 +1,5 @@
-﻿<template>
-  <div class="animation-panel">
+<template>
+  <div class="animation-pane">
     <el-scrollbar class="panel-scrollbar">
       <div class="panel-content">
         <div class="preview-stage">
@@ -34,11 +34,7 @@
 
           <el-form label-position="top" size="small" class="modern-form">
             <el-form-item label="触发方式">
-              <el-select
-                v-model="currentAnimation.trigger"
-                placeholder="选择触发方式"
-                class="modern-select"
-              >
+              <el-select v-model="currentAnimation.trigger" class="modern-select">
                 <el-option label="页面加载时 (Load)" value="load" />
                 <el-option label="鼠标悬停时 (Hover)" value="hover" />
                 <el-option label="点击时 (Click)" value="click" />
@@ -54,6 +50,7 @@
                   :step="0.1"
                   :controls="false"
                   class="modern-input"
+                  @change="handleUpdate"
                 />
               </el-form-item>
               <el-form-item label="延迟 (s)">
@@ -64,13 +61,18 @@
                   :step="0.1"
                   :controls="false"
                   class="modern-input"
+                  @change="handleUpdate"
                 />
               </el-form-item>
             </div>
 
             <el-form-item label="重复次数">
               <div class="radio-group-wrapper">
-                <el-radio-group v-model="currentAnimation.iterationCount" size="small">
+                <el-radio-group
+                  v-model="currentAnimation.iterationCount"
+                  size="small"
+                  @change="handleUpdate"
+                >
                   <el-radio-button :label="1">1次</el-radio-button>
                   <el-radio-button :label="2">2次</el-radio-button>
                   <el-radio-button :label="3">3次</el-radio-button>
@@ -79,13 +81,17 @@
               </div>
             </el-form-item>
 
-            <el-form-item label="缓动函数 (Easing)">
-              <el-select v-model="currentAnimation.timingFunction" class="modern-select">
-                <el-option label="平滑 (Ease)" value="ease" />
-                <el-option label="匀速 (Linear)" value="linear" />
-                <el-option label="渐入 (Ease-In)" value="ease-in" />
-                <el-option label="渐出 (Ease-Out)" value="ease-out" />
-                <el-option label="弹跳 (Bounce)" value="cubic-bezier(0.68, -0.55, 0.27, 1.55)" />
+            <el-form-item label="缓动函数">
+              <el-select
+                v-model="currentAnimation.timingFunction"
+                class="modern-select"
+                @change="handleUpdate"
+              >
+                <el-option label="平滑" value="ease" />
+                <el-option label="匀速" value="linear" />
+                <el-option label="渐入" value="ease-in" />
+                <el-option label="渐出" value="ease-out" />
+                <el-option label="弹跳" value="cubic-bezier(0.68, -0.55, 0.27, 1.55)" />
               </el-select>
             </el-form-item>
           </el-form>
@@ -96,28 +102,27 @@
 </template>
 
 <script setup lang="ts">
-import { animations, useAnimationPreview, useAnimationSelection } from './animation'
+import { animations, useAnimationPreview, useAnimationSelection } from '../composables/useAnimation'
+import { useComponent } from '@/stores/component'
 
-// Animation preview
-const { replayKey, triggerPreview, cancelPreview, previewClass } = useAnimationPreview()
-
-// Animation selection
+const componentStore = useComponent()
+const { triggerPreview, cancelPreview, previewClass, replayKey } = useAnimationPreview()
 const { currentAnimation, selectAnimation } = useAnimationSelection()
+
+function handleUpdate() {
+  componentStore.syncToProjectStore()
+}
 </script>
 
 <style scoped>
-/* 根容器布局 */
-.animation-panel {
+.animation-pane {
   height: 100%;
-  width: 100%;
-  background: transparent;
   display: flex;
   flex-direction: column;
 }
 
 .panel-scrollbar {
   flex: 1;
-  height: 100%;
 }
 
 .panel-content {
@@ -127,9 +132,8 @@ const { currentAnimation, selectAnimation } = useAnimationSelection()
   gap: 20px;
 }
 
-/* 预览舞台 */
 .preview-stage {
-  background: var(--bg-hover);
+  background: var(--el-fill-color-light);
   border-radius: 12px;
   padding: 20px;
   display: flex;
@@ -137,9 +141,7 @@ const { currentAnimation, selectAnimation } = useAnimationSelection()
   align-items: center;
   justify-content: center;
   min-height: 120px;
-  position: relative;
-  overflow: hidden;
-  border: 1px solid var(--border-light);
+  border: 1px solid var(--el-border-color-light);
 }
 
 .stage-content {
@@ -151,31 +153,28 @@ const { currentAnimation, selectAnimation } = useAnimationSelection()
 
 .preview-target {
   padding: 10px 24px;
-  background: linear-gradient(135deg, #4285f4, #34a853);
+  background: linear-gradient(135deg, #409eff, #67c23a);
   color: white;
   border-radius: 8px;
   font-weight: 600;
   font-size: 14px;
-  box-shadow: 0 4px 12px rgba(66, 133, 244, 0.3);
+  box-shadow: 0 4px 12px rgba(64, 158, 255, 0.3);
 }
 
 .stage-hint {
   margin-top: 16px;
   font-size: 11px;
-  color: var(--text-tertiary);
+  color: var(--el-text-color-placeholder);
 }
 
-/* 标题样式 */
 .section-title {
   font-size: 12px;
   font-weight: 600;
-  color: var(--text-secondary);
+  color: var(--el-text-color-secondary);
   text-transform: uppercase;
   letter-spacing: 0.5px;
-  padding-left: 4px;
 }
 
-/* 动画列表网格 */
 .animation-grid {
   display: grid;
   grid-template-columns: 1fr 1fr;
@@ -184,45 +183,45 @@ const { currentAnimation, selectAnimation } = useAnimationSelection()
 
 .anim-card {
   position: relative;
-  background: #fff;
-  border: 1px solid var(--border-light);
+  background: white;
+  border: 1px solid var(--el-border-color-light);
   border-radius: 8px;
   padding: 10px;
   display: flex;
   align-items: center;
   gap: 10px;
   cursor: pointer;
-  transition: all 0.2s cubic-bezier(0.25, 0.8, 0.25, 1);
+  transition: all 0.2s;
 }
 
 .anim-card:hover {
-  border-color: #4285f4;
-  background-color: #f0f9ff;
+  border-color: var(--el-color-primary);
+  background-color: var(--el-color-primary-light-9);
   transform: translateY(-2px);
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.05);
 }
 
 .anim-card.active {
-  border-color: #4285f4;
-  background-color: #e8f0fe;
+  border-color: var(--el-color-primary);
+  background-color: var(--el-color-primary-light-8);
 }
 
 .anim-icon {
   width: 32px;
   height: 32px;
-  background-color: var(--bg-hover);
+  background-color: var(--el-fill-color-light);
   border-radius: 6px;
   display: flex;
   align-items: center;
   justify-content: center;
   font-weight: 700;
-  color: var(--text-secondary);
+  color: var(--el-text-color-secondary);
   font-size: 14px;
 }
 
 .anim-card.active .anim-icon {
-  background-color: #fff;
-  color: #4285f4;
+  background-color: white;
+  color: var(--el-color-primary);
 }
 
 .anim-info {
@@ -233,13 +232,13 @@ const { currentAnimation, selectAnimation } = useAnimationSelection()
 .anim-label {
   font-size: 13px;
   font-weight: 500;
-  color: var(--text-primary);
+  color: var(--el-text-color-primary);
   margin-bottom: 2px;
 }
 
 .anim-desc {
   font-size: 10px;
-  color: var(--text-tertiary);
+  color: var(--el-text-color-placeholder);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -252,49 +251,41 @@ const { currentAnimation, selectAnimation } = useAnimationSelection()
   width: 6px;
   height: 6px;
   border-radius: 50%;
-  background-color: #4285f4;
+  background-color: var(--el-color-primary);
 }
 
-/* 配置卡片 */
 .config-card {
-  background: var(--bg-hover);
+  background: var(--el-fill-color-light);
   border-radius: 12px;
   padding: 16px;
-  border: 1px solid transparent;
+  border: 1px solid var(--el-border-color-light);
 }
 
 .card-header {
   font-size: 13px;
   font-weight: 600;
-  color: var(--text-primary);
+  color: var(--el-text-color-primary);
   margin-bottom: 16px;
-  border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+  border-bottom: 1px solid var(--el-border-color-lighter);
   padding-bottom: 8px;
 }
 
-/* 现代表单样式 (复用 Properties 面板风格) */
-.modern-form .el-form-item {
+.modern-form :deep(.el-form-item) {
   margin-bottom: 16px;
 }
 
 .modern-form :deep(.el-form-item__label) {
   font-size: 12px;
-  color: var(--text-secondary);
+  color: var(--el-text-color-secondary);
   padding-bottom: 6px;
-  line-height: 1.2;
 }
 
 .modern-input :deep(.el-input__wrapper),
 .modern-select :deep(.el-input__wrapper) {
-  background-color: #fff;
+  background-color: white;
   box-shadow: none !important;
   border-radius: 8px;
   padding: 4px 11px;
-}
-
-.modern-input :deep(.el-input__wrapper.is-focus),
-.modern-select :deep(.el-input__wrapper.is-focus) {
-  box-shadow: 0 0 0 1px #1967d2 !important;
 }
 
 .form-row {
@@ -306,26 +297,22 @@ const { currentAnimation, selectAnimation } = useAnimationSelection()
 .radio-group-wrapper {
   width: 100%;
 }
+
 .radio-group-wrapper :deep(.el-radio-group) {
   width: 100%;
   display: flex;
 }
+
 .radio-group-wrapper :deep(.el-radio-button) {
   flex: 1;
 }
+
 .radio-group-wrapper :deep(.el-radio-button__inner) {
   width: 100%;
   padding: 8px 0;
   border-radius: 0;
 }
-.radio-group-wrapper :deep(.el-radio-button:first-child .el-radio-button__inner) {
-  border-radius: 8px 0 0 8px;
-}
-.radio-group-wrapper :deep(.el-radio-button:last-child .el-radio-button__inner) {
-  border-radius: 0 8px 8px 0;
-}
 
-/* 动画定义 (保留原有逻辑) */
 @keyframes fadeIn {
   from {
     opacity: 0;

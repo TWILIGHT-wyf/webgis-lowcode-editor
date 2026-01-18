@@ -1,4 +1,4 @@
-﻿<template>
+<template>
   <div
     class="canvas-wrap"
     ref="wrap"
@@ -14,10 +14,10 @@
         <!-- V1.5: 使用递归渲染器渲染树形结构 -->
         <RecursiveRenderer v-if="currentTree" :node="currentTree" />
 
-        <!-- 吸附辅助线 (纯 UI 组件) -->
-        <SnapLine v-if="isDragging" :lines="snapLines" />
+        <!-- 吸附辅助线 (纯 UI 组件) - TODO: 重构snap系统后恢复 -->
+        <!-- <SnapLine v-if="isDragging" :lines="snapLines" /> -->
 
-        <!-- 右键菜单 -->
+        <!-- 右键菜单 - TODO: 重构context menu后恢复 -->
         <ContextMenu
           :x="menuState.x"
           :y="menuState.y"
@@ -33,13 +33,12 @@
 <script setup lang="ts">
 import { ref, computed, provide, onMounted, onBeforeUnmount, watch } from 'vue'
 import { RecursiveRenderer } from '@vela/renderer'
-import { useSizeStore } from '@/stores/size'
+import { useUIStore } from '@/stores/ui'
 import { storeToRefs } from 'pinia'
-import { useComponentStore } from '@/stores/componentTree'
 import { useComponent } from '@/stores/component'
 import { useCanvasInteraction } from './composables/useCanvasInteraction'
-import { useSnap } from './composables/useSnap'
-import SnapLine from './Snap/SnapLine.vue'
+// import { useSnap } from './composables/useSnap'
+// import SnapLine from './Snap/SnapLine.vue'
 import ContextMenu from './ContextMenu/contextMenu.vue'
 
 const wrap = ref<HTMLDivElement | null>(null)
@@ -47,44 +46,38 @@ const wrap = ref<HTMLDivElement | null>(null)
 // 向子组件提供画布容器，用于将屏幕坐标映射为 stage 坐标
 provide('canvasWrapRef', wrap)
 
-const sizeStore = useSizeStore()
-const { width, height, scale, canvasConfig } = storeToRefs(sizeStore)
+const uiStore = useUIStore()
+const {
+  canvasWidth: width,
+  canvasHeight: height,
+  canvasScale: scale,
+  canvasSettings: canvasConfig,
+} = storeToRefs(uiStore)
 
-// V1.5: 使用新的树形 Store
-const compStore = useComponentStore()
-const { currentTree, selectedId } = storeToRefs(compStore)
-const { addComponent, setSelected, clearSelection, setDragging } = compStore
+// 使用新的组件 Store
+const compStore = useComponent()
+const { rootNode: currentTree, selectedId, selectedIds } = storeToRefs(compStore)
+const { addComponent, selectComponent, clearSelection } = compStore
 
-// V1旧 Store 用于获取 isDragging 和 snap 数据
-const oldCompStore = useComponent()
-const { isDragging, selectComponent } = storeToRefs(oldCompStore)
+// 拖拽状态
+const isDragging = ref(false)
 
 // ========== Snap Logic ==========
-const { snapToNeighbors } = useSnap()
+// TODO: 重构snap系统后恢复
+// const { snapToNeighbors } = useSnap()
 const snapLines = ref<{ x?: number; y?: number }[]>([])
 
 // 监听拖拽状态和选中组件，更新吸附线
-watch(
-  () => {
-    const c = selectComponent.value
-    return isDragging.value && c
-      ? [c.position.x, c.position.y, c.size.width, c.size.height, c.rotation, isDragging.value]
-      : null
-  },
-  () => {
-    if (!selectComponent.value || !isDragging.value) {
-      snapLines.value = []
-      return
-    }
-    const snap = snapToNeighbors(10)
-    if (snap) {
-      snapLines.value = snap.lines
-    } else {
-      snapLines.value = []
-    }
-  },
-  { immediate: true },
-)
+// TODO: 重构snap系统后恢复
+// watch(
+//   () => isDragging.value,
+//   () => {
+//     if (!isDragging.value) {
+//       snapLines.value = []
+//     }
+//   },
+//   { immediate: true },
+// )
 
 // ========== Interaction ==========
 const { panX, panY, isPanning } = useCanvasInteraction(wrap, scale, {
@@ -106,7 +99,7 @@ const handleCanvasClick = (e: MouseEvent) => {
   if (nodeEl) {
     const id = nodeEl.getAttribute('data-id')
     if (id) {
-      setSelected(id)
+      selectComponent(id)
       return
     }
   }
@@ -118,7 +111,7 @@ const handleDrop = (e: DragEvent) => {
   e.preventDefault()
 
   try {
-    const dataStr = e.dataTransfer?.getData('application/x-component') || '{}'
+    const dataStr = e.dataTransfer?.getData('application/x-vela') || '{}'
     const data = JSON.parse(dataStr)
 
     if (!data.componentName) {
@@ -135,7 +128,8 @@ const handleDrop = (e: DragEvent) => {
     const stageX = (e.clientX - rect.left - panX.value) / scaleValue
     const stageY = (e.clientY - rect.top - panY.value) / scaleValue
 
-    const newId = addComponent({
+    const newId = addComponent(null, {
+      id: `comp_${Date.now()}`,
       componentName: data.componentName,
       props: data.props || {},
       style: {
@@ -150,13 +144,13 @@ const handleDrop = (e: DragEvent) => {
     })
 
     if (newId) {
-      setSelected(newId)
+      selectComponent(newId)
     }
   } catch (err) {
     console.error('[CanvasBoard] Drop error:', err)
   }
 
-  setDragging(false)
+  isDragging.value = false
 }
 
 // ========== Context Menu Logic ==========
@@ -213,101 +207,103 @@ function hideContextMenu() {
 }
 
 function onMenuAction(action: string) {
-  const {
-    removeComponent,
-    removeMultipleComponents,
-    copy,
-    copyMultiple,
-    cut,
-    cutMultiple,
-    paste,
-    bringForward,
-    sendBackward,
-    bringToFront,
-    sendToBack,
-    groupComponents,
-    ungroupComponents,
-  } = oldCompStore
-  const { selectedIds } = storeToRefs(oldCompStore)
+  // TODO: 重构context menu后恢复
+  // const {
+  //   removeComponent,
+  //   removeMultipleComponents,
+  //   copy,
+  //   copyMultiple,
+  //   cut,
+  //   cutMultiple,
+  //   paste,
+  //   bringForward,
+  //   sendBackward,
+  //   bringToFront,
+  //   sendToBack,
+  //   groupComponents,
+  //   ungroupComponents,
+  // } = oldCompStore
+  // const { selectedIds } = storeToRefs(oldCompStore)
 
   if (menuState.value.targetId) {
     const targetId = menuState.value.targetId
     const isMultiSelect = selectedIds.value.length > 1
 
-    switch (action) {
-      case 'delete':
-        if (isMultiSelect) {
-          removeMultipleComponents([...selectedIds.value])
-        } else {
-          removeComponent(targetId)
-        }
-        break
-      case 'copy':
-        if (isMultiSelect) {
-          copyMultiple([...selectedIds.value])
-        } else {
-          copy(targetId)
-        }
-        break
-      case 'cut':
-        if (isMultiSelect) {
-          cutMultiple([...selectedIds.value])
-        } else {
-          cut(targetId)
-        }
-        break
-      case 'paste':
-        paste({
-          x: menuState.value.stageX ?? menuState.value.x,
-          y: menuState.value.stageY ?? menuState.value.y,
-        })
-        break
-      case 'bringForward':
-        if (isMultiSelect) {
-          selectedIds.value.forEach((id: string) => bringForward(id))
-        } else {
-          bringForward(targetId)
-        }
-        break
-      case 'sendBackward':
-        if (isMultiSelect) {
-          selectedIds.value.forEach((id: string) => sendBackward(id))
-        } else {
-          sendBackward(targetId)
-        }
-        break
-      case 'bringToFront':
-        if (isMultiSelect) {
-          selectedIds.value.forEach((id: string) => bringToFront(id))
-        } else {
-          bringToFront(targetId)
-        }
-        break
-      case 'sendToBack':
-        if (isMultiSelect) {
-          selectedIds.value.forEach((id: string) => sendToBack(id))
-        } else {
-          sendToBack(targetId)
-        }
-        break
-      case 'group':
-        if (isMultiSelect) {
-          groupComponents([...selectedIds.value])
-        }
-        break
-      case 'ungroup':
-        const comp = oldCompStore.componentStore.find((c: any) => c.id === targetId)
-        if (comp && comp.type === 'Group') {
-          ungroupComponents(targetId)
-        }
-        break
-    }
+    // TODO: 重构context menu后恢复
+    // switch (action) {
+    //   case 'delete':
+    //     if (isMultiSelect) {
+    //       removeMultipleComponents([...selectedIds.value])
+    //     } else {
+    //       removeComponent(targetId)
+    //     }
+    //     break
+    //   case 'copy':
+    //     if (isMultiSelect) {
+    //       copyMultiple([...selectedIds.value])
+    //     } else {
+    //       copy(targetId)
+    //     }
+    //     break
+    //   case 'cut':
+    //     if (isMultiSelect) {
+    //       cutMultiple([...selectedIds.value])
+    //     } else {
+    //       cut(targetId)
+    //     }
+    //     break
+    //   case 'paste':
+    //     paste({
+    //       x: menuState.value.stageX ?? menuState.value.x,
+    //       y: menuState.value.stageY ?? menuState.value.y,
+    //     })
+    //     break
+    //   case 'bringForward':
+    //     if (isMultiSelect) {
+    //       selectedIds.value.forEach((id: string) => bringForward(id))
+    //     } else {
+    //       bringForward(targetId)
+    //     }
+    //     break
+    //   case 'sendBackward':
+    //     if (isMultiSelect) {
+    //       selectedIds.value.forEach((id: string) => sendBackward(id))
+    //     } else {
+    //       sendBackward(targetId)
+    //     }
+    //     break
+    //   case 'bringToFront':
+    //     if (isMultiSelect) {
+    //       selectedIds.value.forEach((id: string) => bringToFront(id))
+    //     } else {
+    //       bringToFront(targetId)
+    //     }
+    //     break
+    //   case 'sendToBack':
+    //     if (isMultiSelect) {
+    //       selectedIds.value.forEach((id: string) => sendToBack(id))
+    //     } else {
+    //       sendToBack(targetId)
+    //     }
+    //     break
+    //   case 'group':
+    //     if (isMultiSelect) {
+    //       groupComponents([...selectedIds.value])
+    //     }
+    //     break
+    //   case 'ungroup':
+    //     const comp = oldCompStore.componentStore.find((c: any) => c.id === targetId)
+    //     if (comp && comp.type === 'Group') {
+    //       ungroupComponents(targetId)
+    //     }
+    //     break
+    // }
   } else {
     if (action === 'paste') {
-      paste({
-        x: menuState.value.stageX ?? menuState.value.x,
-        y: menuState.value.stageY ?? menuState.value.y,
-      })
+      // paste({
+      //   x: menuState.value.stageX ?? menuState.value.x,
+      //   y: menuState.value.stageY ?? menuState.value.y,
+      // })
     }
   }
   hideContextMenu()

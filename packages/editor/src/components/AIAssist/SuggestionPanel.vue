@@ -1,4 +1,4 @@
-﻿<template>
+<template>
   <div class="suggestion-panel">
     <div class="panel-header">
       <h3 class="panel-title">AI 建议助手</h3>

@@ -1,4 +1,4 @@
-﻿<template>
+<template>
   <div class="canvas-board-wrapper">
     <!-- Free 模式画布 (绝对定位 + Snap/Shape) -->
     <FreeCanvas v-if="canvasMode === 'free'" />
@@ -12,23 +12,13 @@
 </template>
 
 <script setup lang="ts">
-import { computed } from 'vue'
 import { storeToRefs } from 'pinia'
-import { useProjectStore } from '@/stores/project'
+import { useUIStore } from '@/stores/ui'
 import FreeCanvas from './modes/Free/FreeCanvas.vue'
 import FlowCanvas from './modes/Flow/FlowCanvas.vue'
 
-const projectStore = useProjectStore()
-const { activePage } = storeToRefs(projectStore)
-
-/**
- * 画布模式：从当前页面配置中读取
- * - 'free': 自由画布模式 (默认，绝对定位，支持 Snap/Shape/ContextMenu)
- * - 'flow': 流式画布模式 (文档流，简化选中交互)
- */
-const canvasMode = computed(() => {
-  return (activePage.value?.canvasSettings?.layout as 'free' | 'flow') || 'free'
-})
+const uiStore = useUIStore()
+const { canvasMode } = storeToRefs(uiStore)
 </script>
 
 <style scoped>

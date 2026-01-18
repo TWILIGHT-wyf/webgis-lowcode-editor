@@ -21,11 +21,11 @@
 <script setup lang="ts">
 import { ref, computed, onMounted, onBeforeUnmount, watch } from 'vue'
 import { useRouter } from 'vue-router'
-import RuntimeComponent from '@/views/RuntimeComponent.vue'
-import { useDataBindingEngine } from '@/runtime/useDataBindingEngine'
-import { useEventExecutor } from '@/runtime/useEventExecutor'
+import RuntimeComponent from './RuntimeComponent.vue'
+import { useDataBindingEngine } from './useDataBindingEngine'
+import { useEventExecutor } from './useEventExecutor'
 import type { Component } from '@vela/core/types/components'
-import type { Page } from '@/stores/project'
+import type { Page } from '../types'
 
 /**
  * 运行时渲染器

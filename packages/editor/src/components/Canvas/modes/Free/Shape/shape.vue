@@ -40,7 +40,7 @@
 import { computed, type CSSProperties, ref, inject, type Ref } from 'vue'
 import { useComponent } from '@/stores/component'
 import type { Component } from '@vela/core/types/components'
-import { useSizeStore } from '@/stores/size'
+import { useUIStore } from '@/stores/ui'
 import { storeToRefs } from 'pinia'
 import { useCanvasInteraction } from '../composables/useCanvasInteraction'
 import { useSnap } from '../composables/useSnap'
@@ -70,8 +70,8 @@ const {
   updateComponentPosition,
 } = compStore
 
-const sizeStore = useSizeStore()
-const { scale } = storeToRefs(sizeStore)
+const uiStore = useUIStore()
+const { canvasScale: scale } = storeToRefs(uiStore)
 
 const wrapperRef = ref<HTMLDivElement | null>(null)
 const canvasWrapRef = inject<Ref<HTMLDivElement | null>>('canvasWrapRef')

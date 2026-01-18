@@ -1,11 +1,11 @@
-﻿<template>
+<template>
   <FunnelChartBase v-bind="chartProps" />
 </template>
 
 <script setup lang="ts">
 import { computed } from 'vue'
+import { storeToRefs } from 'pinia'
 import { useComponent } from '@vela/editor/stores/component'
-import type { Component } from '@vela/core/types/components'
 
 // 从视觉组件库导入基础组件和工具函数
 import {
@@ -21,7 +21,11 @@ const props = defineProps<{ id: string }>()
 
 // 获取组件配置
 const componentStore = useComponent()
-const comp = computed(() => componentStore.componentStore.find((c: Component) => c.id === props.id))
+const { rootNode } = storeToRefs(componentStore)
+const comp = computed(() => {
+  if (!rootNode.value) return null
+  return componentStore.findNodeById(rootNode.value, props.id)
+})
 
 // 获取数据源
 const { data: remoteData } = useDataSource(computed(() => comp.value?.dataSource))

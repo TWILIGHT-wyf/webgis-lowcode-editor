@@ -29,6 +29,13 @@
           </el-button>
         </el-tooltip>
       </div>
+
+      <el-divider direction="vertical" class="header-divider" />
+
+      <!-- 画布模式切换 -->
+      <div class="canvas-mode-toggle">
+        <el-segmented v-model="canvasMode" :options="canvasModeOptions" size="small" />
+      </div>
     </div>
 
     <div class="right-section">
@@ -103,21 +110,20 @@
     </div>
 
     <!-- 导出配置对话框 -->
-    <ExportConfigDialog
-      v-model="exportDialogVisible"
-      :project="projectStore.currentProject || null"
-    />
+    <ExportConfigDialog v-model="exportDialogVisible" :project="projectStore.project || null" />
   </header>
 </template>
 
 <script setup lang="ts">
 import { computed, ref, watch, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
+import { storeToRefs } from 'pinia'
 import { useComponent } from '@/stores/component'
 import { useProjectStore } from '@/stores/project'
+import { useHistoryStore } from '@/stores/history'
+import { useUIStore } from '@/stores/ui'
 import { useSuggestion } from '@/stores/suggestion'
 import { ElMessage, ElMessageBox } from 'element-plus'
-import * as projectService from '@/services/projects'
 import PageNavigator from './PageNavigator.vue'
 import SaveStatusIndicator from './SaveStatusIndicator.vue'
 import ExportConfigDialog from '@/components/dialogs/ExportConfigDialog.vue'
@@ -138,14 +144,22 @@ import {
 const router = useRouter()
 const compStore = useComponent()
 const projectStore = useProjectStore()
+const historyStore = useHistoryStore()
+const uiStore = useUIStore()
 const suggestionStore = useSuggestion()
 
-const { reset, undo, redo, canUndo, canRedo } = compStore
+const { canUndo, canRedo } = storeToRefs(historyStore)
+const { undo, redo, clear: resetHistory } = historyStore
+const { canvasMode } = storeToRefs(uiStore)
+const { toggleCanvasMode } = uiStore
 
-// 计算属性
-const canUndoValue = computed(() => canUndo())
-const canRedoValue = computed(() => canRedo())
 const pendingCount = computed(() => suggestionStore.pendingSuggestions.length)
+
+// Canvas mode options
+const canvasModeOptions = [
+  { label: '自由布局', value: 'free' },
+  { label: '流式布局', value: 'flow' },
+]
 
 // 状态
 const saving = ref(false)
@@ -154,31 +168,16 @@ const isDark = ref(false)
 
 // 返回首页
 function goHome() {
-  if (projectStore.currentProjectId) {
-    projectStore.saveCurrentPageSnapshot()
-  }
   router.push('/')
 }
 
 // 保存项目
 async function saveProject() {
-  if (!projectStore.currentProjectId) {
-    ElMessage.warning('请先创建或加载项目')
-    return
-  }
-
   saving.value = true
   try {
-    projectStore.saveCurrentPageSnapshot()
-    await projectService.updateProject(projectStore.currentProjectId, {
-      name: projectStore.currentProject!.name,
-      description: projectStore.currentProject!.description,
-      pages: projectStore.currentProject!.pages,
-    })
-    ElMessage.success('项目已保存到服务器')
+    await projectStore.saveProject()
   } catch (error) {
     console.error('保存失败:', error)
-    ElMessage.error('保存失败，请检查服务器连接')
   } finally {
     saving.value = false
   }
@@ -186,28 +185,26 @@ async function saveProject() {
 
 // 打开导出对话框
 function openExportDialog() {
-  if (!projectStore.currentProject) {
+  if (!projectStore.project) {
     ElMessage.warning('请先创建或加载项目')
     return
   }
-  projectStore.saveCurrentPageSnapshot()
   exportDialogVisible.value = true
 }
 
 // 导出 JSON
 function exportJSON() {
-  if (!projectStore.currentProject) {
+  if (!projectStore.project) {
     ElMessage.warning('没有可导出的项目')
     return
   }
 
-  projectStore.saveCurrentPageSnapshot()
-  const json = JSON.stringify(projectStore.currentProject, null, 2)
+  const json = JSON.stringify(projectStore.project, null, 2)
   const blob = new Blob([json], { type: 'application/json' })
   const url = URL.createObjectURL(blob)
   const a = document.createElement('a')
   a.href = url
-  a.download = `${projectStore.currentProject.name || 'project'}_${Date.now()}.json`
+  a.download = `${projectStore.project.name || 'project'}_${Date.now()}.json`
   a.click()
   URL.revokeObjectURL(url)
   ElMessage.success('项目已导出为 JSON 文件')
@@ -221,7 +218,15 @@ async function handleReset() {
       confirmButtonText: '清空',
       cancelButtonText: '取消',
     })
-    reset()
+
+    // 清空当前页面的组件
+    const currentPage = projectStore.currentPage
+    if (currentPage && currentPage.children) {
+      currentPage.children.children = []
+      compStore.loadTree(currentPage.children)
+      resetHistory()
+    }
+
     ElMessage.success('画布已清空')
   } catch {
     // 用户取消
@@ -230,20 +235,7 @@ async function handleReset() {
 
 // 预览
 function openPreview(mode: 'page' | 'project' = 'page') {
-  if (!projectStore.currentProjectId) {
-    ElMessage.warning('请先创建项目')
-    return
-  }
-
-  projectStore.saveCurrentPageSnapshot()
-
-  if (mode === 'project') {
-    router.push(`/runtime?projectId=${projectStore.currentProjectId}&mode=project`)
-  } else {
-    router.push(
-      `/runtime?projectId=${projectStore.currentProjectId}&pageId=${projectStore.activePageId}`,
-    )
-  }
+  router.push('/preview')
 }
 
 function handlePreviewCommand(command: string) {

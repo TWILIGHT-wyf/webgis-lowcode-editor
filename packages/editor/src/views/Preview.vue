@@ -1,4 +1,4 @@
-﻿<template>
+<template>
   <div class="preview-page">
     <header class="preview-header">
       <el-button type="text" size="small" @click="handleBack" class="back-btn">
@@ -7,7 +7,7 @@
 
       <div class="preview-info">
         <span class="preview-label">预览模式</span>
-        <span class="page-name">{{ activePage?.name }}</span>
+        <span class="page-name">{{ currentPage?.name }}</span>
       </div>
 
       <div class="preview-actions">
@@ -20,7 +20,7 @@
 
     <main class="preview-content">
       <div class="preview-viewport">
-        <RecursiveRenderer v-if="currentTree" :node="currentTree" />
+        <RecursiveRenderer v-if="rootNode" :node="rootNode" />
 
         <div v-else class="empty-state">
           <div class="empty-icon">📄</div>
@@ -34,13 +34,17 @@
 <script setup lang="ts">
 import { useRouter } from 'vue-router'
 import { RecursiveRenderer } from '@vela/renderer'
-import { useComponentStoreV2 } from '@/stores/componentV2'
+import { useComponent } from '@/stores/component'
+import { useProjectStore } from '@/stores/project'
 import { storeToRefs } from 'pinia'
 import { ElButton } from 'element-plus'
 
 const router = useRouter()
-const compStore = useComponentStoreV2()
-const { currentTree, activePage } = storeToRefs(compStore)
+const compStore = useComponent()
+const projectStore = useProjectStore()
+
+const { rootNode } = storeToRefs(compStore)
+const { currentPage } = storeToRefs(projectStore)
 
 const handleBack = () => {
   router.push('/editor-v2')

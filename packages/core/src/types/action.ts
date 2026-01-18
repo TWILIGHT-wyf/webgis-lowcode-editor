@@ -1,6 +1,7 @@
-﻿import { JSExpression } from './expression'
+import { JSExpression } from './expression'
 
 export interface BaseAction {
+  id: string
   type: string
   condition?: boolean | JSExpression
   delay?: number
@@ -23,4 +24,20 @@ export interface UpdateStateAction extends BaseAction {
   value: any
 }
 
-export type ActionSchema = OpenUrlAction | NavigateAction | UpdateStateAction | BaseAction
+export interface AlertAction extends BaseAction {
+  type: 'alert'
+  message: string
+}
+
+export interface CustomScriptAction extends BaseAction {
+  type: 'customScript'
+  content: string
+}
+
+export type ActionSchema =
+  | OpenUrlAction
+  | NavigateAction
+  | UpdateStateAction
+  | AlertAction
+  | CustomScriptAction
+  | BaseAction

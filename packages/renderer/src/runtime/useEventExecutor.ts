@@ -2,7 +2,7 @@
 import { type Router } from 'vue-router'
 import { ElMessage } from 'element-plus'
 import type { Component, EventAction } from '@vela/core/types/components'
-import type { Page } from '@/stores/project'
+import type { Page } from '../types'
 
 // 类型定义
 

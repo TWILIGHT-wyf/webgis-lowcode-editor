@@ -5,8 +5,8 @@
 import { generateVueCode } from './toCode'
 import type { Project, Page } from '@vela/editor/stores/project'
 import type { Component } from './components'
-import useEventExecutorSource from '@/runtime/useEventExecutor.ts?raw'
-import useDataBindingEngineSource from '@/runtime/useDataBindingEngine.ts?raw'
+import useEventExecutorSource from '../../renderer/src/runtime/useEventExecutor.ts?raw'
+import useDataBindingEngineSource from '../../renderer/src/runtime/useDataBindingEngine.ts?raw'
 
 export interface ExportOptions {
   language: 'ts' | 'js' // 输出语言

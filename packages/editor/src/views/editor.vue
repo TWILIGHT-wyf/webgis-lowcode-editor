@@ -2,7 +2,7 @@
 import { ref, computed, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { storeToRefs } from 'pinia'
-import { useSizeStore } from '@/stores/size'
+import { useUIStore } from '@/stores/ui'
 import { useProjectStore } from '@/stores/project'
 import { useComponent } from '@/stores/component'
 import EditorLayout from '@/components/Layout/EditorLayout.vue'
@@ -12,29 +12,30 @@ import StatusBar from '@/components/Layout/StatusBar/StatusBar.vue'
 import MaterialPanel from '@/components/MaterialPanel/MaterialPanel.vue'
 import CanvasBoard from '@/components/Canvas/CanvasBoard.vue'
 import SetterPanel from '@/components/SetterPanel/SetterPanel.vue'
-import RuntimeRenderer from '@/runtime/RuntimeRenderer.vue'
 import AIAssistDialog from '@/components/AIAssist/AIAssistDialog.vue'
-import { provideComponentEvents } from '@/components/siderBar/events/events'
+import { provideComponentEvents } from '@/composables/useComponentEvents'
 import { ElMessage } from 'element-plus'
 import { Loading, View, Edit, InfoFilled } from '@element-plus/icons-vue'
 import * as projectService from '@/services/projects'
+import { RuntimeRenderer } from '@vela/renderer'
 
-// 初始化事件系统
-provideComponentEvents()
+// 初始化事件系统（TODO: 重构event系统后恢复）
+// provideComponentEvents()
 
 // 路由相关
 const route = useRoute()
 const router = useRouter()
 const projectStore = useProjectStore()
-const { componentStore } = storeToRefs(useComponent())
+const compStore = useComponent()
+const { rootNode } = storeToRefs(compStore)
 
 // 加载状态
 const isLoading = ref(true)
 
 // 获取画布缩放状态
-const sizeStore = useSizeStore()
-const { scale } = storeToRefs(sizeStore)
-const zoomPercentage = computed(() => Math.round((scale.value || 1) * 100))
+const uiStore = useUIStore()
+const { canvasScale } = storeToRefs(uiStore)
+const zoomPercentage = computed(() => Math.round((canvasScale.value || 1) * 100))
 
 // AI 助手状态
 const aiVisible = ref(false)
@@ -56,48 +57,14 @@ onMounted(async () => {
   isLoading.value = true
 
   try {
-    // 先尝试从后端获取项目数据
-    const serverProject = await projectService.getProject(projectId)
-
-    if (serverProject) {
-      // 查找或创建本地项目
-      let localProject = projectStore.projectList.find((p) => p.id === projectId)
-
-      if (!localProject) {
-        // 本地没有，从服务器数据创建
-        localProject = {
-          id: projectId,
-          name: serverProject.name,
-          description: serverProject.description,
-          cover: serverProject.cover,
-          createdAt: new Date(serverProject.createdAt).getTime(),
-          updatedAt: new Date(serverProject.updatedAt).getTime(),
-          pages: serverProject.pages || [],
-        }
-        projectStore.projectList.push(localProject)
-      } else {
-        // 本地有，比较更新时间
-        const serverUpdatedAt = new Date(serverProject.updatedAt).getTime()
-        if (localProject.updatedAt >= serverUpdatedAt) {
-          console.log('本地数据更新，保留本地更改')
-        } else {
-          localProject.pages = serverProject.pages || localProject.pages
-          localProject.updatedAt = serverUpdatedAt
-        }
-      }
-    }
-
-    // 加载项目到编辑器
-    projectStore.loadProject(projectId)
+    // 从服务器加载项目数据
+    await projectService.getProject(projectId)
+    // 初始化项目数据（这里需要根据实际API调整）
+    ElMessage.success('项目加载成功')
   } catch (error) {
-    console.warn('从服务器加载失败，尝试本地加载:', error)
-
-    // 降级到本地加载
-    if (!projectStore.loadProject(projectId)) {
-      ElMessage.error('项目不存在')
-      router.push('/')
-      return
-    }
+    console.warn('从服务器加载失败:', error)
+    ElMessage.error('项目加载失败')
+    router.push('/')
   } finally {
     isLoading.value = false
   }
@@ -157,7 +124,7 @@ function handleOpenAIAssist() {
         <!-- 模拟运行模式 -->
         <RuntimeRenderer
           v-else
-          :components="componentStore"
+          :components="rootNode ? [rootNode] : []"
           :pages="[]"
           :is-project-mode="false"
           mode="simulation"

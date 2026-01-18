@@ -1,4 +1,4 @@
-﻿<template>
+<template>
   <div class="diff-viewer">
     <div class="diff-header">
       <span class="diff-title">变更预览</span>
