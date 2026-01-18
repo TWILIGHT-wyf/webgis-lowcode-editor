@@ -1,4 +1,5 @@
 import { inject, computed } from 'vue'
+import { storeToRefs } from 'pinia'
 import { useComponent } from '@/stores/component'
 import type { ActionSchema } from '@vela/core/types/action'
 import type { NodeSchema } from '@vela/core/types/schema'
@@ -10,7 +11,7 @@ const ComponentEventsKey = Symbol('ComponentEvents') as unknown as import('vue')
 
 export function provideComponentEvents() {
   const componentStore = useComponent()
-  const { rootNode } = componentStore
+  const { rootNode } = storeToRefs(componentStore)
 
   async function executeAction(action: ActionSchema, sourceComponent?: NodeSchema): Promise<void> {
     console.log('[ComponentEvents] Executing action:', action.type)
@@ -37,13 +38,15 @@ export function provideComponentEvents() {
         }
         break
       case 'updateState':
-        console.log('Update state:', action.stateName, action.value)
+        if ('stateName' in action && 'value' in action) {
+          console.log('Update state:', action.stateName, action.value)
+        }
         break
       case 'customScript':
         if ('content' in action) {
           try {
             const fn = new Function('component', 'rootNode', action.content)
-            fn(sourceComponent, rootNode.value)
+            fn(sourceComponent, rootNode?.value ?? null)
           } catch (error) {
             console.error('Error executing custom script:', error)
           }
@@ -77,7 +80,7 @@ export function useComponentEvents() {
 export function useComponentEventHandlers(componentId: string) {
   const eventContext = useComponentEvents()
   const componentStore = useComponent()
-  const { rootNode } = componentStore
+  const { rootNode } = storeToRefs(componentStore)
 
   const component = computed(() => {
     function findNodeById(node: NodeSchema | null, id: string): NodeSchema | null {

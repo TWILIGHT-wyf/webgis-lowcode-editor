@@ -1,7 +1,7 @@
 <template>
   <el-input-number
-    :model-value="modelValue"
-    @update:model-value="$emit('update:modelValue', $event)"
+    :model-value="modelValue ?? 0"
+    @update:model-value="$emit('update:modelValue', $event ?? 0)"
     v-bind="$attrs"
     controls-position="right"
     style="width: 100%"

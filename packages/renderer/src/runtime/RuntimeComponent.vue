@@ -1,7 +1,7 @@
 <template>
   <component
     :is="componentType"
-    :ref="(el: unknown) => (componentRef = el as HTMLElement | { $el: HTMLElement } | null)"
+    :ref="setComponentRef"
     :id="component.id"
     :data-component-id="component.id"
     :class="computedClasses"
@@ -46,6 +46,11 @@ const emit = defineEmits<{
 
 const componentRef = ref<HTMLElement | { $el: HTMLElement } | null>(null)
 const animationPlaying = ref(false)
+
+// Ref callback for template
+function setComponentRef(el: unknown) {
+  componentRef.value = el as HTMLElement | { $el: HTMLElement } | null
+}
 
 // 获取组件类型
 const componentType = computed(() => {

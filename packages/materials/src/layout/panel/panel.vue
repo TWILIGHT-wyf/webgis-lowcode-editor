@@ -1,11 +1,11 @@
-﻿<script setup lang="ts">
+<script setup lang="ts">
 import { computed, ref, watch } from 'vue'
 import type { CSSProperties } from 'vue'
 import { storeToRefs } from 'pinia'
 import { useComponent } from '@vela/editor/stores/component'
 import { vPanel as BasePanel } from '@vela/ui'
 import { componentRegistry } from '@vela/materials/registry'
-import Shape from '@vela/editor/components/Editor/shape/shape.vue'
+import Shape from '@vela/editor/components/Canvas/modes/Free/Shape/Shape.vue'
 
 const props = defineProps<{
   id: string

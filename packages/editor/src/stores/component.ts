@@ -215,6 +215,9 @@ export const useComponent = defineStore('component', () => {
       return
     }
 
+    if (!node.props) {
+      node.props = {}
+    }
     Object.assign(node.props, props)
     syncToProjectStore()
   }
@@ -388,6 +391,64 @@ export const useComponent = defineStore('component', () => {
     }
   }
 
+  // ========== Compatibility Shims ==========
+  // These are provided for backwards compatibility with code using the old flat array API
+
+  /**
+   * @deprecated Use rootNode and traverse() instead
+   * Provides a flat array view of all components for legacy code
+   */
+  const componentStore = computed(() => {
+    if (!rootNode.value) return []
+    return flattenTree(rootNode.value)
+  })
+
+  /**
+   * @deprecated Use selectedNode instead
+   */
+  const selectComponentRef = computed(() => selectedNode.value)
+
+  /**
+   * Check if a specific component is selected
+   */
+  function isSelected(id: string): boolean {
+    return selectedIds.value.includes(id)
+  }
+
+  /**
+   * @deprecated Use selectedNode instead
+   */
+  const selectedComponent = computed(() => selectedNode.value)
+
+  /**
+   * @deprecated Use findNodeById(rootNode, id) instead
+   */
+  function getComponentById(id: string): NodeSchema | null {
+    if (!rootNode.value) return null
+    return findNodeById(rootNode.value, id)
+  }
+
+  /**
+   * Update component position (x, y in style)
+   */
+  function updateComponentPosition(id: string, x: number, y: number) {
+    updateStyle(id, { x, y })
+  }
+
+  /**
+   * Update component size (width, height in style)
+   */
+  function updateComponentSize(id: string, width: number, height: number) {
+    updateStyle(id, { width, height })
+  }
+
+  /**
+   * Update component rotation
+   */
+  function updateComponentRotation(id: string, rotation: number) {
+    updateStyle(id, { rotation })
+  }
+
   // ========== Watchers ==========
 
   /**
@@ -417,6 +478,16 @@ export const useComponent = defineStore('component', () => {
     selectedNode,
     selectedNodes,
     hoveredNode,
+
+    // Compatibility Shims (deprecated)
+    componentStore,
+    selectComponentRef,
+    selectedComponent,
+    isSelected,
+    getComponentById,
+    updateComponentPosition,
+    updateComponentSize,
+    updateComponentRotation,
 
     // Utilities
     findNodeById,

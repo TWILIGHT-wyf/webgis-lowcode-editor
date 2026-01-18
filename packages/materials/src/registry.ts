@@ -1,5 +1,6 @@
-﻿import { defineAsyncComponent, type Component } from 'vue'
+import { defineAsyncComponent, type Component } from 'vue'
 import type { MaterialMeta } from '@vela/core/types'
+import { componentRegistry as uiComponentRegistry } from '@vela/ui'
 
 /**
  * 使用 Vite 的 import.meta.glob 自动导入所有组件实现 (.vue)
@@ -57,6 +58,9 @@ for (const path in vueModules) {
   }
 }
 
+// Debug: 打印所有注册的组件
+console.log('[Registry] Registered components:', Object.keys(componentMap).sort())
+
 /**
  * 组件元数据列表 - materialList
  * 从所有 index.ts 中提取 MaterialMeta
@@ -70,18 +74,52 @@ for (const path in metaModules) {
   }
 }
 
+// Debug: 打印所有物料
+console.log(
+  '[Registry] Loaded materials:',
+  materialList.map((m) => `${m.category}/${m.componentName}`).sort(),
+)
+
 /**
- * 获取组件实现，如果未找到则返回 'div' 作为兜底
+ * 获取组件实现，优先使用 materials 的包装，其次从 @vela/ui 获取
  */
 export function getComponent(name: string): Component | string {
-  return componentMap[name] || 'div'
+  console.log(`[Registry] getComponent called with: ${name}`)
+
+  // 特殊处理：Button 和 Container 直接返回 @vela/ui 的组件，避免循环引用
+  if (name === 'Button') {
+    console.log(`[Registry] Returning vButton from @vela/ui`)
+    return (uiComponentRegistry as any)['vButton'] || 'div'
+  }
+  if (name === 'Container') {
+    console.log(`[Registry] Returning vContainer from @vela/ui`)
+    return (uiComponentRegistry as any)['vContainer'] || 'div'
+  }
+
+  // 1. 优先使用 materials 中的包装组件
+  if (componentMap[name]) {
+    console.log(`[Registry] Found in componentMap: ${name}`)
+    return componentMap[name]
+  }
+
+  // 2. V1.5: 回退到 @vela/ui 的组件 (添加 v 前缀)
+  const uiComponentName = `v${name}`
+  if ((uiComponentRegistry as any)[uiComponentName]) {
+    console.log(`[Registry] Found in UI registry: ${uiComponentName}`)
+    return (uiComponentRegistry as any)[uiComponentName]
+  }
+
+  // 3. 兜底返回 div
+  console.warn(`[Registry] Component ${name} not found, falling back to div`)
+  return 'div'
 }
 
 /**
  * 检查组件是否已注册
  */
 export function hasComponent(name: string): boolean {
-  return name in componentMap
+  const uiComponentName = `v${name}`
+  return name in componentMap || uiComponentName in uiComponentRegistry
 }
 
 /**

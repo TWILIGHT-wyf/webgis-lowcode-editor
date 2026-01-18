@@ -5,10 +5,7 @@
     "paths": {
       "@/*": ["src/*"]
     },
-    "declaration": true,
-    "outDir": "dist",
-    "rootDir": "src",
-    "composite": true
+    "noEmit": true
   },
   "include": ["src/**/*.ts", "src/**/*.d.ts"],
   "exclude": ["node_modules", "dist"]

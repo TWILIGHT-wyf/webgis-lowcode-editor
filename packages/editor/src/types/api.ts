@@ -12,5 +12,29 @@ export type {
   SuggestionStatus,
 } from './suggestion'
 
-// 导出项目相关类型
-export type { Project, ServerProject, ProjectInput, ProjectPage, CanvasSettings } from './page'
+// 导出项目相关类型 (re-export from @vela/core)
+export type { ProjectSchema as Project, PageSchema as ProjectPage } from '@vela/core/types/project'
+
+// Server-side project types for API communication
+export interface ServerProject {
+  _id: string
+  name: string
+  description?: string
+  schema: import('@vela/core/types/project').ProjectSchema
+  createdAt: string
+  updatedAt: string
+}
+
+export interface ProjectInput {
+  name: string
+  description?: string
+  schema: import('@vela/core/types/project').ProjectSchema
+}
+
+export interface CanvasSettings {
+  width: number
+  height: number
+  backgroundColor?: string
+  gridEnabled?: boolean
+  snapEnabled?: boolean
+}

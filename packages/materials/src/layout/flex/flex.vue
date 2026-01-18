@@ -1,4 +1,4 @@
-﻿<template>
+<template>
   <BaseFlex v-bind="flexProps">
     <!-- 子组件渲染 -->
     <template v-if="hasChildren">
@@ -36,7 +36,7 @@ import { useComponent } from '@vela/editor/stores/component'
 import { storeToRefs } from 'pinia'
 import { vFlex as BaseFlex } from '@vela/ui'
 import { componentRegistry } from '@vela/materials/registry'
-import Shape from '@vela/editor/components/Editor/shape/shape.vue'
+import Shape from '@vela/editor/components/Canvas/modes/Free/Shape/Shape.vue'
 
 const props = defineProps<{ id: string }>()
 const { componentStore } = storeToRefs(useComponent())

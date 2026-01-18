@@ -13,6 +13,7 @@
     "lib": ["ESNext", "DOM", "DOM.Iterable"],
     "skipLibCheck": true,
     "forceConsistentCasingInFileNames": true,
+    "noEmit": true,
     "baseUrl": ".",
     "paths": {
       "@vela/core": ["packages/core/src"],
@@ -29,13 +30,5 @@
       "@vela/editor/*": ["packages/editor/src/*"]
     }
   },
-  "references": [
-    { "path": "./packages/core" },
-    { "path": "./packages/ui" },
-    { "path": "./packages/materials" },
-    { "path": "./packages/renderer" },
-    { "path": "./packages/generator" },
-    { "path": "./packages/editor" }
-  ],
   "exclude": ["node_modules", "dist", "**/node_modules", "**/dist"]
 }

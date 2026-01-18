@@ -1,11 +1,35 @@
 import { useComponent } from '@/stores/component'
 import { computed } from 'vue'
-import { storeToRefs } from 'pinia'
 import type { Box, SnapComp } from '@vela/core/types/snap'
+import type { NodeSchema } from '@vela/core'
 
 type SnapResult = {
   position: { x: number; y: number }
   lines: { x?: number; y?: number }[]
+}
+
+/**
+ * Helper to extract position/size from NodeSchema style
+ */
+function getNodePosition(node: NodeSchema): { x: number; y: number } {
+  const style = node.style || {}
+  return {
+    x: (style.x as number) ?? 0,
+    y: (style.y as number) ?? 0,
+  }
+}
+
+function getNodeSize(node: NodeSchema): { width: number; height: number } {
+  const style = node.style || {}
+  return {
+    width: (style.width as number) ?? 100,
+    height: (style.height as number) ?? 100,
+  }
+}
+
+function getNodeRotation(node: NodeSchema): number {
+  const style = node.style || {}
+  return (style.rotation as number) ?? 0
 }
 
 /**
@@ -14,29 +38,39 @@ type SnapResult = {
  */
 export function useSnap() {
   const store = useComponent()
-  const { componentStore, selectComponent } = storeToRefs(store)
 
   function deg2rad(deg: number): number {
     return (deg * Math.PI) / 180
   }
 
   // ========== 响应式数据 ==========
-  const comps = computed(
-    () =>
-      componentStore.value.map((com) => ({
-        id: com.id,
-        position: com.position,
-        size: com.size,
-        rotation: deg2rad(com.rotation ?? 0),
-      })) as SnapComp[],
-  )
+  const comps = computed(() => {
+    const allNodes = store.componentStore
+    return allNodes.map((node: NodeSchema) => ({
+      id: node.id,
+      position: getNodePosition(node),
+      size: getNodeSize(node),
+      rotation: deg2rad(getNodeRotation(node)),
+    })) as SnapComp[]
+  })
 
-  const meComp = computed(() => ({
-    id: selectComponent.value?.id ?? '',
-    position: selectComponent.value?.position ?? { x: 0, y: 0 },
-    size: selectComponent.value?.size ?? { width: 0, height: 0 },
-    rotation: deg2rad(selectComponent.value?.rotation ?? 0),
-  }))
+  const meComp = computed(() => {
+    const selected = store.selectedNode
+    if (!selected) {
+      return {
+        id: '',
+        position: { x: 0, y: 0 },
+        size: { width: 0, height: 0 },
+        rotation: 0,
+      }
+    }
+    return {
+      id: selected.id,
+      position: getNodePosition(selected),
+      size: getNodeSize(selected),
+      rotation: deg2rad(getNodeRotation(selected)),
+    }
+  })
 
   const meBox = computed(() => toBox(meComp.value))
 
@@ -170,8 +204,8 @@ export function useSnap() {
     let yLine: number | undefined
 
     const candidateBoxes = findSnapNeighbors(me, threshold)
-    const currentComp = componentStore.value.find((c) => c.id === meComp.value.id)
-    const childrenIds = currentComp?.children || []
+    const currentComp = store.selectedNode
+    const childrenIds = currentComp?.children?.map((c: NodeSchema) => c.id) || []
 
     candidateBoxes.forEach(({ box, id }) => {
       if (!id || id === meComp.value.id || childrenIds.includes(id)) return

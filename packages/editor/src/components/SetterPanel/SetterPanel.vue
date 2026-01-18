@@ -1,22 +1,18 @@
 <template>
   <div class="setter-panel-root">
-    <!-- 无选中组件时显示空状态 -->
-    <el-empty v-if="!selectedComponent" description="请在画布中选择一个组件" :image-size="100">
-      <template #image>
-        <el-icon :size="80" color="var(--el-color-info)">
-          <Mouse />
-        </el-icon>
-      </template>
-    </el-empty>
+    <!-- 选中 Page 根节点或无选中时，显示页面设置 -->
+    <template v-if="showPageSettings">
+      <PageSettingPane />
+    </template>
 
-    <!-- 有选中组件时显示设置面板 -->
+    <!-- 选中普通组件时显示组件设置面板 -->
     <el-tabs v-else v-model="activeTab" class="setter-tabs" stretch>
       <el-tab-pane label="属性" name="props">
         <PropsPane :node="selectedComponent" />
       </el-tab-pane>
 
       <el-tab-pane label="样式" name="style">
-        <StylePane :node="selectedComponent" />
+        <StylePaneEnhanced :node="selectedComponent" />
       </el-tab-pane>
 
       <el-tab-pane label="事件" name="events">
@@ -37,16 +33,24 @@
 <script setup lang="ts">
 import { ref, computed } from 'vue'
 import { useComponent } from '@/stores/component'
-import { Mouse } from '@element-plus/icons-vue'
 import PropsPane from './panes/PropsPane.vue'
-import StylePane from './panes/StylePane.vue'
+import StylePaneEnhanced from './panes/StylePaneEnhanced.vue'
 import EventPane from './panes/EventPane.vue'
 import AnimationPane from './panes/AnimationPane.vue'
 import RelationsPane from './panes/RelationsPane.vue'
+import PageSettingPane from './panes/PageSettingPane.vue'
 
 const componentStore = useComponent()
 
 const selectedComponent = computed(() => componentStore.selectedNode)
+
+// 判断是否显示页面设置（无选中组件 或 选中的是 Page 根节点）
+const showPageSettings = computed(() => {
+  if (!selectedComponent.value) return true
+  // 如果选中的是 Page 组件（根节点），也显示页面设置
+  return selectedComponent.value.componentName === 'Page'
+})
+
 const activeTab = ref('props')
 </script>
 

@@ -42,25 +42,24 @@ interface Props {
 const props = defineProps<Props>()
 
 const compStore = useComponent()
-const { clipboard, selectedIds } = storeToRefs(compStore)
+const { selectedIds, rootNode } = storeToRefs(compStore)
 
-const canPaste = computed(() => !!(clipboard && clipboard.value && clipboard.value.length))
+// TODO: Implement clipboard support in new store
+const canPaste = computed(() => false)
 
 const selectedCount = computed(() => selectedIds.value.length)
 
-// 是否可以组合（多选且非组合）
+// TODO: Implement group/ungroup support in new store
 const canGroup = computed(() => {
-  if (selectedCount.value < 2) return false
-  // 检查是否所有选中的都不是组合
-  const allComps = selectedIds.value.map((id) => compStore.componentStore.find((c) => c.id === id))
-  return allComps.every((c) => c && c.type !== 'Group')
+  return selectedCount.value >= 2
 })
 
-// 是否可以取消组合（单选且是组合）
 const canUngroup = computed(() => {
-  if (selectedCount.value !== 1 || !props.targetId) return false
-  const comp = compStore.componentStore.find((c) => c.id === props.targetId)
-  return comp?.type === 'Group'
+  if (selectedCount.value !== 1 || !props.targetId || !rootNode.value) return false
+  // Find node in tree
+  const node = compStore.findNodeById(rootNode.value, props.targetId)
+  // Check if it's a container type that could be ungrouped
+  return node?.componentName === 'Container' && node.children && node.children.length > 0
 })
 
 const emit = defineEmits<{

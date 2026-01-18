@@ -20,7 +20,8 @@
     "build": "vite build"
   },
   "peerDependencies": {
-    "vue": "^3.0.0"
+    "vue": "^3.0.0",
+    "element-plus": "^2.0.0"
   },
   "dependencies": {
     "@vela/core": "workspace:*",

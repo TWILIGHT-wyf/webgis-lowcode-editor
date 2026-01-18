@@ -1,4 +1,4 @@
-﻿<template>
+<template>
   <div class="material-panel-content">
     <!-- 搜索框 -->
     <div class="search-wrapper">
@@ -32,7 +32,7 @@
                 >
                   <div class="item-icon">
                     <el-icon :size="20">
-                      <component :is="resolveIcon(item.componentName)" />
+                      <component :is="item.icon || Box" />
                     </el-icon>
                   </div>
                   <span class="item-label">{{ item.label }}</span>
@@ -87,9 +87,17 @@ import {
   DataLine,
   Histogram,
 } from '@element-plus/icons-vue'
-import { getMaterialsByCategory, extractDefaultProps } from '@vela/materials'
 import { generateId } from '@vela/core'
 import type { PropValue } from '@vela/core/types/expression'
+import { getMaterialsByCategory, extractDefaultProps } from '@vela/materials'
+import {
+  getCategoryConfig,
+  getComponentIcon,
+  getMaterialsWithUI,
+  sortCategoriesByOrder,
+  type CategoryConfig,
+  type MaterialItem,
+} from '@vela/materials/materialsMeta'
 
 // --- 类型定义 ---
 type Category = {
@@ -112,57 +120,20 @@ const activeTab = ref('components')
 const activeNames = ref<string[]>([])
 const searchQuery = ref('')
 
-// --- 智能图标映射 ---
-const resolveIcon = (componentName: string): Component => {
-  const name = componentName.toLowerCase()
-
-  if (name.includes('button')) return Pointer
-  if (name.includes('input') || name.includes('form')) return EditPen
-  if (name.includes('table') || name.includes('list')) return Grid
-  if (name.includes('image') || name.includes('video') || name.includes('media')) return Picture
-  if (name.includes('chart')) return PieChart
-  if (name.includes('histogram') || name.includes('bar')) return Histogram
-  if (name.includes('line') || name.includes('trend')) return DataLine
-  if (name.includes('container') || name.includes('row') || name.includes('col')) return Files
-  if (name.includes('layout') || name.includes('grid')) return Monitor
-  if (name.includes('tool') || name.includes('menu')) return Tools
-
-  return Box // 默认图标
-}
-
 // --- 从物料包生成组件分类 ---
-const categories = computed<Category[]>(() => {
-  const grouped = getMaterialsByCategory()
-  const result: Category[] = []
+const categories = computed<CategoryConfig[]>(() => {
+  const materialsByCategory = getMaterialsByCategory()
+  const result: CategoryConfig[] = []
 
-  // 定义分类顺序和默认尺寸
-  const categoryConfig: Record<
-    string,
-    { order: number; defaultWidth: number; defaultHeight: number }
-  > = {
-    图表: { order: 1, defaultWidth: 320, defaultHeight: 200 },
-    KPI: { order: 2, defaultWidth: 160, defaultHeight: 100 },
-    数据展示: { order: 3, defaultWidth: 360, defaultHeight: 240 },
-    基础控件: { order: 4, defaultWidth: 180, defaultHeight: 50 },
-    布局容器: { order: 5, defaultWidth: 400, defaultHeight: 240 },
-    内容: { order: 6, defaultWidth: 300, defaultHeight: 200 },
-    媒体: { order: 7, defaultWidth: 300, defaultHeight: 200 },
-    高级: { order: 8, defaultWidth: 300, defaultHeight: 150 },
-  }
+  Object.entries(materialsByCategory).forEach(([categoryName, materials]) => {
+    const config = getCategoryConfig(categoryName)
 
-  Object.entries(grouped).forEach(([categoryName, materials]) => {
-    const config = categoryConfig[categoryName] || {
-      order: 99,
-      defaultWidth: 300,
-      defaultHeight: 200,
-    }
-
-    const items: Item[] = materials.map((meta) => ({
+    const items = materials.map((meta) => ({
       componentName: meta.componentName,
       label: meta.title,
-      meta: meta,
-      width: config.defaultWidth,
-      height: config.defaultHeight,
+      meta,
+      categoryConfig: config,
+      icon: getComponentIcon(meta.componentName),
     }))
 
     result.push({
@@ -173,28 +144,28 @@ const categories = computed<Category[]>(() => {
   })
 
   // 按配置的顺序排序
-  result.sort((a, b) => {
-    const orderA = categoryConfig[a.title]?.order ?? 99
-    const orderB = categoryConfig[b.title]?.order ?? 99
+  const sortedResult = result.sort((a, b) => {
+    const orderA = getCategoryConfig(a.title).order
+    const orderB = getCategoryConfig(b.title).order
     return orderA - orderB
   })
 
   // 默认展开前三个分类
   if (activeNames.value.length === 0) {
-    activeNames.value = result.slice(0, 3).map((cat) => cat.title)
+    activeNames.value = sortedResult.slice(0, 3).map((cat) => cat.title)
   }
 
-  return result
+  return sortedResult
 })
 
 // --- 搜索过滤 ---
-const filteredCategories = computed<Category[]>(() => {
+const filteredCategories = computed(() => {
   if (!searchQuery.value.trim()) {
     return categories.value
   }
 
   const query = searchQuery.value.toLowerCase()
-  const filtered: Category[] = []
+  const filtered: typeof categories.value = []
 
   for (const category of categories.value) {
     const matchedItems = category.items.filter(
@@ -220,11 +191,11 @@ const filteredCategories = computed<Category[]>(() => {
 })
 
 // --- 拖拽处理 (适配 V1.5 架构) ---
-const onDrag = (event: DragEvent, item: Item) => {
-  const { componentName, meta, width, height } = item
+const onDrag = (event: DragEvent, item: (typeof categories.value)[0]['items'][0]) => {
+  const { componentName, meta, categoryConfig } = item
 
   // 从 MaterialMeta 提取默认 props
-  const defaultProps = extractDefaultProps(meta.props || [])
+  const defaultProps = extractDefaultProps(meta.props || {})
 
   // 构建完整的 NodeSchema 结构
   const nodeSchema: Partial<NodeSchema> = {
@@ -232,8 +203,8 @@ const onDrag = (event: DragEvent, item: Item) => {
     componentName,
     props: defaultProps as Record<string, PropValue>,
     style: {
-      width: width ? `${width}px` : undefined,
-      height: height ? `${height}px` : undefined,
+      width: categoryConfig.defaultWidth ? `${categoryConfig.defaultWidth}px` : undefined,
+      height: categoryConfig.defaultHeight ? `${categoryConfig.defaultHeight}px` : undefined,
     },
     children: [], // V1.5 必须包含 children 字段
   }

@@ -1,4 +1,4 @@
-﻿import { createApp } from 'vue'
+import { createApp } from 'vue'
 import { createPinia } from 'pinia'
 // 导入 Element Plus
 import ElementPlus from 'element-plus'
@@ -23,6 +23,32 @@ app.use(ElementPlus)
 app.use(createPinia())
 app.use(router)
 
+// 需要添加前缀的组件名，避免与 HTML 原生标签或 Element Plus 内部组件冲突
+const RESERVED_NAMES = new Set([
+  'Button',
+  'Input',
+  'Select',
+  'Option',
+  'Form',
+  'Table',
+  'Dialog',
+  'Menu',
+  'Image',
+  'Link',
+  'Text',
+  'Icon',
+  'Container',
+  'Header',
+  'Footer',
+  'Main',
+  'Aside',
+  'Col',
+  'Row',
+  'Progress',
+  'Slider',
+  'Switch',
+])
+
 // 异步加载 Element Plus Icons 和注册物料组件
 const initializeComponents = async () => {
   // 1. 先加载并注册 Element Plus 图标
@@ -36,19 +62,22 @@ const initializeComponents = async () => {
     }
   }
 
-  // 2. 注册物料组件（修复：添加重复检查）
+  // 2. 注册物料组件（使用 Lc 前缀避免冲突）
   for (const [name, component] of Object.entries(componentMap)) {
-    // 如果是图标名，加 Lc 前缀
-    const finalName = iconNames.has(name) ? `Lc${name}` : name
+    // 如果是保留名或图标名，加 Lc 前缀
+    const needsPrefix = RESERVED_NAMES.has(name) || iconNames.has(name)
+    const finalName = needsPrefix ? `Lc${name}` : name
 
     // 关键修复：先检查是否已注册
     if (!app.component(finalName)) {
       app.component(finalName, component)
-      if (finalName !== name) {
-        console.warn(`[Material] Conflict resolved: "${name}" -> "${finalName}"`)
+      if (needsPrefix) {
+        console.log(`[Material] Registered with prefix: "${name}" -> "${finalName}"`)
       }
     }
   }
+
+  console.log('[Main] All components registered successfully')
 }
 
 // 初始化组件后再挂载应用

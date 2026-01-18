@@ -46,20 +46,33 @@
                 </div>
 
                 <el-form-item v-if="action.type === 'alert'" label="提示内容" size="small">
-                  <el-input v-model="action.message" placeholder="请输入提示内容" />
+                  <el-input
+                    :model-value="getActionMessage(action)"
+                    @update:model-value="setActionMessage(action, $event as string)"
+                    placeholder="请输入提示内容"
+                  />
                 </el-form-item>
 
                 <el-form-item v-if="action.type === 'openUrl'" label="URL" size="small">
-                  <el-input v-model="action.url" placeholder="https://..." />
+                  <el-input
+                    :model-value="getActionUrl(action)"
+                    @update:model-value="setActionUrl(action, $event as string)"
+                    placeholder="https://..."
+                  />
                 </el-form-item>
 
                 <el-form-item v-if="action.type === 'navigate'" label="路径" size="small">
-                  <el-input v-model="action.path" placeholder="/path" />
+                  <el-input
+                    :model-value="getActionPath(action)"
+                    @update:model-value="setActionPath(action, $event as string)"
+                    placeholder="/path"
+                  />
                 </el-form-item>
 
                 <el-form-item v-if="action.type === 'customScript'" label="脚本代码" size="small">
                   <el-input
-                    v-model="action.content"
+                    :model-value="getActionContent(action)"
+                    @update:model-value="setActionContent(action, $event as string)"
                     type="textarea"
                     :rows="4"
                     placeholder="输入 JavaScript 代码"
@@ -106,20 +119,33 @@
                 </div>
 
                 <el-form-item v-if="action.type === 'alert'" label="提示内容" size="small">
-                  <el-input v-model="action.message" placeholder="请输入提示内容" />
+                  <el-input
+                    :model-value="getActionMessage(action)"
+                    @update:model-value="setActionMessage(action, $event as string)"
+                    placeholder="请输入提示内容"
+                  />
                 </el-form-item>
 
                 <el-form-item v-if="action.type === 'openUrl'" label="URL" size="small">
-                  <el-input v-model="action.url" placeholder="https://..." />
+                  <el-input
+                    :model-value="getActionUrl(action)"
+                    @update:model-value="setActionUrl(action, $event as string)"
+                    placeholder="https://..."
+                  />
                 </el-form-item>
 
                 <el-form-item v-if="action.type === 'navigate'" label="路径" size="small">
-                  <el-input v-model="action.path" placeholder="/path" />
+                  <el-input
+                    :model-value="getActionPath(action)"
+                    @update:model-value="setActionPath(action, $event as string)"
+                    placeholder="/path"
+                  />
                 </el-form-item>
 
                 <el-form-item v-if="action.type === 'customScript'" label="脚本代码" size="small">
                   <el-input
-                    v-model="action.content"
+                    :model-value="getActionContent(action)"
+                    @update:model-value="setActionContent(action, $event as string)"
                     type="textarea"
                     :rows="4"
                     placeholder="输入 JavaScript 代码"
@@ -137,6 +163,13 @@
 <script setup lang="ts">
 import { useEventConfiguration } from '../composables/useEvents'
 import type { NodeSchema } from '@vela/core'
+import type {
+  ActionSchema,
+  NavigateAction,
+  CustomScriptAction,
+  OpenUrlAction,
+  AlertAction,
+} from '@vela/core/types/action'
 import { Plus, Delete, Select } from '@element-plus/icons-vue'
 
 interface Props {
@@ -154,10 +187,44 @@ const {
   removeHoverAction,
 } = useEventConfiguration()
 
-function onActionTypeChange(action: any) {
+function onActionTypeChange(action: ActionSchema) {
   if (action.type !== 'customScript') {
-    delete action.content
+    // Use type assertion to Partial to allow delete on potentially non-optional property
+    delete (action as Partial<CustomScriptAction>).content
   }
+}
+
+// Type-safe getters for action properties
+function getActionPath(action: ActionSchema): string {
+  return (action as NavigateAction).path || ''
+}
+
+function setActionPath(action: ActionSchema, value: string) {
+  ;(action as NavigateAction).path = value
+}
+
+function getActionUrl(action: ActionSchema): string {
+  return (action as OpenUrlAction).url || ''
+}
+
+function setActionUrl(action: ActionSchema, value: string) {
+  ;(action as OpenUrlAction).url = value
+}
+
+function getActionMessage(action: ActionSchema): string {
+  return (action as AlertAction).message || ''
+}
+
+function setActionMessage(action: ActionSchema, value: string) {
+  ;(action as AlertAction).message = value
+}
+
+function getActionContent(action: ActionSchema): string {
+  return (action as CustomScriptAction).content || ''
+}
+
+function setActionContent(action: ActionSchema, value: string) {
+  ;(action as CustomScriptAction).content = value
 }
 </script>
 

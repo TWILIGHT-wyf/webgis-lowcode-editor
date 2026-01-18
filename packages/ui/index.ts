@@ -1,4 +1,4 @@
-﻿import type { App, Component } from 'vue'
+import type { App, Component } from 'vue'
 // @vela/ui/index.ts
 
 /**
@@ -64,6 +64,10 @@ export const vBox = componentRegistry.vBox
 export const vStat = componentRegistry.vStat
 export const vProgress = componentRegistry.vProgress
 export const vCountUp = componentRegistry.vCountUp
+
+// 基础组件
+export const vContainer = componentRegistry.vContainer
+export const vButton = componentRegistry.vButton
 
 // 布局组件
 export const vBadge = componentRegistry.vBadge

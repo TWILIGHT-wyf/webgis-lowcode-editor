@@ -42,9 +42,8 @@ import { useComponent } from '@/stores/component'
 import type { Component } from '@vela/core/types/components'
 import { useUIStore } from '@/stores/ui'
 import { storeToRefs } from 'pinia'
-import { useCanvasInteraction } from '../composables/useCanvasInteraction'
-import { useSnap } from '../composables/useSnap'
-import { debounce, throttle } from 'lodash-es'
+import { useSnap } from '../composables/useSnapV2'
+import { throttle } from 'lodash-es'
 import {
   DRAG_THRESHOLD,
   SNAP_THRESHOLD,
@@ -52,7 +51,7 @@ import {
   MIN_COMPONENT_WIDTH,
   MIN_COMPONENT_HEIGHT,
 } from '@vela/core/constants/editor'
-import { useComponentEventHandlers } from '@/components/siderBar/events/events'
+import { useComponentEventHandlers } from '@/composables/useComponentEvents'
 
 const props = defineProps<{ id: string }>()
 
@@ -62,13 +61,7 @@ const emit = defineEmits<{
 
 // ========== Store & Refs ==========
 const compStore = useComponent()
-const { isDragging } = storeToRefs(compStore)
-const {
-  selectedId: setSelected,
-  updateComponentSize,
-  updateComponentRotation,
-  updateComponentPosition,
-} = compStore
+const { selectedId, toggleSelection } = compStore
 
 const uiStore = useUIStore()
 const { canvasScale: scale } = storeToRefs(uiStore)
@@ -97,7 +90,20 @@ function getComponentById(store: Component[], id: string) {
 }
 
 // ========== Component Data ==========
-const currentComponent = computed(() => getComponentById(compStore.componentStore, props.id))
+const currentComponent = computed(() => {
+  const node = compStore.getComponentById(props.id)
+  if (!node) return null
+  // Extract position/size from style for backwards compatibility
+  const style = node.style || {}
+  return {
+    ...node,
+    position: { x: (style.x as number) ?? 0, y: (style.y as number) ?? 0 },
+    size: { width: (style.width as number) ?? 100, height: (style.height as number) ?? 100 },
+    rotation: (style.rotation as number) ?? 0,
+    zindex: (style.zIndex as number) ?? 0,
+    type: node.componentName,
+  }
+})
 const position = computed(() => currentComponent.value?.position || { x: 0, y: 0 })
 const size = computed(() => currentComponent.value?.size || { width: 100, height: 100 })
 const rotation = computed(() => currentComponent.value?.rotation ?? 0)
@@ -106,135 +112,18 @@ const isLocked = computed(() => currentComponent.value?.style?.locked ?? false)
 const isSelected = computed(() => compStore.isSelected(props.id))
 
 // ========== Snap Logic ==========
-const { snapToNeighbors, snapToGrid, boxCache, meComp } = useSnap()
-
-const debouncedUpdatePosition = debounce(updateComponentPosition, 10)
-
-let dragStartPos = { x: 0, y: 0 }
-let childrenStartPos: Record<string, { x: number; y: number }> = {}
+const { boxCache, meComp } = useSnap()
 
 // ========== Drag Interaction ==========
-useCanvasInteraction(wrapperRef, scale, {
-  enableDrag: true,
-  preventBubble: true,
-  dragThreshold: DRAG_THRESHOLD,
+import { useShapeDrag } from '@/composables/useShapeDrag'
+
+const { isDragging } = useShapeDrag(wrapperRef, {
+  scale,
   rootRefForAbs: canvasWrapRef,
   externalPanX: canvasPanX,
   externalPanY: canvasPanY,
-  dragCallback: (x, y, ctrlPressed) => {
-    ;(setSelected as (id: string) => void)(props.id)
-    const comp = currentComponent.value
-    if (!comp || isLocked.value) return
-
-    let finalPosition = { x, y }
-    if (ctrlPressed) {
-      const gridSnap = snapToGrid({ x, y }, GRID_SIZE)
-      finalPosition = gridSnap.position
-    } else {
-      const snap = snapToNeighbors(SNAP_THRESHOLD, { x, y })
-      if (snap) {
-        finalPosition = snap.position
-      }
-    }
-
-    debouncedUpdatePosition(finalPosition)
-
-    if (comp.type === 'Group' && comp.children) {
-      const actualDx = finalPosition.x - dragStartPos.x
-      const actualDy = finalPosition.y - dragStartPos.y
-      comp.children.forEach((childId: string) => {
-        const child = getComponentById(compStore.componentStore, childId)
-        const startPos = childrenStartPos[childId]
-        if (child && startPos) {
-          child.position.x = startPos.x + actualDx
-          child.position.y = startPos.y + actualDy
-        }
-      })
-    }
-  },
-  onDragStart: () => {
-    isDragging.value = true
-    const comp = currentComponent.value
-    if (comp) {
-      dragStartPos = { ...comp.position }
-      if (comp.type === 'Group' && comp.children) {
-        childrenStartPos = {}
-        comp.children.forEach((childId: string) => {
-          const child = getComponentById(compStore.componentStore, childId)
-          if (child) {
-            childrenStartPos[childId] = { ...child.position }
-          }
-        })
-      }
-    }
-  },
-  onDragEnd: (altPressed) => {
-    isDragging.value = false
-    childrenStartPos = {}
-
-    if (!altPressed) return
-
-    const comp = currentComponent.value
-    if (!comp) return
-
-    const containerTypes = ['panel', 'row', 'col', 'flex', 'grid', 'modal', 'tabs', 'group']
-    const containers = compStore.componentStore.filter((c) => {
-      if (!c.type) return false
-      const t = String(c.type).toLowerCase()
-      return containerTypes.includes(t) && c.id !== comp.id && c.id !== comp.groupId
-    })
-
-    const compCenterX = comp.position.x + comp.size.width / 2
-    const compCenterY = comp.position.y + comp.size.height / 2
-
-    const hitContainers = containers
-      .filter((c) => {
-        return (
-          compCenterX >= c.position.x &&
-          compCenterX <= c.position.x + c.size.width &&
-          compCenterY >= c.position.y &&
-          compCenterY <= c.position.y + c.size.height
-        )
-      })
-      .sort((a, b) => b.zindex - a.zindex)
-
-    if (hitContainers.length > 0) {
-      const targetContainer = hitContainers[0]
-      if (!targetContainer || comp.groupId === targetContainer.id) return
-
-      if (comp.groupId) {
-        const oldParent = compStore.componentStore.find((c) => c.id === comp.groupId)
-        if (oldParent && oldParent.children) {
-          oldParent.children = oldParent.children.filter((cid) => cid !== comp.id)
-        }
-      }
-
-      const relativeX = comp.position.x - targetContainer.position.x
-      const relativeY = comp.position.y - targetContainer.position.y
-      comp.position.x = relativeX
-      comp.position.y = relativeY
-
-      if (!targetContainer.children) {
-        targetContainer.children = []
-      }
-      if (!targetContainer.children.includes(comp.id)) {
-        targetContainer.children.push(comp.id)
-      }
-      comp.groupId = targetContainer.id
-
-      if (!targetContainer.layout) {
-        targetContainer.layout = {
-          mode: 'absolute',
-          gap: 8,
-          columns: 2,
-          align: 'start',
-          padding: 0,
-        }
-      }
-
-      compStore.commitDebounced()
-    }
-  },
+  enableDrag: true,
+  dragThreshold: DRAG_THRESHOLD,
 })
 
 // ========== Styles ==========
@@ -301,7 +190,7 @@ let isCtrlPressed = false
 const onHandleMouseDown = (e: MouseEvent, handle: HandleMeta) => {
   e.preventDefault()
   if (isLocked.value) return
-  ;(setSelected as (id: string) => void)(props.id)
+  compStore.selectComponent(props.id)
 
   startMouseX = e.clientX
   startMouseY = e.clientY
@@ -313,12 +202,17 @@ const onHandleMouseDown = (e: MouseEvent, handle: HandleMeta) => {
   const comp = currentComponent.value
   if (comp && comp.type === 'Group' && comp.children) {
     childrenStartState = {}
-    comp.children.forEach((childId: string) => {
-      const child = compStore.componentStore.find((c) => c.id === childId)
-      if (child) {
+    comp.children.forEach((child) => {
+      const childId = typeof child === 'string' ? child : child.id
+      const childNode = compStore.getComponentById(childId)
+      if (childNode) {
+        const childStyle = childNode.style || {}
         childrenStartState[childId] = {
-          position: { ...child.position },
-          size: { ...child.size },
+          position: { x: (childStyle.x as number) ?? 0, y: (childStyle.y as number) ?? 0 },
+          size: {
+            width: (childStyle.width as number) ?? 100,
+            height: (childStyle.height as number) ?? 100,
+          },
         }
       }
     })
@@ -458,24 +352,26 @@ const onHandleMouseMove = (e: MouseEvent) => {
     }
   }
 
-  updateComponentSize({ width: newWidth, height: newHeight })
-  updateComponentPosition({ x: newX, y: newY })
+  compStore.updateComponentSize(props.id, newWidth, newHeight)
+  compStore.updateComponentPosition(props.id, newX, newY)
 
   const comp = currentComponent.value
   if (comp && comp.type === 'Group' && comp.children) {
     const scaleX = newWidth / startSize.width
     const scaleY = newHeight / startSize.height
 
-    comp.children.forEach((childId: string) => {
-      const child = getComponentById(compStore.componentStore, childId)
+    comp.children.forEach((child) => {
+      const childId = typeof child === 'string' ? child : child.id
       const childStart = childrenStartState[childId]
-      if (child && childStart) {
+      if (childStart) {
         const relX = childStart.position.x - startPos.x
         const relY = childStart.position.y - startPos.y
-        child.position.x = newX + relX * scaleX
-        child.position.y = newY + relY * scaleY
-        child.size.width = childStart.size.width * scaleX
-        child.size.height = childStart.size.height * scaleY
+        compStore.updateComponentPosition(childId, newX + relX * scaleX, newY + relY * scaleY)
+        compStore.updateComponentSize(
+          childId,
+          childStart.size.width * scaleX,
+          childStart.size.height * scaleY,
+        )
       }
     })
   }
@@ -499,7 +395,7 @@ let centerY = 0
 const onRotateMouseDown = (e: MouseEvent) => {
   e.preventDefault()
   if (isLocked.value) return
-  ;(setSelected as (id: string) => void)(props.id)
+  compStore.selectComponent(props.id)
 
   const wrapperEl = (e.currentTarget as HTMLElement).parentElement as HTMLElement
   const rect = wrapperEl.getBoundingClientRect()
@@ -516,7 +412,7 @@ const onRotateMouseMove = (e: MouseEvent) => {
   isDragging.value = true
   const angle = Math.atan2(e.clientY - centerY, e.clientX - centerX) - startAngle
   const deg = (angle * 180) / Math.PI
-  updateComponentRotation(deg)
+  compStore.updateComponentRotation(props.id, deg)
 }
 
 const throttledRotateMouseMove = throttle(onRotateMouseMove, 16)
@@ -553,11 +449,15 @@ function emitOpenContextMenu(e: MouseEvent) {
 }
 
 async function handleClick(e: MouseEvent) {
-  const comp = compStore.componentStore.find((c) => c.id === props.id)
+  const comp = compStore.getComponentById(props.id)
   if (comp?.style?.locked && !e.altKey) {
     return
   }
-  compStore.toggleSelect(props.id, e.ctrlKey)
+  if (e.ctrlKey) {
+    compStore.toggleSelection(props.id)
+  } else {
+    compStore.selectComponent(props.id)
+  }
   await eventHandlers.handleClick()
 }
 

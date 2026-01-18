@@ -1,4 +1,4 @@
-﻿<template>
+<template>
   <div class="dashboard-layout">
     <!-- 顶部 Header -->
     <header class="header-card">
@@ -259,11 +259,18 @@ const categoryOptions = [
 ]
 
 // 项目列表
-import type { Project as BaseProject, ServerProject } from '@vela/core/types/api'
-import type { Project as StoreProject } from '@/stores/project'
+import type { ServerProject, ProjectInput } from '@vela/core/types/api'
+import type { PageSchema } from '@vela/core'
 
 // Dashboard 显示用的扩展项目类型
-interface DashboardProject extends BaseProject {
+interface DashboardProject {
+  id: string
+  name: string
+  description?: string
+  category?: string
+  pages?: PageSchema[]
+  createdAt?: string
+  updatedAt?: string
   categoryLabel?: string
   icon?: unknown
   thumbnailBg?: string
@@ -283,8 +290,8 @@ async function loadProjects() {
     projects.value = list.map((p) => formatServerProject(p))
   } catch (error) {
     console.error('加载项目失败:', error)
-    // 降级到本地 Store (Mock数据)
-    projects.value = projectStore.projectList.map((p) => formatStoreProject(p))
+    // 降级到空列表（本地 Store 不存储项目列表）
+    projects.value = []
   } finally {
     loading.value = false
   }
@@ -299,44 +306,20 @@ function formatServerProject(p: ServerProject): DashboardProject {
         ? 'IoT'
         : 'Other'
   const categoryConfig = categoryOptions.find((c) => c.value === categoryKey) || categoryOptions[0]
+  const pages = p.schema?.pages || []
 
   return {
     id: p._id,
     name: p.name,
     description: p.description || '',
     category: categoryKey,
-    pages: p.pages || [],
+    pages: pages,
     createdAt: p.createdAt,
     updatedAt: p.updatedAt,
     categoryLabel: categoryConfig?.label || '未分类',
     icon: categoryConfig?.icon || markRaw(Select),
     thumbnailBg: getGradientByCategory(categoryKey),
-    pageCount: p.pages?.length || 0,
-  }
-}
-
-function formatStoreProject(p: StoreProject): DashboardProject {
-  const categoryKey = p.description?.includes('GIS')
-    ? 'GIS'
-    : p.description?.includes('图表')
-      ? 'Chart'
-      : p.description?.includes('IoT')
-        ? 'IoT'
-        : 'Other'
-  const categoryConfig = categoryOptions.find((c) => c.value === categoryKey) || categoryOptions[0]
-
-  return {
-    id: p.id,
-    name: p.name,
-    description: p.description || '',
-    category: categoryKey,
-    pages: p.pages || [],
-    createdAt: new Date(p.createdAt).toISOString(),
-    updatedAt: new Date(p.updatedAt).toISOString(),
-    categoryLabel: categoryConfig?.label || '未分类',
-    icon: categoryConfig?.icon || markRaw(Select),
-    thumbnailBg: getGradientByCategory(categoryKey),
-    pageCount: p.pages?.length || 0,
+    pageCount: pages.length,
   }
 }
 
@@ -377,6 +360,16 @@ const submitCreate = async () => {
     await projectService.createProject({
       name: createForm.value.name,
       description: `${selectedCat?.label || ''}#${createForm.value.description}`, // 将类型标签存入描述方便解析
+      schema: {
+        version: '1.5.0',
+        name: createForm.value.name,
+        description: createForm.value.description,
+        config: {
+          layout: 'pc',
+          theme: 'light',
+        },
+        pages: [],
+      },
     })
 
     ElMessage.success('项目创建成功')
@@ -392,7 +385,6 @@ const submitCreate = async () => {
 }
 
 const handleOpen = (id: string) => {
-  projectStore.currentProjectId = id
   router.push(`/editor/${id}`)
 }
 const handlePreview = (id: string) => window.open(`/runtime?projectId=${id}`, '_blank')
@@ -419,15 +411,12 @@ const handleCommand = async (cmd: string, project: DashboardProject) => {
             },
           )
 
-          // 1. 删除后端数据
+          // 删除后端数据
           await projectService.deleteProject(project.id)
-
-          // 2. 同步删除 Store 中的数据
-          projectStore.deleteProject(project.id)
 
           ElMessage.success('项目已删除')
 
-          // 3. 重新加载列表
+          // 重新加载列表
           await loadProjects()
         } catch (error) {
           // 用户取消或删除失败

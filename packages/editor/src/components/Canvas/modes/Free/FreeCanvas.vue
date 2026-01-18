@@ -11,13 +11,29 @@
   >
     <div class="world" :style="worldStyle">
       <div class="stage" :style="stageStyle">
-        <!-- V1.5: 使用递归渲染器渲染树形结构 -->
-        <RecursiveRenderer v-if="currentTree" :node="currentTree" />
+        <!-- V1.5: 使用 FreeRenderer 渲染组件树（包含 Shape 包裹器） -->
+        <!-- currentTree 是 Page 根节点，只渲染它的 children -->
+        <template v-if="currentTree && currentTree.children && currentTree.children.length > 0">
+          <FreeRenderer
+            v-for="child in currentTree.children"
+            :key="child.id"
+            :node="child"
+            @open-context-menu="onComponentContextMenu"
+            @snap-lines="handleSnapLines"
+          />
+        </template>
 
-        <!-- 吸附辅助线 (纯 UI 组件) - TODO: 重构snap系统后恢复 -->
-        <!-- <SnapLine v-if="isDragging" :lines="snapLines" /> -->
+        <!-- 空状态提示 -->
+        <div v-else class="empty-canvas-hint">
+          <div class="hint-icon">🎨</div>
+          <p>从左侧拖入组件开始设计</p>
+          <p class="hint-sub">支持拖拽、缩放、旋转和智能吸附</p>
+        </div>
 
-        <!-- 右键菜单 - TODO: 重构context menu后恢复 -->
+        <!-- 吸附辅助线 -->
+        <SnapLine v-if="snapLines.length > 0" :lines="snapLines" />
+
+        <!-- 右键菜单 -->
         <ContextMenu
           :x="menuState.x"
           :y="menuState.y"
@@ -31,15 +47,14 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, provide, onMounted, onBeforeUnmount, watch } from 'vue'
-import { RecursiveRenderer } from '@vela/renderer'
+import { ref, computed, provide, onMounted, onBeforeUnmount } from 'vue'
+import FreeRenderer from './FreeRenderer.vue'
 import { useUIStore } from '@/stores/ui'
 import { storeToRefs } from 'pinia'
 import { useComponent } from '@/stores/component'
 import { useCanvasInteraction } from './composables/useCanvasInteraction'
-// import { useSnap } from './composables/useSnap'
-// import SnapLine from './Snap/SnapLine.vue'
-import ContextMenu from './ContextMenu/contextMenu.vue'
+import SnapLine from './Snap/SnapLine.vue'
+import ContextMenu from './ContextMenu/ContextMenu.vue'
 
 const wrap = ref<HTMLDivElement | null>(null)
 
@@ -59,25 +74,12 @@ const compStore = useComponent()
 const { rootNode: currentTree, selectedId, selectedIds } = storeToRefs(compStore)
 const { addComponent, selectComponent, clearSelection } = compStore
 
-// 拖拽状态
-const isDragging = ref(false)
-
-// ========== Snap Logic ==========
-// TODO: 重构snap系统后恢复
-// const { snapToNeighbors } = useSnap()
+// ========== Snap Lines State ==========
 const snapLines = ref<{ x?: number; y?: number }[]>([])
 
-// 监听拖拽状态和选中组件，更新吸附线
-// TODO: 重构snap系统后恢复
-// watch(
-//   () => isDragging.value,
-//   () => {
-//     if (!isDragging.value) {
-//       snapLines.value = []
-//     }
-//   },
-//   { immediate: true },
-// )
+function handleSnapLines(lines: { x?: number; y?: number }[]) {
+  snapLines.value = lines
+}
 
 // ========== Interaction ==========
 const { panX, panY, isPanning } = useCanvasInteraction(wrap, scale, {
@@ -92,30 +94,32 @@ provide('canvasPanY', panY)
 
 // ========== Event Handlers ==========
 const handleCanvasClick = (e: MouseEvent) => {
-  e.stopPropagation()
   const target = e.target as HTMLElement
 
-  const nodeEl = target.closest('[data-id]')
-  if (nodeEl) {
-    const id = nodeEl.getAttribute('data-id')
-    if (id) {
-      selectComponent(id)
-      return
-    }
+  // 只有直接点击 canvas-wrap 或 stage 时才清除选择
+  if (
+    !target.classList.contains('canvas-wrap') &&
+    !target.classList.contains('stage') &&
+    !target.classList.contains('world')
+  ) {
+    return
   }
 
+  // 点击空白处，取消选中
+  console.log('[FreeCanvas] Clicked empty space, clearing selection')
   clearSelection()
 }
 
 const handleDrop = (e: DragEvent) => {
   e.preventDefault()
+  e.stopPropagation() // Prevent canvas pan
 
   try {
     const dataStr = e.dataTransfer?.getData('application/x-vela') || '{}'
     const data = JSON.parse(dataStr)
 
     if (!data.componentName) {
-      console.warn('[CanvasBoard] Invalid drop data:', data)
+      console.warn('[FreeCanvas] Invalid drop data:', data)
       return
     }
 
@@ -125,9 +129,15 @@ const handleDrop = (e: DragEvent) => {
     const rect = el.getBoundingClientRect()
     const scaleValue = scale.value || 1
 
+    // 计算在 stage 坐标系中的位置
     const stageX = (e.clientX - rect.left - panX.value) / scaleValue
     const stageY = (e.clientY - rect.top - panY.value) / scaleValue
 
+    console.log('[FreeCanvas] Drop position - client:', e.clientX, e.clientY)
+    console.log('[FreeCanvas] Drop position - stage:', stageX, stageY)
+    console.log('[FreeCanvas] Pan:', panX.value, panY.value, 'Scale:', scaleValue)
+
+    // 创建新组件（自由画布模式使用 position: absolute）
     const newId = addComponent(null, {
       id: `comp_${Date.now()}`,
       componentName: data.componentName,
@@ -136,8 +146,8 @@ const handleDrop = (e: DragEvent) => {
         position: 'absolute',
         left: `${stageX}px`,
         top: `${stageY}px`,
-        width: `${data.width || 100}px`,
-        height: `${data.height || 100}px`,
+        width: `${data.width || 120}px`,
+        height: `${data.height || 80}px`,
         ...(data.style || {}),
       },
       children: [],
@@ -145,12 +155,12 @@ const handleDrop = (e: DragEvent) => {
 
     if (newId) {
       selectComponent(newId)
+      console.log('[FreeCanvas] Created component:', newId)
+      console.log('[FreeCanvas] Current tree:', currentTree.value)
     }
   } catch (err) {
-    console.error('[CanvasBoard] Drop error:', err)
+    console.error('[FreeCanvas] Drop error:', err)
   }
-
-  isDragging.value = false
 }
 
 // ========== Context Menu Logic ==========
@@ -168,7 +178,10 @@ const menuState = ref<{
 })
 
 function onCanvasContextMenu(e: MouseEvent) {
-  if ((e.target as HTMLElement).closest('.shape')) return
+  const target = e.target as HTMLElement
+
+  // 如果右键点击的是组件，让组件处理
+  if (target.closest('[data-id]')) return
 
   const rect = wrap.value?.getBoundingClientRect()
   if (!rect) return
@@ -176,30 +189,34 @@ function onCanvasContextMenu(e: MouseEvent) {
   const visualX = e.clientX - rect.left
   const visualY = e.clientY - rect.top
 
-  let stageX = visualX
-  let stageY = visualY
-  try {
-    const worldEl = wrap.value?.querySelector('.world') as HTMLElement | null
-    if (worldEl) {
-      const style = window.getComputedStyle(worldEl)
-      const tf = style.transform
-      if (tf && tf !== 'none') {
-        const m = tf.match(/matrix\(([^)]+)\)/)
-        if (m && m[1]) {
-          const parts = m[1].split(',').map((s) => parseFloat(s.trim()))
-          const a = parts[0] || 1
-          const e2 = parts[4] || 0
-          const f2 = parts[5] || 0
-          stageX = (visualX - e2) / a
-          stageY = (visualY - f2) / a
-        }
-      }
-    }
-  } catch {
-    // ignore
-  }
+  const scaleValue = scale.value || 1
+  const stageX = (visualX - panX.value) / scaleValue
+  const stageY = (visualY - panY.value) / scaleValue
 
-  menuState.value = { x: visualX, y: visualY, stageX, stageY, visible: true, targetId: undefined }
+  menuState.value = {
+    x: visualX,
+    y: visualY,
+    stageX,
+    stageY,
+    visible: true,
+    targetId: undefined,
+  }
+}
+
+function onComponentContextMenu(payload: { id: string; event: MouseEvent }) {
+  const e = payload.event
+  const rect = wrap.value?.getBoundingClientRect()
+  if (!rect) return
+
+  const visualX = e.clientX - rect.left
+  const visualY = e.clientY - rect.top
+
+  menuState.value = {
+    x: visualX,
+    y: visualY,
+    visible: true,
+    targetId: payload.id,
+  }
 }
 
 function hideContextMenu() {
@@ -207,105 +224,8 @@ function hideContextMenu() {
 }
 
 function onMenuAction(action: string) {
-  // TODO: 重构context menu后恢复
-  // const {
-  //   removeComponent,
-  //   removeMultipleComponents,
-  //   copy,
-  //   copyMultiple,
-  //   cut,
-  //   cutMultiple,
-  //   paste,
-  //   bringForward,
-  //   sendBackward,
-  //   bringToFront,
-  //   sendToBack,
-  //   groupComponents,
-  //   ungroupComponents,
-  // } = oldCompStore
-  // const { selectedIds } = storeToRefs(oldCompStore)
-
-  if (menuState.value.targetId) {
-    const targetId = menuState.value.targetId
-    const isMultiSelect = selectedIds.value.length > 1
-
-    // TODO: 重构context menu后恢复
-    // switch (action) {
-    //   case 'delete':
-    //     if (isMultiSelect) {
-    //       removeMultipleComponents([...selectedIds.value])
-    //     } else {
-    //       removeComponent(targetId)
-    //     }
-    //     break
-    //   case 'copy':
-    //     if (isMultiSelect) {
-    //       copyMultiple([...selectedIds.value])
-    //     } else {
-    //       copy(targetId)
-    //     }
-    //     break
-    //   case 'cut':
-    //     if (isMultiSelect) {
-    //       cutMultiple([...selectedIds.value])
-    //     } else {
-    //       cut(targetId)
-    //     }
-    //     break
-    //   case 'paste':
-    //     paste({
-    //       x: menuState.value.stageX ?? menuState.value.x,
-    //       y: menuState.value.stageY ?? menuState.value.y,
-    //     })
-    //     break
-    //   case 'bringForward':
-    //     if (isMultiSelect) {
-    //       selectedIds.value.forEach((id: string) => bringForward(id))
-    //     } else {
-    //       bringForward(targetId)
-    //     }
-    //     break
-    //   case 'sendBackward':
-    //     if (isMultiSelect) {
-    //       selectedIds.value.forEach((id: string) => sendBackward(id))
-    //     } else {
-    //       sendBackward(targetId)
-    //     }
-    //     break
-    //   case 'bringToFront':
-    //     if (isMultiSelect) {
-    //       selectedIds.value.forEach((id: string) => bringToFront(id))
-    //     } else {
-    //       bringToFront(targetId)
-    //     }
-    //     break
-    //   case 'sendToBack':
-    //     if (isMultiSelect) {
-    //       selectedIds.value.forEach((id: string) => sendToBack(id))
-    //     } else {
-    //       sendToBack(targetId)
-    //     }
-    //     break
-    //   case 'group':
-    //     if (isMultiSelect) {
-    //       groupComponents([...selectedIds.value])
-    //     }
-    //     break
-    //   case 'ungroup':
-    //     const comp = oldCompStore.componentStore.find((c: any) => c.id === targetId)
-    //     if (comp && comp.type === 'Group') {
-    //       ungroupComponents(targetId)
-    //     }
-    //     break
-    // }
-  } else {
-    if (action === 'paste') {
-      // paste({
-      //   x: menuState.value.stageX ?? menuState.value.x,
-      //   y: menuState.value.stageY ?? menuState.value.y,
-      // })
-    }
-  }
+  console.log('[FreeCanvas] Menu action:', action)
+  // TODO: Implement menu actions (delete, copy, paste, etc.)
   hideContextMenu()
 }
 
@@ -385,10 +305,6 @@ const worldStyle = computed(() => ({
   contain: layout style;
 }
 
-.canvas-wrap.dragging .world {
-  pointer-events: none;
-}
-
 .stage {
   background-color: var(--grid-bg);
   background-image:
@@ -406,18 +322,35 @@ const worldStyle = computed(() => ({
     0 0,
     0 0,
     0 0;
-  display: grid;
   position: relative;
   contain: layout style paint;
 }
 
-/* V1.5: 选中高亮样式 */
-:deep(.lowcode-node:hover) {
-  outline: 1px dashed #1890ff;
+/* Empty canvas hint */
+.empty-canvas-hint {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  text-align: center;
+  color: #909399;
+  pointer-events: none;
+  user-select: none;
 }
 
-:deep(.lowcode-node.selected),
-:deep([data-id].selected) {
-  outline: 2px solid #1890ff;
+.hint-icon {
+  font-size: 64px;
+  margin-bottom: 16px;
+  opacity: 0.6;
+}
+
+.empty-canvas-hint p {
+  margin: 8px 0;
+  font-size: 14px;
+}
+
+.hint-sub {
+  font-size: 12px;
+  color: #c0c4cc;
 }
 </style>

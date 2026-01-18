@@ -1,4 +1,4 @@
-﻿<template>
+<template>
   <BaseBadge v-bind="badgeProps">
     <!-- 子组件渲染 -->
     <div v-if="hasChildren" class="badge-children-wrapper" :style="childrenContainerStyle">
@@ -38,7 +38,7 @@ import { useComponent } from '@vela/editor/stores/component'
 import { storeToRefs } from 'pinia'
 import { vBadge as BaseBadge, useDataSource, extractWithFallback } from '@vela/ui'
 import { componentRegistry } from '@vela/materials/registry'
-import Shape from '@vela/editor/components/Editor/shape/shape.vue'
+import Shape from '@vela/editor/components/Canvas/modes/Free/Shape/Shape.vue'
 
 const props = defineProps<{ id: string }>()
 const { componentStore } = storeToRefs(useComponent())

@@ -56,7 +56,7 @@
             <span class="item-time">{{ formatTime(item.createdAt) }}</span>
             <el-tag v-if="!item.result.validated" type="danger" size="small">校验失败</el-tag>
             <el-tag v-else type="success" size="small">
-              置信度 {{ (item.result.confidence * 100).toFixed(0) }}%
+              置信度 {{ ((item.result.confidence ?? 0) * 100).toFixed(0) }}%
             </el-tag>
           </div>
         </div>
@@ -107,7 +107,7 @@
             <DiffViewer
               v-for="(diff, idx) in item.result.diffs"
               :key="idx"
-              :diff="diff"
+              :diff="toDiffItem(diff)"
               :selectable="true"
               :default-selected="true"
               @select-change="(val) => handleDiffSelect(idx, val)"
@@ -131,8 +131,23 @@ import { ref, computed } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { MagicStick, View, Check, Close, Refresh } from '@element-plus/icons-vue'
 import { useSuggestion } from '@/stores/suggestion'
-import type { SuggestionStatus } from '@vela/core/types/suggestion'
+import type { SuggestionStatus, SuggestionDiff, DiffItem } from '@vela/core/types/suggestion'
 import DiffViewer from './DiffViewer.vue'
+
+/**
+ * Transform SuggestionDiff to DiffItem for DiffViewer component
+ */
+function toDiffItem(suggestionDiff: SuggestionDiff): DiffItem {
+  return {
+    action: suggestionDiff.type,
+    componentType: suggestionDiff.newComponent?.type || suggestionDiff.after?.type || 'Unknown',
+    componentId: suggestionDiff.targetId,
+    description: suggestionDiff.description,
+    component: suggestionDiff.newComponent,
+    oldValue: suggestionDiff.before,
+    newValue: suggestionDiff.after,
+  }
+}
 
 const suggestionStore = useSuggestion()
 

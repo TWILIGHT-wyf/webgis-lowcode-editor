@@ -1,4 +1,4 @@
-import type { Component } from './components'
+import type { Component } from '@vela/core/types/components'
 
 /**
  * AI 建议面板类型定义

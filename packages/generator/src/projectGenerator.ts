@@ -1,12 +1,46 @@
-﻿// TODO: 代码生成器功能开发中 - 暂时注释以让编辑器正常运行
+// TODO: 代码生成器功能开发中 - 暂时注释以让编辑器正常运行
 // import JSZip from 'jszip'
 // import { saveAs } from 'file-saver'
 // import { transform } from 'sucrase'
 import { generateVueCode } from './toCode'
-import type { Project, Page } from '@vela/editor/stores/project'
-import type { Component } from './components'
+import type { NodeSchema } from '@vela/core'
 import useEventExecutorSource from '../../renderer/src/runtime/useEventExecutor.ts?raw'
 import useDataBindingEngineSource from '../../renderer/src/runtime/useDataBindingEngine.ts?raw'
+
+/**
+ * Component type for code generation (flattened from NodeSchema)
+ */
+export interface Component {
+  id: string
+  componentName: string
+  props?: Record<string, unknown>
+  style?: Record<string, unknown>
+  children?: Component[]
+  events?: Record<string, unknown[]>
+}
+
+/**
+ * Page type for code generation
+ */
+export interface Page {
+  id: string
+  name: string
+  route?: string
+  components?: Component[]
+}
+
+/**
+ * Project type for code generation
+ */
+export interface Project {
+  id?: string
+  name: string
+  description?: string
+  pages: Page[]
+  cover?: string
+  createdAt?: number
+  updatedAt?: number
+}
 
 export interface ExportOptions {
   language: 'ts' | 'js' // 输出语言

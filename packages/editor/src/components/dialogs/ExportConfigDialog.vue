@@ -1,4 +1,4 @@
-﻿<template>
+<template>
   <el-dialog
     v-model="dialogVisible"
     class="export-config-dialog"
@@ -54,8 +54,11 @@
 <script setup lang="ts">
 import { computed, reactive, ref, watch } from 'vue'
 import { ElMessage } from 'element-plus'
-import { exportProjectToZip, type ExportOptions } from '@vela/generator/projectGenerator'
-import type { Project } from '@/stores/project'
+import {
+  exportProjectToZip,
+  type ExportOptions,
+  type Project,
+} from '@vela/generator/projectGenerator'
 
 const STORAGE_KEY = 'webgis-export-preferences'
 

@@ -1,4 +1,4 @@
-﻿/**
+/**
  * 建议面板 Pinia Store
  * 管理建议状态、历史记录、审计日志
  */
@@ -12,10 +12,41 @@ import type {
   AuditRecord,
 } from '@vela/core/types/suggestion'
 import type { Component } from '@vela/core/types/components'
+import type { NodeSchema } from '@vela/core/types/schema'
+import { nodeSchemaToComponent, componentToNodeSchema } from '@vela/core/types/components'
 import { generateSuggestion, applyDiffs } from '@/services/suggestService'
 import { useComponent } from '@/stores/component'
 import { useUIStore } from '@/stores/ui'
 import { nanoid } from 'nanoid'
+
+/**
+ * Convert NodeSchema array to Component array for suggestion system
+ */
+function nodesToComponents(nodes: NodeSchema[]): Component[] {
+  return nodes.map(nodeSchemaToComponent)
+}
+
+/**
+ * Convert Component array to NodeSchema tree (simplified - just updates existing nodes)
+ */
+function componentsToNodes(
+  components: Component[],
+  componentStore: ReturnType<typeof useComponent>,
+): void {
+  // For each component in the result, update the corresponding node in the tree
+  for (const comp of components) {
+    const nodeSchema = componentToNodeSchema(comp)
+    const existingNode = componentStore.getComponentById(comp.id)
+    if (existingNode) {
+      // Update existing node
+      componentStore.updateStyle(comp.id, nodeSchema.style || {})
+      componentStore.updateProps(comp.id, nodeSchema.props || {})
+    } else {
+      // Add new node to root
+      componentStore.addComponent(null, nodeSchema)
+    }
+  }
+}
 
 export const useSuggestion = defineStore('suggestion', () => {
   // 状态
@@ -45,7 +76,7 @@ export const useSuggestion = defineStore('suggestion', () => {
       const request: SuggestionRequest = {
         prompt,
         context: {
-          components: componentStore.componentStore as Component[],
+          components: nodesToComponents(componentStore.componentStore),
           canvasSize: {
             width: uiStore.canvasWidth,
             height: uiStore.canvasHeight,
@@ -104,16 +135,16 @@ export const useSuggestion = defineStore('suggestion', () => {
     const item = suggestions.value.find((s) => s.result.id === suggestionId)
     if (!item) return
 
-    const beforeSnapshot = [...(componentStore.componentStore as Component[])]
+    const beforeSnapshot = nodesToComponents(componentStore.componentStore)
 
     // 应用所有差异
     const { components: newComponents, appliedCount } = applyDiffs(
-      componentStore.componentStore as Component[],
+      nodesToComponents(componentStore.componentStore),
       item.result.diffs,
     )
 
     if (appliedCount > 0) {
-      componentStore.componentStore = newComponents
+      componentsToNodes(newComponents, componentStore)
 
       // 记录审计日志
       const audit: AuditRecord = {
@@ -121,7 +152,7 @@ export const useSuggestion = defineStore('suggestion', () => {
         suggestionId: item.result.id,
         prompt: item.result.request.prompt,
         action: 'accepted',
-        appliedDiffs: item.result.diffs.map((d) => d.description),
+        appliedDiffs: item.result.diffs.map((d: { description: string }) => d.description),
         agentVersion: item.result.agentVersion,
         changeSummary: `应用了 ${appliedCount} 个变更`,
         beforeSnapshot,
@@ -143,18 +174,20 @@ export const useSuggestion = defineStore('suggestion', () => {
     const item = suggestions.value.find((s) => s.result.id === suggestionId)
     if (!item) return
 
-    const beforeSnapshot = [...(componentStore.componentStore as Component[])]
+    const beforeSnapshot = nodesToComponents(componentStore.componentStore)
 
     // 筛选要应用的差异
-    const selectedDiffs = item.result.diffs.filter((_, index) => diffIndices.includes(index))
+    const selectedDiffs = item.result.diffs.filter((_: unknown, index: number) =>
+      diffIndices.includes(index),
+    )
 
     const { components: newComponents, appliedCount } = applyDiffs(
-      componentStore.componentStore as Component[],
+      nodesToComponents(componentStore.componentStore),
       selectedDiffs,
     )
 
     if (appliedCount > 0) {
-      componentStore.componentStore = newComponents
+      componentsToNodes(newComponents, componentStore)
 
       // 记录审计日志
       const audit: AuditRecord = {
@@ -162,7 +195,7 @@ export const useSuggestion = defineStore('suggestion', () => {
         suggestionId: item.result.id,
         prompt: item.result.request.prompt,
         action: 'partial',
-        appliedDiffs: selectedDiffs.map((d) => d.description),
+        appliedDiffs: selectedDiffs.map((d: { description: string }) => d.description),
         agentVersion: item.result.agentVersion,
         changeSummary: `应用了 ${appliedCount}/${item.result.diffs.length} 个变更`,
         beforeSnapshot,
@@ -209,10 +242,10 @@ export const useSuggestion = defineStore('suggestion', () => {
     const audit = auditRecords.value.find((a) => a.id === auditId)
     if (!audit || !audit.beforeSnapshot) return
 
-    const beforeRollback = [...(componentStore.componentStore as Component[])]
+    const beforeRollback = nodesToComponents(componentStore.componentStore)
 
-    // 恢复快照
-    componentStore.componentStore = [...audit.beforeSnapshot]
+    // 恢复快照 - convert Component[] back to NodeSchema tree
+    componentsToNodes(audit.beforeSnapshot, componentStore)
 
     // 记录回滚操作
     const rollbackAudit: AuditRecord = {

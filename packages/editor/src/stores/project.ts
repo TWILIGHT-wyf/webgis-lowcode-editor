@@ -1,8 +1,9 @@
 import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
-import type { ProjectSchema, PageSchema } from '@vela/core'
+import type { ProjectSchema, PageSchema, PageConfig } from '@vela/core'
 import { ElMessage } from 'element-plus'
 import * as projectService from '@/services/projects'
+import { convertLayout, type LayoutMode } from '@/utils/layoutConverter'
 
 export type SaveStatus = 'saved' | 'saving' | 'unsaved'
 
@@ -29,6 +30,9 @@ export const useProjectStore = defineStore('project', () => {
         id: 'page_default',
         name: 'Home',
         path: '/',
+        config: {
+          layout: 'free',
+        },
         children: {
           id: 'root_container',
           componentName: 'Page',
@@ -75,6 +79,13 @@ export const useProjectStore = defineStore('project', () => {
     return project.value.pages.findIndex((p) => p.id === activePageId.value)
   })
 
+  /**
+   * 获取当前页面的布局模式
+   */
+  const currentPageLayout = computed<LayoutMode>(() => {
+    return currentPage.value?.config?.layout || 'free'
+  })
+
   // ========== Actions ==========
 
   /**
@@ -108,11 +119,14 @@ export const useProjectStore = defineStore('project', () => {
   /**
    * ������ҳ��
    */
-  function addPage(name: string = 'New Page') {
+  function addPage(name: string = 'New Page', layoutMode: LayoutMode = 'free') {
     const newPage: PageSchema = {
       id: `page_${Date.now()}`,
       name,
       path: `/${name.toLowerCase().replace(/\s+/g, '-')}`,
+      config: {
+        layout: layoutMode,
+      },
       children: {
         id: `root_${Date.now()}`,
         componentName: 'Page',
@@ -191,6 +205,50 @@ export const useProjectStore = defineStore('project', () => {
   }
 
   /**
+   * 切换页面的布局模式
+   * @param pageId 页面 ID
+   * @param mode 目标布局模式 'free' | 'flow'
+   * @returns 是否切换成功
+   */
+  function changePageLayout(pageId: string, mode: LayoutMode): boolean {
+    const pageIndex = project.value.pages.findIndex((p) => p.id === pageId)
+    if (pageIndex === -1) {
+      console.warn(`[ProjectStore] Page not found: ${pageId}`)
+      return false
+    }
+
+    const page = project.value.pages[pageIndex]
+
+    // 如果是相同模式，跳过
+    if (page.config?.layout === mode) {
+      console.log(`[ProjectStore] Page already in ${mode} mode`)
+      return true
+    }
+
+    // 转换组件树的布局
+    if (page.children) {
+      const convertedTree = convertLayout(page.children, mode)
+      // 替换整个 children 对象以确保响应式更新
+      page.children = convertedTree
+    }
+
+    // 更新页面配置
+    if (!page.config) {
+      page.config = { layout: mode }
+    } else {
+      page.config.layout = mode
+    }
+
+    // 触发响应式更新：用新对象替换页面引用
+    project.value.pages[pageIndex] = { ...page }
+
+    saveStatus.value = 'unsaved'
+    console.log(`[ProjectStore] Changed page "${page.name}" layout to: ${mode}`)
+
+    return true
+  }
+
+  /**
    * ������Ŀ�����
    */
   async function saveProject() {
@@ -221,6 +279,7 @@ export const useProjectStore = defineStore('project', () => {
     // Getters
     currentPage,
     currentPageIndex,
+    currentPageLayout,
 
     // Actions
     initProject,
@@ -230,6 +289,7 @@ export const useProjectStore = defineStore('project', () => {
     renamePage,
     updateProjectConfig,
     updateProjectMeta,
+    changePageLayout,
     saveProject,
   }
 })

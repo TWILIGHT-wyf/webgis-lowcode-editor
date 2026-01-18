@@ -1,4 +1,4 @@
-﻿/**
+/**
  * 物料描述协议：描述组件在"编辑器"中的表现
  * 编辑器根据这个协议自动生成属性面板 (Property Panel)
  */
@@ -8,9 +8,17 @@ export interface MaterialMeta {
   category: string // 分类 (e.g. '基础', '图表')
   screenshot?: string // 缩略图 URL
 
-  // 属性配置器：定义右侧面板如何渲染
-  props: {
+  // 容器标识：标记组件是否可以容纳子组件（用于 Flow 模式判断）
+  isContainer?: boolean
+
+  // 属性配置器：定义右侧面板如何渲染（真正的组件 props）
+  props?: {
     [propName: string]: PropConfig
+  }
+
+  // 样式配置器：定义组件支持的样式属性（会映射到 node.style）
+  styles?: {
+    [styleName: string]: PropConfig
   }
 
   // 组件支持的事件
@@ -31,4 +39,6 @@ export interface PropConfig {
   // 传递给设置器的参数 (如 Select 的 options)
   setterProps?: Record<string, any>
   defaultValue?: any
+  description?: string // 属性说明
+  group?: string // 属性分组（用于折叠面板）
 }

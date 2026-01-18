@@ -4,9 +4,10 @@
   "main": "src/index.ts",
   "module": "src/index.ts",
   "dependencies": {
-    "vue": "^3.4.0",
     "@vela/core": "workspace:*",
+    "@vela/materials": "workspace:*",
     "@vela/ui": "workspace:*",
-    "@vela/materials": "workspace:*"
+    "vue": "^3.4.0",
+    "vue-router": "^4.6.0"
   }
 }

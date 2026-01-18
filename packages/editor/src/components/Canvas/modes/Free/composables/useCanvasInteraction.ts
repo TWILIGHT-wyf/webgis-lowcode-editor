@@ -1,10 +1,18 @@
-﻿import { ref, onMounted, onBeforeUnmount, type Ref } from 'vue'
+import { ref, onMounted, onBeforeUnmount, type Ref } from 'vue'
 import { throttle } from 'lodash-es'
-import type { ComponentPayload } from '@vela/core/types/components'
 import { MIN_SCALE, MAX_SCALE, ZOOM_FACTOR } from '@vela/core/constants/editor'
 
+/**
+ * 拖拽载荷类型：从物料面板拖入画布时的数据
+ */
+export interface ComponentPayload {
+  componentName: string
+  type?: string // 向后兼容旧格式
+  [key: string]: unknown
+}
+
 export function useCanvasInteraction(
-  wrapRef: Ref<HTMLDivElement | null>,
+  wrapRef: Ref<HTMLElement | null>,
   scaleRef: Ref<number>,
   options: {
     enableZoom?: boolean
@@ -16,7 +24,7 @@ export function useCanvasInteraction(
     dragCallback?: (x: number, y: number, ctrlPressed: boolean, altPressed: boolean) => void
     preventBubble?: boolean
     dragThreshold?: number
-    rootRefForAbs?: Ref<HTMLDivElement | null>
+    rootRefForAbs?: Ref<HTMLElement | null>
     onDragStart?: () => void
     onDragEnd?: (altPressed: boolean) => void
     // 允许外部传入平移偏移，用于子组件拖拽时使用画布的真实平移值
@@ -152,7 +160,7 @@ export function useCanvasInteraction(
     if (options.dragCallback) options.dragCallback(x, y, e.ctrlKey, e.altKey)
   }
 
-  const onDragMove = throttle<(e: MouseEvent) => void>(rawOnDragMove, 16)
+  const onDragMove: (e: MouseEvent) => void = throttle(rawOnDragMove, 16)
 
   const onDragEnd = () => {
     window.removeEventListener('mousemove', onDragMove)

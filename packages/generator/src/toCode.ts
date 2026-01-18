@@ -1,4 +1,4 @@
-﻿import type { Component } from './components'
+import type { Component, ActionConfig } from './components'
 
 /**
  * 组件类型到库导出名的映射
@@ -162,7 +162,7 @@ function generateComponentTemplate(
   if (animationInfo.class && 'trigger' in animationInfo) {
     // load 触发的动画直接添加 class，hover/click 通过动态绑定控制
     if (animationInfo.trigger === 'load') {
-       html += `${indentStr}  :class="['animated', '${animationInfo.class}']"\n`
+      html += `${indentStr}  :class="['animated', '${animationInfo.class}']"\n`
     } else {
       // hover/click 使用响应式变量控制动画播放
       html += `${indentStr}  :class="animationPlaying_${comp.id} ? ['animated', '${animationInfo.class}'] : []"\n`
@@ -651,7 +651,7 @@ function generateEventHandlers(components: Component[]): string {
     if (comp.events) {
       // Click事件
       if (comp.events.click && comp.events.click.length > 0) {
-        const isAsync = comp.events.click.some((a) => a.delay && a.delay > 0)
+        const isAsync = comp.events.click.some((a: ActionConfig) => a.delay && a.delay > 0)
         handlersStr += `\n${isAsync ? 'async ' : ''}function handleEvent_${comp.id}_click() {\n`
         handlersStr += `  // 代理调用运行时执行器\n`
         for (const action of comp.events.click) {
@@ -662,7 +662,7 @@ function generateEventHandlers(components: Component[]): string {
 
       // Hover事件
       if (comp.events.hover && comp.events.hover.length > 0) {
-        const isAsync = comp.events.hover.some((a) => a.delay && a.delay > 0)
+        const isAsync = comp.events.hover.some((a: ActionConfig) => a.delay && a.delay > 0)
         handlersStr += `\n${isAsync ? 'async ' : ''}function handleEvent_${comp.id}_hover() {\n`
         handlersStr += `  // 代理调用运行时执行器\n`
         for (const action of comp.events.hover) {

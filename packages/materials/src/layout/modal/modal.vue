@@ -1,9 +1,9 @@
-﻿<script setup lang="ts">
+<script setup lang="ts">
 import { computed, ref, watch } from 'vue'
 import { storeToRefs } from 'pinia'
 import { useComponent } from '@vela/editor/stores/component'
 import { vModal as BaseModal } from '@vela/ui'
-import Shape from '@vela/editor/components/Editor/shape/shape.vue'
+import Shape from '@vela/editor/components/Canvas/modes/Free/Shape/Shape.vue'
 import { getComponent } from '@vela/materials/registry'
 
 const props = defineProps<{

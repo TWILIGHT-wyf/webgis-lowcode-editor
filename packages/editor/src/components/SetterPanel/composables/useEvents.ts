@@ -2,7 +2,7 @@ import { computed } from 'vue'
 import { useComponent } from '@/stores/component'
 import { storeToRefs } from 'pinia'
 import { nanoid } from 'nanoid'
-import type { EventAction } from '@vela/core/types/components'
+import type { ActionSchema } from '@vela/core/types/action'
 
 export function useEventConfiguration() {
   const componentStore = useComponent()
@@ -15,12 +15,12 @@ export function useEventConfiguration() {
     }
   }
 
-  const clickActions = computed<EventAction[]>({
+  const clickActions = computed<ActionSchema[]>({
     get: () => {
       if (!selectedNode.value?.events?.click) return []
       return selectedNode.value.events.click
     },
-    set: (value) => {
+    set: (value: ActionSchema[]) => {
       if (selectedNode.value?.events) {
         selectedNode.value.events.click = value
         componentStore.syncToProjectStore()
@@ -28,12 +28,12 @@ export function useEventConfiguration() {
     },
   })
 
-  const hoverActions = computed<EventAction[]>({
+  const hoverActions = computed<ActionSchema[]>({
     get: () => {
       if (!selectedNode.value?.events?.hover) return []
       return selectedNode.value.events.hover
     },
-    set: (value) => {
+    set: (value: ActionSchema[]) => {
       if (selectedNode.value?.events) {
         selectedNode.value.events.hover = value
         componentStore.syncToProjectStore()
@@ -48,8 +48,8 @@ export function useEventConfiguration() {
     }
     selectedNode.value!.events!.click.push({
       id: nanoid(),
-      type: '',
-    })
+      type: 'alert',
+    } as ActionSchema)
     componentStore.syncToProjectStore()
   }
 
@@ -66,8 +66,8 @@ export function useEventConfiguration() {
     }
     selectedNode.value!.events!.hover.push({
       id: nanoid(),
-      type: '',
-    })
+      type: 'alert',
+    } as ActionSchema)
     componentStore.syncToProjectStore()
   }
 

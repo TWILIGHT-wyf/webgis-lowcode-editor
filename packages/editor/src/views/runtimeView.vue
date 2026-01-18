@@ -1,4 +1,4 @@
-﻿<template>
+<template>
   <div class="runtime-view" :class="{ 'theme-dark': isDarkMode }">
     <ExportConfigDialog v-model="exportDialogVisible" :project="projectSnapshot" />
 
@@ -301,9 +301,10 @@ import {
   generateProjectSourceFiles,
   type ExportOptions,
   type GeneratedSourceFile,
+  type Project,
+  type Page,
+  type Component,
 } from '@vela/generator/projectGenerator'
-import type { Component } from '@vela/core/types/components'
-import type { Page, Project } from '@/stores/project'
 import {
   Document,
   CopyDocument,
@@ -347,14 +348,10 @@ const projectStore = useProjectStore()
 // 运行态：部分自定义组件依赖 Pinia componentStore 取数。
 // 预览页用 previewComponents 作为数据源时，需要同步到 store（并在离开时恢复），避免组件取不到数据。
 const componentStore = useComponent()
-const {
-  componentStore: runtimeStoreComponents,
-  selectComponent: runtimeSelectComponent,
-  selectedIds: runtimeSelectedIds,
-} = storeToRefs(componentStore)
+const { componentStore: runtimeStoreComponents, selectedIds: runtimeSelectedIds } =
+  storeToRefs(componentStore)
 const storeSnapshot = shallowRef<{
   components: Component[]
-  selectComponent: Component | null
   selectedIds: string[]
 } | null>(null)
 
@@ -410,7 +407,10 @@ const highlightedCode = computed(() => {
 
 const fileTreeData = computed<FileTreeNode[]>(() => sortTree(buildFileTree(generatedFiles.value)))
 const selectedFileContent = computed(() => {
-  return generatedFiles.value.find((file) => file.path === selectedFilePath.value)?.content || ''
+  return (
+    generatedFiles.value.find((file: GeneratedSourceFile) => file.path === selectedFilePath.value)
+      ?.content || ''
+  )
 })
 
 // 根据文件路径获取语言
@@ -444,7 +444,7 @@ function getFileIconClass(filename: string): string {
 
 // 加载指定页面的组件
 async function loadPage(pageId: string) {
-  const page = allPages.value.find((p) => p.id === pageId)
+  const page = allPages.value.find((p: Page) => p.id === pageId)
   if (page) {
     currentPageId.value = page.id
     currentPageName.value = page.name
@@ -452,9 +452,9 @@ async function loadPage(pageId: string) {
     previewComponents.value = JSON.parse(JSON.stringify(page.components || []))
 
     // 同步到 Pinia store，供运行态组件读取（并让 DataBinding 更新能驱动这些组件）
-    runtimeStoreComponents.value = previewComponents.value
-    runtimeSelectComponent.value = null
-    runtimeSelectedIds.value = []
+    // Note: componentStore is a computed readonly property, we can't assign directly
+    // Instead, use the store's action to set data or work with the preview components directly
+    componentStore.clearSelection()
 
     // 数据联动引擎已由 RuntimeRenderer 管理，无需手动启动
   }
@@ -474,9 +474,6 @@ onMounted(async () => {
   // 进入预览前，快照编辑器 store 状态，离开时恢复
   storeSnapshot.value = {
     components: JSON.parse(JSON.stringify(runtimeStoreComponents.value || [])),
-    selectComponent: runtimeSelectComponent.value
-      ? JSON.parse(JSON.stringify(runtimeSelectComponent.value))
-      : null,
     selectedIds: [...(runtimeSelectedIds.value || [])],
   }
 
@@ -490,18 +487,33 @@ onMounted(async () => {
 
   try {
     // 优先使用本地store中的最新项目数据，避免服务器延迟导致的数据不一致
-    const localProject = projectStore.currentProject
-    if (localProject) {
-      syncProjectContext(localProject)
+    // Note: projectStore doesn't have currentProject, use project directly
+    const localProject = projectStore.project
+    if (localProject && localProject.pages.length > 0) {
+      // Convert ProjectSchema to generator's Project format
+      syncProjectContext({
+        name: localProject.name,
+        description: localProject.description,
+        pages: localProject.pages.map((page) => ({
+          id: page.id,
+          name: page.name,
+          route: page.path,
+          components: page.children ? flattenNodeToComponents(page.children) : [],
+        })),
+      })
     } else {
       const serverProject = await projectService.getProject(projectId.value)
       if (serverProject) {
         syncProjectContext({
           id: serverProject._id,
           name: serverProject.name,
-          cover: serverProject.cover,
           description: serverProject.description,
-          pages: serverProject.pages,
+          pages: serverProject.schema.pages.map((page) => ({
+            id: page.id,
+            name: page.name,
+            route: page.path,
+            components: page.children ? flattenNodeToComponents(page.children) : [],
+          })),
           createdAt: new Date(serverProject.createdAt).getTime(),
           updatedAt: new Date(serverProject.updatedAt).getTime(),
         })
@@ -533,12 +545,39 @@ onMounted(async () => {
   isLoading.value = false
 })
 
+/**
+ * Helper function to flatten NodeSchema tree to Component array
+ */
+function flattenNodeToComponents(node: {
+  id: string
+  componentName: string
+  props?: Record<string, unknown>
+  style?: Record<string, unknown>
+  children?: unknown[]
+  events?: Record<string, unknown[]>
+}): Component[] {
+  const result: Component[] = []
+  if (node.children && Array.isArray(node.children)) {
+    for (const child of node.children) {
+      const childNode = child as typeof node
+      result.push({
+        id: childNode.id,
+        componentName: childNode.componentName,
+        props: childNode.props,
+        style: childNode.style,
+        events: childNode.events,
+        children: childNode.children ? flattenNodeToComponents(childNode) : undefined,
+      })
+    }
+  }
+  return result
+}
+
 onBeforeUnmount(() => {
   // 数据联动引擎的清理已由 RuntimeRenderer 自动处理
   if (storeSnapshot.value) {
-    runtimeStoreComponents.value = storeSnapshot.value.components
-    runtimeSelectComponent.value = storeSnapshot.value.selectComponent
-    runtimeSelectedIds.value = storeSnapshot.value.selectedIds
+    // Restore selection state
+    componentStore.selectComponents(storeSnapshot.value.selectedIds)
   }
 })
 
@@ -556,9 +595,7 @@ watch(
 function backToEditor() {
   // 离开前恢复 store，避免预览污染编辑器
   if (storeSnapshot.value) {
-    runtimeStoreComponents.value = storeSnapshot.value.components
-    runtimeSelectComponent.value = storeSnapshot.value.selectComponent
-    runtimeSelectedIds.value = storeSnapshot.value.selectedIds
+    componentStore.selectComponents(storeSnapshot.value.selectedIds)
   }
   if (projectId.value) {
     router.push(`/editor/${projectId.value}`)
@@ -666,7 +703,7 @@ function buildFileTree(files: GeneratedSourceFile[]): FileTreeNode[] {
     const segments = file.path.split('/')
     let currentLevel = root
     let currentPath = ''
-    segments.forEach((segment, index) => {
+    segments.forEach((segment: string, index: number) => {
       currentPath = currentPath ? `${currentPath}/${segment}` : segment
       let node = currentLevel.find((item) => item.label === segment)
       if (!node) {

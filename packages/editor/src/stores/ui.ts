@@ -1,5 +1,6 @@
-import { defineStore } from 'pinia'
-import { ref, computed } from 'vue'
+import { defineStore, storeToRefs } from 'pinia'
+import { ref, computed, watch } from 'vue'
+import { useProjectStore } from './project'
 
 /**
  * UI 状态管理 Store
@@ -72,6 +73,26 @@ export const useUIStore = defineStore('ui', () => {
    * - 'flow': 流式画布模式 (文档流)
    */
   const canvasMode = ref<'free' | 'flow'>('free')
+
+  // ========== Watchers ==========
+
+  /**
+   * 监听页面切换，同步布局模式
+   * 当用户切换到不同页面时，画布模式应该跟随该页面的配置
+   */
+  const projectStore = useProjectStore()
+  const { currentPageLayout } = storeToRefs(projectStore)
+
+  watch(
+    currentPageLayout,
+    (newLayout) => {
+      if (newLayout && newLayout !== canvasMode.value) {
+        canvasMode.value = newLayout
+        console.log(`[UIStore] Synced canvasMode to page layout: ${newLayout}`)
+      }
+    },
+    { immediate: true },
+  )
 
   // ========== Actions ==========
 

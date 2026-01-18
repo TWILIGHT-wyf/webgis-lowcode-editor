@@ -1,4 +1,4 @@
-﻿<template>
+<template>
   <BaseCol v-bind="colProps">
     <template v-if="hasChildren">
       <template v-if="comp?.layout?.mode === 'absolute'">
@@ -34,7 +34,7 @@ import { useComponent } from '@vela/editor/stores/component'
 import { storeToRefs } from 'pinia'
 import { vCol as BaseCol } from '@vela/ui'
 import { useLayoutHelpers } from '@vela/materials/layout/layoutUtils'
-import Shape from '@vela/editor/components/Editor/shape/shape.vue'
+import Shape from '@vela/editor/components/Canvas/modes/Free/Shape/Shape.vue'
 
 const props = defineProps<{ id: string }>()
 const { componentStore } = storeToRefs(useComponent())

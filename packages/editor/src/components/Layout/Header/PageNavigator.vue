@@ -119,6 +119,7 @@ import { useProjectStore } from '@/stores/project'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import TreeNode from './TreeNode.vue'
 import { Files, ArrowDown, DocumentAdd, Link } from '@element-plus/icons-vue'
+import type { PageSchema } from '@vela/core'
 
 // 定义页面树节点类型
 interface PageTreeNode {
@@ -140,20 +141,20 @@ const showAddPageDialog = ref(false)
 const newPageForm = ref({ name: '', route: '' })
 
 // 从 Store 获取真实页面列表
-const pagesFromStore = computed(() => projectStore.currentProject?.pages || [])
+const pagesFromStore = computed(() => projectStore.project?.pages || [])
 const activePageId = computed(() => projectStore.activePageId || '')
 
 const activePage = computed(() => {
-  return pagesFromStore.value.find((p) => p.id === activePageId.value)
+  return pagesFromStore.value.find((p: PageSchema) => p.id === activePageId.value)
 })
 
 // 将页面列表转换为树节点格式
 const pageTree = computed<PageTreeNode[]>(() => {
-  return pagesFromStore.value.map((page, index) => ({
+  return pagesFromStore.value.map((page: PageSchema, index: number) => ({
     id: page.id,
     name: page.name,
     type: 'page' as const,
-    path: page.route || `/${page.name.toLowerCase().replace(/\s+/g, '-')}`,
+    path: page.path || `/${page.name.toLowerCase().replace(/\s+/g, '-')}`,
     expanded: false,
     isHome: index === 0,
   }))
@@ -183,21 +184,20 @@ async function handleAddPage() {
 
 async function submitAddPage() {
   const name = newPageForm.value.name?.trim()
-  const route = newPageForm.value.route?.trim()
 
   if (!name) {
     ElMessage.warning('页面名称不能为空')
     return
   }
 
-  projectStore.addPage(name, route)
+  projectStore.addPage(name)
   ElMessage.success('页面创建成功')
   showAddPageDialog.value = false
   isPageMenuOpen.value = false
 }
 
 async function handleDeletePage(pageId: string) {
-  const page = pagesFromStore.value.find((p) => p.id === pageId)
+  const page = pagesFromStore.value.find((p: PageSchema) => p.id === pageId)
   if (!page) return
 
   try {
@@ -207,7 +207,7 @@ async function handleDeletePage(pageId: string) {
       cancelButtonText: '取消',
     })
 
-    projectStore.removePage(pageId)
+    projectStore.deletePage(pageId)
     ElMessage.success('页面已删除')
   } catch {
     // 用户取消
@@ -216,7 +216,7 @@ async function handleDeletePage(pageId: string) {
 
 async function handleEditPage(data: { id: string; name: string; route?: string }) {
   try {
-    projectStore.renamePage(data.id, data.name, data.route)
+    projectStore.renamePage(data.id, data.name)
     ElMessage.success('页面信息已更新')
   } catch (error) {
     console.error('编辑页面失败:', error)

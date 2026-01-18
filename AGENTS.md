@@ -5,9 +5,9 @@
 ### Development & Build
 
 - `pnpm dev` - Start dev server (@vela/editor on port 5173)
-- `pnpm build` - Build production bundle
 - `pnpm -F @vela/editor dev` - Start editor dev server
 - `pnpm -F @vela/editor build` - Build editor only
+- `pnpm build` - Build production bundle
 
 ### Type Checking & Linting
 
@@ -17,10 +17,9 @@
 
 ### Testing (Vitest)
 
-- `pnpm vitest` - Run all unit/component tests
+- `pnpm vitest` - Run all unit/component tests (watch mode)
 - `pnpm vitest run` - Run tests once (no watch)
-- `pnpm vitest --run` - Run tests in CI mode
-- `pnpm vitest tests/components/AnimationPanel.spec.ts` - Run single test file
+- `pnpm vitest tests/unit/eventExecutor.spec.ts` - Run single test file
 - `pnpm vitest --reporter=verbose` - Run with detailed output
 
 ### Testing (Playwright E2E)
@@ -47,7 +46,8 @@ This is a **pnpm monorepo** with the following packages:
 
 - Use `@/` alias for editor source files: `import { useProjectStore } from '@/stores/project'`
 - Use package aliases for inter-package imports: `import type { ProjectSchema } from '@vela/core'`
-- Group imports: external → internal → relative
+- Group imports: external → monorepo packages → local aliases → relative
+- Use `import type` for type-only imports to optimize bundles
 - Named exports preferred over default exports
 
 ### Formatting (Prettier + EditorConfig)
@@ -67,34 +67,41 @@ This is a **pnpm monorepo** with the following packages:
 - Prefer `interface` for object shapes, `type` for unions
 - Avoid `any` - use `unknown` or proper types
 - Use generics appropriately: `<T extends Component>`
+- Define types alongside utilities in same file for self-contained modules
+- Export union types for mode flags: `type LayoutMode = 'free' | 'flow'`
 
 ### Naming Conventions
 
-- **Components**: PascalCase (e.g., `CanvasBoard.vue`, `useProjectStore`)
-- **Files**: camelCase for utilities, PascalCase for components
+- **Components**: PascalCase (e.g., `CanvasBoard.vue`, `FreeCanvas.vue`)
+- **Composables**: `use` prefix + PascalCase (e.g., `useComponentEvents`, `useCanvasInteraction`)
+- **Files**: camelCase for utilities/composables, PascalCase for components
 - **Variables/Functions**: camelCase (e.g., `activePageId`, `updateProjectMeta`)
-- **Constants**: UPPER_SNAKE_CASE (e.g., `DEFAULT_CONFIG`)
-- **Interfaces/Types**: PascalCase with `I` prefix discouraged (use `ProjectSchema`, `PageSchema`)
+- **Constants**: UPPER_SNAKE_CASE (e.g., `DEFAULT_CONFIG`, `SNAP_THRESHOLD`)
+- **Interfaces/Types**: PascalCase (use `ProjectSchema`, `PageSchema` - avoid `I` prefix)
 - **Boolean props**: Prefix with `is/has/can` (e.g., `isVisible`, `hasChildren`)
-- **Event handlers**: Prefix with `handle` (e.g., `handleDrag`, `handleSubmit`)
+- **Event handlers**: `handle` prefix for UI events (e.g., `handleClick`, `handleDrop`)
+- **Custom callbacks**: `on` prefix (e.g., `onMenuAction`, `onDragStart`)
+- **Emitters**: `emit` prefix (e.g., `emitOpenContextMenu`)
 
 ### Vue Component Patterns
 
-- Use `<script setup lang="ts">` syntax
-- Prefer Composition API with `ref`, `computed`, `watch`
-- Use `defineProps<T>()` and `defineEmits<T>()` with generic types
-- For stores, use `defineStore()` from Pinia
-- Use `storeToRefs()` when destructuring from stores
-- Component templates use kebab-case for props/events
-- Use `v-if` vs `v-show` appropriately (conditional rendering vs visibility)
+- **Structure**: Use `<script setup lang="ts">` with clear section comments
+- **Props & Emits**: Use generic types: `defineProps<Props>()`, `defineEmits<Emits>()`
+- **UI Components**: Use `withDefaults` for fallback values (in `@vela/ui`)
+- **Material Components**: Accept only `id: string`, fetch data from Pinia store (in `@vela/materials`)
+- **Composition API**: Prefer `ref`, `computed`, `watch` over Options API
+- **Store Consumption**: Use `storeToRefs()` when destructuring state/getters, actions destructured directly
+- **Provide/Inject**: Use for deep context sharing (e.g., canvas wrapper ref passed to child components)
+- **Template**: kebab-case for props/events
+- **Directives**: Use `v-if` vs `v-show` appropriately
+
+### Composables Pattern
+
+Extract complex logic into `composables/`: `useXxx` pattern, return object with refs/computed/functions, use `provide`/`inject` for shared context. UI components use `withDefaults` for fallbacks; Material components accept only `id: string` and fetch from Pinia.
 
 ### Error Handling
 
-- Always use try-catch for async operations
-- Use ElMessage for user feedback: `ElMessage.success('Saved')`, `ElMessage.error('Failed')`
-- Log errors with context: `console.error('[ProjectStore] Save failed:', error)`
-- Provide fallback values where appropriate
-- Don't ignore errors - at least log them
+Always use try-catch for async/JSON/DOM ops. Provide fallback values, use `ElMessage` for feedback, bracketed console prefixes for debugging: `[Component]`, `[ProjectStore]`, `[Canvas]`.
 
 ### Testing Conventions
 
@@ -106,29 +113,19 @@ This is a **pnpm monorepo** with the following packages:
 - Use Vitest matchers: `expect().toBe()`, `expect().toBeTruthy()`
 - Test structure: Arrange → Act → Assert
 - Mock external dependencies (axios, echarts, leaflet) - see tests/setupTests.ts
+- Use helper functions: `pointerDrag()` for simulating drag events, `setupTestPinia()` for Pinia setup
 
 ### State Management (Pinia)
 
-- Store naming: `useXxxStore` (e.g., `useProjectStore`, `useComponentStore`)
-- Use composition API style: `defineStore('storeName', () => { ... })`
-- Separate state, getters, and actions with comments
-- Export types used in store: `export type { SaveStatus } from './project'`
-- Use `storeToRefs()` in components to maintain reactivity
+Store naming: `useXxxStore` (e.g., `useProjectStore`, `useComponentStore`). Use composition API style: `defineStore('storeName', () => { ... })`. Separate state, getters, actions with comments (e.g., `// ========== Section ==========`). Cross-store dependency: import and call `useXStore()` inside definitions with `watch` for sync. Export types used in store. Use `storeToRefs()` in components for reactive state/getters, actions destructured directly.
 
 ### Console Logging
 
-- Use prefixes for context: `[ProjectStore]`, `[Component]`, `[Canvas]`
-- Keep logs informative but concise
-- Remove debug logs before committing
-- Use `console.warn()` for deprecations or non-breaking issues
-- Use `console.error()` for errors that need investigation
+Use prefixes: `[ProjectStore]`, `[Component]`, `[Canvas]`. Remove debug logs before committing.
 
 ### Comments & Documentation
 
-- Use JSDoc for functions: `/** @param {string} id Component ID */`
-- Keep comments concise and current
-- Don't comment obvious code
-- Use TODO/FIXME comments for temporary workarounds
+Use JSDoc for functions: `/** @param {string} id Component ID */`. Use section comments: `// ========== Section ==========`.
 
 ## Path Aliases
 
